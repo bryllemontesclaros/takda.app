@@ -1,0 +1,281 @@
+/* CALENDAR HEADER */
+.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
+.nav { display: flex; align-items: center; gap: 0.5rem; }
+.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: 180px; text-align: center; }
+.navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 15px; min-width: 40px; min-height: 40px; flex-shrink: 0; }
+.navBtn:hover { border-color: var(--border2); color: var(--text); }
+
+/* ADD BUTTONS */
+.addBtns { display: flex; gap: 6px; }
+.addBtnIncome { padding: 8px 14px; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
+.addBtnIncome:hover { opacity: 0.8; }
+.addBtnExpense { padding: 8px 14px; background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
+.addBtnExpense:hover { opacity: 0.8; }
+.addBtnImport { padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s, border-color 0.15s; }
+.addBtnImport:hover { opacity: 0.9; border-color: var(--accent); }
+
+/* DAY NAMES + GRID */
+.dayNames { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-bottom: 2px; }
+.dayName { text-align: center; font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; padding: 4px 0; }
+.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+
+/* CELL — clean, no text overflow */
+.cell {
+  min-height: 52px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
+.cell:hover { border-color: var(--border2); background: var(--surface3); }
+.today { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
+.otherMonth { opacity: 0.2; pointer-events: none; }
+.selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.hasData { background: var(--surface3); }
+
+.dateNum { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.today .dateNum { color: var(--accent); }
+
+/* DOTS ONLY — no amount text in cells */
+.dots { display: flex; gap: 2px; margin-top: 3px; flex-wrap: wrap; }
+.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dotBalance { background: var(--blue); }
+.dotIncome { background: var(--accent); }
+.dotExpense { background: var(--red); }
+
+/* FORECAST color tint only — no text in cells */
+.forecastBal { display: none; }
+
+/* SUMMARY STRIP */
+.summaryStrip { display: flex; align-items: center; justify-content: space-around; margin-top: 1rem; padding: 12px 0 4px; border-top: 1px solid var(--border); gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.stripItem { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; min-width: 0; text-align: center; }
+.stripLabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; white-space: nowrap; text-align: center; }
+.stripVal { font-family: var(--font-mono); font-size: 13px; font-weight: 600; white-space: nowrap; text-align: center; }
+.stripDivider { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+
+/* FORECAST LEGEND */
+.forecastLegend { display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; flex-wrap: wrap; }
+.legendItem { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text3); }
+.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dayBalanceCard {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  border-radius: var(--radius);
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), var(--surface));
+}
+.dayBalanceHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.dayBalanceLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.dayBalanceValue {
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  color: var(--text);
+}
+.dayBalanceMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.dayBalanceEditBtn,
+.dayBalanceGhostBtn,
+.dayBalanceSaveBtn {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.dayBalanceEditBtn,
+.dayBalanceGhostBtn {
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+}
+.dayBalanceEditBtn:hover,
+.dayBalanceGhostBtn:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+.dayBalanceSaveBtn {
+  border: none;
+  background: var(--blue);
+  color: #081018;
+}
+.dayBalanceSaveBtn:disabled,
+.dayBalanceGhostBtn:disabled { opacity: 0.6; cursor: not-allowed; }
+.dayBalanceField { display: flex; flex-direction: column; gap: 6px; }
+.dayBalanceInputWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--blue) 34%, var(--border));
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+}
+.dayBalanceInputWrap span {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.dayBalanceInputWrap input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.dayBalanceActions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+/* FEEDBACK */
+.feedbackBanner {
+  --feedback-tone: var(--accent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--feedback-tone) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff 4%), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--feedback-tone) 28%, var(--border));
+}
+.feedbackEyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--feedback-tone);
+  margin-bottom: 4px;
+}
+.feedbackTitle { font-family: var(--font-display); font-size: 22px; line-height: 1; color: var(--text); margin-bottom: 6px; }
+.feedbackBody { font-size: 12px; line-height: 1.55; color: var(--text2); }
+
+/* IMPACT PREVIEW in modal */
+.impactPreview { border: 1px solid; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; font-weight: 500; margin-bottom: 1rem; }
+
+/* DAY PANEL — inline on desktop */
+.dayPanelOverlay { display: none; }
+.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+.dayPanelHandle { display: none; }
+.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; gap: 8px; }
+.dayPanelClose { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dayPanelClose:hover { color: var(--red); }
+
+/* DAY PANEL SECTIONS */
+.daySection { margin-bottom: 12px; }
+.daySectionLabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.daySummary { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; font-family: var(--font-mono); flex-wrap: wrap; }
+.dayPanelActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.dayPanelAction { min-height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: opacity 0.15s, transform 0.15s; }
+.dayPanelAction:hover { opacity: 0.92; transform: translateY(-1px); }
+.dayPanelActionIncome { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+.dayPanelActionExpense { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+/* TX ROWS */
+.txRow { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.txRow:last-child { border-bottom: none; }
+.txLeft { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.txIcon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.txMeta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.recurBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
+.projBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
+.txRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.txActions { display: flex; align-items: center; gap: 3px; }
+.editBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 28px; }
+.editBtn:hover { border-color: var(--accent); color: var(--accent); }
+.delBtnSm { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 4px; min-height: 28px; min-width: 28px; }
+.delBtnSm:hover { color: var(--red); background: var(--red-dim); }
+
+.inlineComposerCard { margin-top: 1rem; scroll-margin-top: 88px; }
+
+/* MODAL */
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 640px) { .modalOverlay { align-items: center; } }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 100%; max-height: 90vh; overflow-y: auto; }
+@media (min-width: 640px) { .modal { border-radius: var(--radius-lg); max-width: 500px; max-height: unset; } }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
+.modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
+.typeToggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
+.typeBtn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 52px; }
+.typeBtn:hover { border-color: var(--border2); color: var(--text); }
+.typeBtnIncome { border-color: var(--accent) !important; background: var(--accent-glow) !important; color: var(--accent) !important; }
+.typeBtnExpense { border-color: var(--red) !important; background: var(--red-dim) !important; color: var(--red) !important; }
+.typeBtnSign { font-size: 18px; font-weight: 700; line-height: 1; }
+.amountField { display: flex; align-items: center; gap: 4px; margin-bottom: 1.25rem; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); }
+.amountSign { font-size: 26px; font-weight: 700; font-family: var(--font-mono); line-height: 1; min-width: 20px; }
+.amountSymbol { font-size: 20px; font-weight: 600; font-family: var(--font-mono); color: var(--text2); }
+.amountInput { flex: 1; background: none; border: none; outline: none; font-size: 26px; font-weight: 600; font-family: var(--font-mono); min-width: 0; }
+.modalSectionLabel { font-size: 11px; color: var(--text3); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.quickCats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; }
+.quickCat:hover { border-color: var(--border2); color: var(--text); }
+.quickCatActive { font-weight: 600; }
+.modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.formError { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
+.recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; }
+.recurChipActive { border-color: var(--purple); background: var(--purple-dim); color: var(--purple); }
+.modalActions { display: flex; gap: 8px; margin-top: 1.25rem; }
+.btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
+.btnSave { flex: 2; padding: 12px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; font-weight: 600; min-height: 48px; }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .calHeader { flex-direction: column; align-items: stretch; }
+  .nav { justify-content: space-between; }
+  .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
+  .forecastLegend { align-items: stretch; }
+  .stripDivider { display: none; }
+  .summaryStrip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 12px;
+    overflow: visible;
+    justify-content: stretch;
+    padding-top: 12px;
+  }
+  .stripItem {
+    width: 100%;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface2);
+  }
+  .stripLabel {
+    white-space: normal;
+    line-height: 1.2;
+    min-height: 24px;
+  }
+  .stripVal { font-size: clamp(12px, 3.5vw, 13px); }
+  .dayPanelActions { grid-template-columns: 1fr; }
+  .modalFields { grid-template-columns: 1fr; }
+
+  /* Bottom sheet day panel */
+  .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; }
+  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 200; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
+  .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1rem; }
+}

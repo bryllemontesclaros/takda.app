@@ -1,0 +1,26 @@
+.wrap { position: relative; }
+.bell { background: none; border: none; font-size: 18px; cursor: pointer; padding: 6px; border-radius: var(--radius-sm); position: relative; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; color: var(--text2); }
+.bell:hover { background: var(--surface2); color: var(--text); }
+.badge { position: absolute; top: 2px; right: 2px; background: var(--red); color: #fff; font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 4px; min-width: 16px; text-align: center; font-family: var(--font-body); }
+
+.dropdown { position: fixed; top: 52px; right: 12px; width: 320px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); z-index: 500; box-shadow: 0 8px 32px rgba(0,0,0,0.25); overflow: hidden; }
+@media (max-width: 400px) { .dropdown { width: calc(100vw - 24px); right: 12px; } }
+
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border); }
+.headerTitle { font-size: 13px; font-weight: 600; color: var(--text); }
+.clearAll { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; font-family: var(--font-body); }
+.clearAll:hover { color: var(--red); }
+
+.pushBanner { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--blue-dim); border-bottom: 1px solid var(--border); font-size: 12px; color: var(--blue); }
+.pushBtn { padding: 4px 10px; background: var(--blue); color: #0a0a0f; border: none; border-radius: 20px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: var(--font-body); }
+
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; color: var(--text3); font-size: 13px; }
+
+.list { max-height: 360px; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+.alertItem { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid; }
+.alertLeft { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+.alertIcon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.alertTitle { font-size: 12px; font-weight: 600; margin-bottom: 3px; }
+.alertBody { font-size: 11px; color: var(--text3); line-height: 1.4; }
+.dismissBtn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 12px; padding: 2px 4px; flex-shrink: 0; }
+.dismissBtn:hover { color: var(--red); }

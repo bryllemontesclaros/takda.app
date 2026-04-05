@@ -1,0 +1,68 @@
+/* SEARCH ROW */
+.searchRow { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; position: relative; }
+.searchInput { flex: 1; padding: 10px 36px 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; font-family: var(--font-body); min-height: 44px; }
+.searchInput:focus { border-color: var(--accent); }
+.clearSearch { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 14px; padding: 4px 8px; position: absolute; right: 56px; top: 50%; transform: translateY(-50%); z-index: 1; }
+.filterBtn { padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 13px; font-weight: 500; cursor: pointer; font-family: var(--font-body); white-space: nowrap; min-height: 44px; flex-shrink: 0; }
+.filterBtnActive { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+/* FILTER PANEL */
+.filterPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 10px; }
+.filterGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
+.filterGroup { display: flex; flex-direction: column; gap: 4px; }
+.filterGroup label { font-size: 11px; color: var(--text3); font-weight: 500; }
+.filterGroup select, .filterGroup input { padding: 8px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; font-family: var(--font-body); min-height: 42px; }
+.filterGroup select:focus, .filterGroup input:focus { border-color: var(--accent); }
+.clearFiltersBtn { background: none; border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm); padding: 6px 12px; font-size: 12px; cursor: pointer; font-family: var(--font-body); }
+.clearFiltersBtn:hover { background: var(--red-dim); }
+
+@media (max-width: 360px) {
+  .filterGrid { grid-template-columns: 1fr; }
+}
+
+/* TOTALS BAR */
+.totalsBar { display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 1rem; margin-bottom: 1rem; }
+.totalItem { flex: 1; text-align: center; }
+.totalLabel { font-size: 11px; color: var(--text3); margin-bottom: 4px; }
+.totalVal { font-family: var(--font-body); font-size: 16px; font-weight: 600; }
+.totalDivider { width: 1px; height: 32px; background: var(--border); flex-shrink: 0; }
+
+/* DATE GROUPS */
+.dateGroup { margin-bottom: 1rem; }
+.dateHeader { display: flex; align-items: center; justify-content: space-between; padding: 6px 4px 6px 0; margin-bottom: 4px; }
+.dateLabel { font-size: 12px; font-weight: 600; color: var(--text3); }
+.dateSummary { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+
+/* TX ROWS */
+.txRow { display: flex; align-items: center; gap: 12px; padding: 12px 1.25rem; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+.txRow:last-child { border-bottom: none; }
+.txRow:hover { background: var(--surface2); }
+.txIcon { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; flex-shrink: 0; }
+.txInfo { flex: 1; min-width: 0; }
+.txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txMeta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.txCat { font-size: 11px; color: var(--text3); }
+.txRecur { font-size: 10px; background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-weight: 600; }
+.txRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+.txActions { display: flex; align-items: center; gap: 3px; }
+.editBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 28px; }
+.editBtn:hover { border-color: var(--accent); color: var(--accent); }
+.delBtn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 4px; min-height: 28px; min-width: 28px; }
+.delBtn:hover { color: var(--red); background: var(--red-dim); }
+
+/* EDIT MODAL */
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 300; display: flex; align-items: flex-end; justify-content: center; }
+@media (min-width: 640px) { .modalOverlay { align-items: center; } }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: 100%; max-width: 100%; }
+@media (min-width: 640px) { .modal { border-radius: var(--radius-lg); max-width: 480px; } }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
+.modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
+.btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; }
+
+@media (max-width: 480px) {
+  .filterGrid { grid-template-columns: 1fr; }
+  .totalsBar { padding: 12px 10px; }
+  .totalVal { font-size: 14px; }
+}
