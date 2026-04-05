@@ -9,13 +9,13 @@ import {
   updateProfile,
   verifyBeforeUpdateEmail,
 } from 'firebase/auth'
+import { deleteField } from 'firebase/firestore'
 import GamificationCard from '../components/GamificationCard'
-import PrivacyToggle from '../components/PrivacyToggle'
 import { auth } from '../lib/firebase'
 import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
-import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, PAY_SCHEDULES, today } from '../lib/utils'
+import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, today } from '../lib/utils'
 import styles from './Page.module.css'
 import settStyles from './Settings.module.css'
 
@@ -55,11 +55,6 @@ const NOTIFICATION_OPTIONS = [
     key: 'goals',
     title: 'Goal milestones',
     desc: 'Alerts when savings goals are almost complete or fully reached.',
-  },
-  {
-    key: 'salary',
-    title: 'Salary reminders',
-    desc: 'Prompts when your expected salary has not been logged for the month.',
   },
   {
     key: 'spending',
@@ -233,10 +228,10 @@ function ModeButton({ active, onClick, children }) {
   )
 }
 
-export default function Settings({ user, data, profile, symbol, privacyMode = false, gamification, onTogglePrivacy }) {
+export default function Settings({ user, data, profile, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'
   const restoreInputRef = useRef(null)
-  const [profileForm, setProfileForm] = useState({ salary: '', paySchedule: 'semi-monthly', currency: 'PHP' })
+  const [profileForm, setProfileForm] = useState({ currency: 'PHP' })
   const [notificationPrefs, setNotificationPrefs] = useState(DEFAULT_NOTIFICATION_PREFS)
   const [profileSaved, setProfileSaved] = useState(false)
   const [notifMsg, setNotifMsg] = useState({ text: '', ok: false })
@@ -251,7 +246,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const [accountMsg, setAccountMsg] = useState({ text: '', ok: false })
   const [accountSaving, setAccountSaving] = useState(false)
   const [verifySending, setVerifySending] = useState(false)
-  const [refreshingEmailStatus, setRefreshingEmailStatus] = useState(false)
   const [emailVerified, setEmailVerified] = useState(() => Boolean(auth.currentUser?.emailVerified || user?.emailVerified))
   const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' })
   const [pwMsg, setPwMsg] = useState({ text: '', ok: false })
@@ -274,8 +268,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
       setProfileForm({
-        salary: profile.salary || '',
-        paySchedule: profile.paySchedule || 'semi-monthly',
         currency: profile.currency || 'PHP',
       })
     }
@@ -319,7 +311,12 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   }
 
   async function handleSaveProfile() {
-    await fsSetProfile(user.uid, profileForm)
+    await fsSetProfile(user.uid, {
+      currency: profileForm.currency,
+      salary: deleteField(),
+      paySchedule: deleteField(),
+      lastPayday: deleteField(),
+    })
     setProfileSaved(true)
     window.setTimeout(() => setProfileSaved(false), 3000)
   }
@@ -393,27 +390,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       setAccountMsg({ text: 'Could not send a verification email.', ok: false })
     } finally {
       setVerifySending(false)
-    }
-  }
-
-  async function handleRefreshEmailStatus() {
-    const currentUser = auth.currentUser
-    if (!currentUser) return
-
-    setRefreshingEmailStatus(true)
-    try {
-      await reload(currentUser)
-      const nextVerified = Boolean(currentUser.emailVerified)
-      setEmailVerified(nextVerified)
-      setBrowserPermission(getNotificationPermission())
-      setAccountMsg({
-        text: nextVerified ? 'Email is verified.' : 'Email is still unverified.',
-        ok: nextVerified,
-      })
-    } catch {
-      setAccountMsg({ text: 'Could not refresh account status.', ok: false })
-    } finally {
-      setRefreshingEmailStatus(false)
     }
   }
 
@@ -705,7 +681,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Settings</div>
-        <div className={styles.sub}>Manage your account, privacy, exports, and app preferences</div>
+        <div className={styles.sub}>Manage your account, exports, and app preferences</div>
       </div>
 
       <GamificationCard
@@ -757,9 +733,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
                 {verifySending ? 'Sending...' : 'Send verification email'}
               </button>
             )}
-            <button className={settStyles.btnExport} onClick={handleRefreshEmailStatus} disabled={refreshingEmailStatus}>
-              {refreshingEmailStatus ? 'Refreshing...' : 'Refresh status'}
-            </button>
           </div>
         </div>
 
@@ -817,92 +790,65 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Privacy & preferences</div>
+        <div className={styles.cardTitle}>Notifications</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Privacy mode hides balances and amounts across Takda without changing the layout.
+          Choose which alerts Takda shows and whether this browser can send notifications.
         </p>
+        <StatusBanner message={notifMsg} />
+
         <div className={settStyles.preferenceRow}>
           <div>
-            <div className={settStyles.preferenceTitle}>Hide sensitive data</div>
-            <div className={settStyles.preferenceMeta}>Applies to dashboard, calendar, history, budgets, goals, and accounts.</div>
+            <div className={settStyles.preferenceTitle}>Browser notifications</div>
+            <div className={settStyles.preferenceMeta}>Allow notification permission from this browser when supported.</div>
           </div>
-          <PrivacyToggle enabled={privacyMode} onToggle={onTogglePrivacy} label="Hide balances" />
-        </div>
-
-        <div style={{ borderTop: '1px solid var(--border)', margin: '1rem 0', paddingTop: '1rem' }}>
-          <div className={styles.cardTitle} style={{ marginBottom: 8 }}>Notifications</div>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-            Choose which alerts Takda shows and whether this browser can send notifications.
-          </p>
-          <StatusBanner message={notifMsg} />
-
-          <div className={settStyles.preferenceRow}>
-            <div>
-              <div className={settStyles.preferenceTitle}>Browser notifications</div>
-              <div className={settStyles.preferenceMeta}>Allow notification permission from this browser when supported.</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  padding: '7px 12px',
-                  background: browserPermission === 'granted' ? 'var(--accent-glow)' : browserPermission === 'denied' ? 'var(--red-dim)' : 'var(--surface2)',
-                  border: `1px solid ${browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--border)'}`,
-                  borderRadius: '999px',
-                  color: browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--text2)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                }}
-              >
-                {browserPermission === 'granted'
-                  ? 'Enabled'
-                  : browserPermission === 'denied'
-                    ? 'Blocked'
-                    : browserPermission === 'unsupported'
-                      ? 'Unsupported'
-                      : 'Not enabled'}
-              </span>
-              {browserPermission !== 'granted' && browserPermission !== 'unsupported' && (
-                <button className={settStyles.btnExport} onClick={handleEnableBrowserNotifications}>
-                  Enable
-                </button>
-              )}
-            </div>
-          </div>
-
-          {NOTIFICATION_OPTIONS.map(option => (
-            <div
-              key={option.key}
-              className={settStyles.preferenceRow}
-              style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 12 }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span
+              style={{
+                padding: '7px 12px',
+                background: browserPermission === 'granted' ? 'var(--accent-glow)' : browserPermission === 'denied' ? 'var(--red-dim)' : 'var(--surface2)',
+                border: `1px solid ${browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--border)'}`,
+                borderRadius: '999px',
+                color: browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--text2)',
+                fontSize: 12,
+                fontWeight: 600,
+              }}
             >
-              <div>
-                <div className={settStyles.preferenceTitle}>{option.title}</div>
-                <div className={settStyles.preferenceMeta}>{option.desc}</div>
-              </div>
-              <ToggleButton enabled={notificationPrefs[option.key]} onClick={() => handleNotificationToggle(option.key)} />
-            </div>
-          ))}
+              {browserPermission === 'granted'
+                ? 'Enabled'
+                : browserPermission === 'denied'
+                  ? 'Blocked'
+                  : browserPermission === 'unsupported'
+                    ? 'Unsupported'
+                    : 'Not enabled'}
+            </span>
+            {browserPermission !== 'granted' && browserPermission !== 'unsupported' && (
+              <button className={settStyles.btnExport} onClick={handleEnableBrowserNotifications}>
+                Enable
+              </button>
+            )}
+          </div>
         </div>
+
+        {NOTIFICATION_OPTIONS.map(option => (
+          <div
+            key={option.key}
+            className={settStyles.preferenceRow}
+            style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 12 }}
+          >
+            <div>
+              <div className={settStyles.preferenceTitle}>{option.title}</div>
+              <div className={settStyles.preferenceMeta}>{option.desc}</div>
+            </div>
+            <ToggleButton enabled={notificationPrefs[option.key]} onClick={() => handleNotificationToggle(option.key)} />
+          </div>
+        ))}
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Salary & Pay Schedule</div>
+        <div className={styles.cardTitle}>Currency & rates</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-          Set your salary, pay rhythm, and currency so forecasts and savings rate stay accurate.
+          Choose the currency Takda should use across the app and view indicative exchange rates for context.
         </p>
-
-        <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
-          <div className={styles.formGroup}>
-            <label>Monthly Salary</label>
-            <input type="number" min="0" placeholder="e.g. 50,000" value={profileForm.salary} onChange={event => setPF('salary', event.target.value)} />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Pay Schedule</label>
-            <select value={profileForm.paySchedule} onChange={event => setPF('paySchedule', event.target.value)}>
-              {PAY_SCHEDULES.map(schedule => <option key={schedule.value} value={schedule.value}>{schedule.label}</option>)}
-            </select>
-          </div>
-        </div>
 
         <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
           <label>Currency</label>
@@ -1148,19 +1094,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
-        <button
-          onClick={async () => {
-            const { signOut } = await import('firebase/auth')
-            const { auth: authRef } = await import('../lib/firebase')
-            await signOut(authRef)
-          }}
-          style={{ width: '100%', padding: '13px', background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600 }}
-        >
-          Log out
-        </button>
-      </div>
-
       <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.3)' }}>
         <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Reset data</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
@@ -1204,6 +1137,19 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
         <button className={settStyles.btnReset} onClick={handleDeleteAccount} disabled={deleteAccountLoading}>
           {deleteAccountLoading ? 'Deleting account...' : 'Delete account and all data'}
+        </button>
+      </div>
+
+      <div className={styles.card}>
+        <button
+          onClick={async () => {
+            const { signOut } = await import('firebase/auth')
+            const { auth: authRef } = await import('../lib/firebase')
+            await signOut(authRef)
+          }}
+          style={{ width: '100%', padding: '13px', background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600 }}
+        >
+          Log out
         </button>
       </div>
 

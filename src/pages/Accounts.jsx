@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { getAccountSignedBalance, getCurrentBalance } from '../lib/finance'
 import { displayValue, fmt, maskMoney, validateAmount, confirmDelete } from '../lib/utils'
@@ -21,7 +20,7 @@ const COLORS = [
 
 const EMPTY_FORM = { name: '', type: 'Cash', balance: '', color: '#22d87a', notes: '' }
 
-export default function Accounts({ user, data, symbol, privacyMode = false, gamification, onTogglePrivacy }) {
+export default function Accounts({ user, data, symbol, privacyMode = false }) {
   const s = symbol || '₱'
   const accounts = data.accounts || []
   const [form, setForm] = useState(EMPTY_FORM)
@@ -71,7 +70,6 @@ export default function Accounts({ user, data, symbol, privacyMode = false, gami
 
   const totalBalance = getCurrentBalance(accounts)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
-  const privacyActionLabel = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
 
   useEffect(() => {
@@ -87,26 +85,11 @@ export default function Accounts({ user, data, symbol, privacyMode = false, gami
         <div className={styles.sub}>Keep your cash, bank, and e-wallet balances in one clear view.</div>
       </div>
 
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        compact
-        title="Balance view"
-        message="Accounts give Takda a real starting balance and a clearer net worth."
-      />
-
-      <button
-        type="button"
-        className={`${accStyles.totalCard} ${accStyles.privacyCardButton}`}
-        onClick={onTogglePrivacy}
-        aria-pressed={privacyMode}
-        title={privacyActionLabel}
-      >
+      <div className={accStyles.totalCard}>
         <div className={accStyles.totalLabel}>Total balance</div>
         <div className={accStyles.totalVal}>{money(totalBalance)}</div>
         <div className={accStyles.totalSub}>{accounts.length} account{accounts.length !== 1 ? 's' : ''}</div>
-        <div className={accStyles.privacyHint}>{privacyActionLabel}</div>
-      </button>
+      </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={openAdd}>+ Add account</button>

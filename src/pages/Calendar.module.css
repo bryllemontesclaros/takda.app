@@ -21,11 +21,11 @@
 
 /* CELL — clean, no text overflow */
 .cell {
-  min-height: 74px;
-  background: var(--surface2);
+  min-height: 92px;
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
   border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 6px;
+  border-radius: 8px;
+  padding: 8px 7px;
   cursor: pointer;
   transition: all 0.15s;
   overflow: hidden;
@@ -37,28 +37,28 @@
   gap: 6px;
 }
 .cell:hover { border-color: var(--border2); background: var(--surface3); }
-.today { border-color: var(--accent) !important; background: var(--accent-glow) !important; }
+.today { border-color: var(--accent) !important; background: color-mix(in srgb, var(--accent-glow) 68%, var(--surface) 32%) !important; }
 .otherMonth { opacity: 0.2; pointer-events: none; }
-.selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.hasData { background: var(--surface3); }
+.selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent-glow) 38%, var(--surface) 62%); }
+.hasData { background: color-mix(in srgb, var(--surface3) 88%, #ffffff 12%); }
 
 .cellTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; min-width: 0; }
-.dateNum { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.dateNum { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.2; }
 .today .dateNum { color: var(--accent); }
 .cellBalance {
-  font-size: 9px;
-  line-height: 1.15;
-  color: var(--text2);
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--text);
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 700;
   min-width: 0;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   word-break: normal;
   overflow-wrap: anywhere;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 /* DOTS ONLY — no amount text in cells */
@@ -71,17 +71,43 @@
 /* FORECAST color tint only — no text in cells */
 .forecastBal { display: none; }
 
-/* SUMMARY STRIP */
-.summaryStrip { display: flex; align-items: center; justify-content: space-around; margin-top: 1rem; padding: 12px 0 4px; border-top: 1px solid var(--border); gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-.stripItem { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; min-width: 0; text-align: center; }
-.stripLabel { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; white-space: nowrap; text-align: center; }
-.stripVal { font-family: var(--font-mono); font-size: 13px; font-weight: 600; white-space: nowrap; text-align: center; }
-.stripDivider { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+.balanceRail {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
 
-/* FORECAST LEGEND */
-.forecastLegend { display: flex; align-items: center; gap: 12px; padding: 8px 0 2px; flex-wrap: wrap; }
-.legendItem { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text3); }
-.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.balanceRailCopy { min-width: 0; }
+
+.balanceRailLabel {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.balanceRailMeta {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text3);
+}
+
+.balanceRailValue {
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
 .dayBalanceCard {
   padding: 12px 14px;
   margin-bottom: 14px;
@@ -276,38 +302,24 @@
   .nav { justify-content: space-between; }
   .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
-  .forecastLegend { align-items: stretch; }
-  .stripDivider { display: none; }
   .cell {
-    min-height: 72px;
-    padding: 5px;
+    min-height: 84px;
+    padding: 7px 6px;
     gap: 5px;
   }
   .cellBalance {
-    font-size: 8px;
-    line-height: 1.1;
+    font-size: 10px;
+    line-height: 1.15;
   }
-  .summaryStrip {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
-    overflow: visible;
-    justify-content: stretch;
-    padding-top: 12px;
+  .balanceRail {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 14px;
   }
-  .stripItem {
-    width: 100%;
-    padding: 10px 8px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--surface2);
-  }
-  .stripLabel {
+  .balanceRailValue {
+    font-size: 18px;
     white-space: normal;
-    line-height: 1.2;
-    min-height: 24px;
   }
-  .stripVal { font-size: clamp(12px, 3.5vw, 13px); }
   .dayPanelActions { grid-template-columns: 1fr; }
   .modalFields { grid-template-columns: 1fr; }
 

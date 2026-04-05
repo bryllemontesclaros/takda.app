@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { reload, sendEmailVerification, signOut } from 'firebase/auth'
+import { sendEmailVerification, signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { fsSetProfile, listenCol, listenProfile } from '../lib/firestore'
 import { getGamificationSnapshot } from '../lib/gamification'
@@ -55,9 +55,20 @@ const NAV_ICONS = {
       <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
   ),
+  more: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
+    </svg>
+  ),
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
+const HEADER_EXP_LABELS = {
+  dashboard: 'Money momentum',
+  calendar: 'Tracking habit',
+  breakdown: 'Trend view',
+  accounts: 'Balance view',
+}
 
 function getEmailActionSettings() {
   if (typeof window === 'undefined') return undefined
@@ -74,11 +85,11 @@ export default function AppShell({ user }) {
   const [celebrationToast, setCelebrationToast] = useState(null)
   const [quickAddMenuOpen, setQuickAddMenuOpen] = useState(false)
   const [quickAddSheet, setQuickAddSheet] = useState({ open: false, mode: 'manual', type: 'expense', initialEntry: null })
+  const [mobileNavMenuOpen, setMobileNavMenuOpen] = useState(false)
   const [calendarQuickAddDate, setCalendarQuickAddDate] = useState('')
   const [emailVerified, setEmailVerified] = useState(() => Boolean(auth.currentUser?.emailVerified || user?.emailVerified))
   const [verifyBannerMsg, setVerifyBannerMsg] = useState({ text: '', ok: false })
   const [verifySending, setVerifySending] = useState(false)
-  const [verifyRefreshing, setVerifyRefreshing] = useState(false)
   const previousGamificationRef = useRef(null)
   const toastTimerRef = useRef(null)
 
@@ -164,6 +175,7 @@ export default function AppShell({ user }) {
   useEffect(() => {
     function handleKeydown(event) {
       if (event.key !== 'Escape') return
+      setMobileNavMenuOpen(false)
       setQuickAddMenuOpen(false)
       setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
     }
@@ -173,6 +185,7 @@ export default function AppShell({ user }) {
   }, [])
 
   useEffect(() => {
+    setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     if (page !== 'calendar') setCalendarQuickAddDate('')
   }, [page])
@@ -196,14 +209,17 @@ export default function AppShell({ user }) {
 
   const pages = { dashboard: Dashboard, calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
   const PageComponent = pages[page] || Dashboard
+  const headerExpLabel = HEADER_EXP_LABELS[page] || ''
+  const privacyActionLabel = privacyMode ? 'Show balances' : 'Hide balances'
 
   const bottomNav = [
     { id: 'dashboard', label: 'Home', iconKey: 'home' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar' },
     { id: 'breakdown', label: 'Charts', iconKey: 'breakdown' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
-    { id: 'settings', label: 'Settings', iconKey: 'settings' },
   ]
+  const mobileMoreNav = nav.filter(item => ['history', 'budget', 'savings', 'settings'].includes(item.id))
+  const isMorePage = mobileMoreNav.some(item => item.id === page)
 
   const { theme, toggle: toggleTheme } = useTheme()
 
@@ -213,20 +229,24 @@ export default function AppShell({ user }) {
 
   function toggleQuickAddMenu() {
     if (quickAddSheet.open) return
+    setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(current => !current)
   }
 
   function openQuickAdd(type) {
+    setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'manual', type, initialEntry: null })
   }
 
   function openQuickImport() {
+    setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'import', type: 'expense', initialEntry: null })
   }
 
   function openGroceryMode() {
+    setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'grocery', type: 'expense', initialEntry: null })
   }
@@ -247,7 +267,7 @@ export default function AppShell({ user }) {
         amount: parsed.amount ? String(parsed.amount) : '',
         date: parsed.date || quickAddDefaultDate || '',
         desc: parsed.desc || '',
-        cat: parsed.cat || (nextType === 'income' ? 'Salary' : 'Other'),
+        cat: parsed.cat || 'Other',
       },
     })
   }
@@ -268,26 +288,6 @@ export default function AppShell({ user }) {
       setVerifyBannerMsg({ text: 'Could not send a verification email.', ok: false })
     } finally {
       setVerifySending(false)
-    }
-  }
-
-  async function handleRefreshVerification() {
-    const currentUser = auth.currentUser
-    if (!currentUser) return
-
-    setVerifyRefreshing(true)
-    try {
-      await reload(currentUser)
-      const nextVerified = Boolean(currentUser.emailVerified)
-      setEmailVerified(nextVerified)
-      setVerifyBannerMsg({
-        text: nextVerified ? 'Email verified. Thanks.' : 'Email is still unverified.',
-        ok: nextVerified,
-      })
-    } catch {
-      setVerifyBannerMsg({ text: 'Could not refresh verification status.', ok: false })
-    } finally {
-      setVerifyRefreshing(false)
     }
   }
 
@@ -333,6 +333,36 @@ export default function AppShell({ user }) {
         <header className={styles.topBar}>
           <div className={styles.topBarLogo}>Takda</div>
           <div className={styles.topBarRight}>
+            {headerExpLabel && gamification && (
+              <div className={styles.topBarStatus}>
+                <div className={styles.topBarStatusLabel}>{headerExpLabel}</div>
+                <div className={styles.topBarStatusValue}>Lv {gamification.level} · {gamification.totalExp} EXP</div>
+              </div>
+            )}
+            <button
+              type="button"
+              className={`${styles.privacyBtn} ${privacyMode ? styles.privacyBtnActive : ''}`}
+              onClick={handleTogglePrivacy}
+              aria-pressed={privacyMode}
+              title={privacyActionLabel}
+            >
+              <span className={styles.privacyBtnIcon} aria-hidden="true">
+                {privacyMode ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.92-2.19 2.52-4.12 4.58-5.56"/>
+                    <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8a11.8 11.8 0 0 1-1.67 2.68"/>
+                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                )}
+              </span>
+              <span className={styles.privacyBtnLabel}>{privacyActionLabel}</span>
+            </button>
             <button className={styles.themeBtn} onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
               {theme === 'dark' ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -378,9 +408,6 @@ export default function AppShell({ user }) {
                 )}
               </div>
               <div className={styles.verifyBannerActions}>
-                <button className={styles.verifyBannerGhost} onClick={handleRefreshVerification} disabled={verifyRefreshing}>
-                  {verifyRefreshing ? 'Checking...' : 'I verified'}
-                </button>
                 <button className={styles.verifyBannerPrimary} onClick={handleResendVerification} disabled={verifySending}>
                   {verifySending ? 'Sending...' : 'Resend email'}
                 </button>
@@ -467,13 +494,52 @@ export default function AppShell({ user }) {
           </div>
         </div>
       )}
+      {mobileNavMenuOpen && (
+        <>
+          <button
+            type="button"
+            className={styles.mobileNavBackdrop}
+            onClick={() => setMobileNavMenuOpen(false)}
+            aria-label="Close more pages"
+          />
+          <div className={styles.mobileNavSheet}>
+            <div className={styles.mobileNavSheetTitle}>More pages</div>
+            <div className={styles.mobileNavGrid}>
+              {mobileMoreNav.map(n => (
+                <button
+                  key={n.id}
+                  type="button"
+                  className={`${styles.mobileNavLink} ${page === n.id ? styles.mobileNavLinkActive : ''}`}
+                  onClick={() => {
+                    setPage(n.id)
+                    setMobileNavMenuOpen(false)
+                  }}
+                >
+                  <span className={styles.mobileNavLinkLabel}>{n.label}</span>
+                  <span className={styles.mobileNavLinkMeta}>{n.section || 'More'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
       <nav className={styles.bottomNav}>
         {bottomNav.map(n => (
-          <button key={n.id} className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>
+          <button key={n.id} type="button" className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>
             <span className={styles.bottomNavIcon}>{NAV_ICONS[n.iconKey]}</span>
             <span className={styles.bottomNavLabel}>{n.label}</span>
           </button>
         ))}
+        <button
+          type="button"
+          className={`${styles.bottomNavItem} ${(isMorePage || mobileNavMenuOpen) ? styles.active : ''}`}
+          onClick={() => setMobileNavMenuOpen(current => !current)}
+          aria-expanded={mobileNavMenuOpen}
+          aria-label="More pages"
+        >
+          <span className={styles.bottomNavIcon}>{NAV_ICONS.more}</span>
+          <span className={styles.bottomNavLabel}>More</span>
+        </button>
       </nav>
     </div>
   )

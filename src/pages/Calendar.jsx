@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import GamificationCard from '../components/GamificationCard'
 import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
 import { fsAdd, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDel, fsSetDailyBalanceOverride, fsUpdate } from '../lib/firestore'
-import { getForecastColor, getTransactionImpact } from '../lib/forecast'
+import { getTransactionImpact } from '../lib/forecast'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
   DEFAULT_CATEGORY_BY_TYPE,
@@ -29,9 +28,12 @@ function getLegacyMonthStartKeyForDate(dateKey, monthStartBalances = {}) {
   return Object.prototype.hasOwnProperty.call(monthStartBalances, candidate) ? candidate : ''
 }
 
-export default function Calendar({ user, data, profile = {}, symbol, privacyMode = false, gamification, onSelectedDateChange }) {
+export default function Calendar({ user, data, profile = {}, symbol, privacyMode = false, onSelectedDateChange }) {
   const s = symbol || '₱'
   const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth()
+  const currentDay = now.getDate()
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [selected, setSelected] = useState(null)
@@ -84,14 +86,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     [data.accounts, data.income, data.expenses, projectedIncome, projectedExpenses, year, month, balanceOverrides],
   )
 
-  const mIncome = allIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0)
-  const mExpense = allExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0)
-  const net = mIncome - mExpense
-
   const isIncome = modalType === 'income'
   const cats = getTransactionCategories(modalType)
   const quickCats = getQuickItems(modalType)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const formatBalanceDate = value => {
+    if (!value) return ''
+    const parsed = new Date(`${value}T00:00:00`)
+    if (Number.isNaN(parsed.getTime())) return value
+    return parsed.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
   const formatCellBalance = value => {
     if (privacyMode) return `${s}•••`
     const numericValue = Number(value) || 0
@@ -404,6 +408,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const selectedDayBalance = selected
     ? (forecastMap[selected]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, selected, balanceOverrides))
     : 0
+  const defaultBalanceDate = useMemo(() => {
+    const fallbackDay = year === currentYear && month === currentMonth
+      ? Math.min(currentDay, daysInMonth)
+      : daysInMonth
+    return dateStr(fallbackDay)
+  }, [currentDay, currentMonth, currentYear, daysInMonth, month, year])
+  const balanceFocusDate = selected || defaultBalanceDate
+  const balanceFocusValue = balanceFocusDate
+    ? (forecastMap[balanceFocusDate]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, balanceFocusDate, balanceOverrides))
+    : 0
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
     selected
@@ -460,14 +474,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         <div className={styles.sub}>Swipe or scroll sideways to move month by month</div>
       </div>
 
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        compact
-        title="Tracking habit"
-        message="Consistent logging keeps the calendar and forecast honest."
-      />
-
       {entryFeedback && (
         <div className={`${styles.card} ${calStyles.feedbackBanner}`} style={{ '--feedback-tone': entryFeedback.tone }}>
           <div className={calStyles.feedbackEyebrow}>{entryFeedback.eyebrow || 'Entry saved'}</div>
@@ -510,18 +516,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             const isSelected = selected === ds
             const isToday = ds === todayStr
             const forecast = forecastMap[ds]
-            const forecastColor = forecast ? getForecastColor(forecast.status) : null
             const balanceLabel = forecast ? formatCellBalance(forecast.runningBalance) : ''
 
             return (
               <div
                 key={day}
                 className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
-                style={forecastColor?.bg && !isToday ? { background: forecastColor.bg, borderColor: forecastColor.border } : {}}
                 onClick={() => setSelected(ds === selected ? null : ds)}
               >
                 <div className={calStyles.cellTop}>
-                  <div className={calStyles.dateNum} style={forecastColor?.text && !isToday ? { color: forecastColor.text } : {}}>{day}</div>
+                  <div className={calStyles.dateNum}>{day}</div>
                   {(hasIncome || hasExpense || hasManualBalance) && (
                     <div className={calStyles.dots}>
                       {hasManualBalance && <div className={`${calStyles.dot} ${calStyles.dotBalance}`} />}
@@ -532,7 +536,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 </div>
                 <div
                   className={calStyles.cellBalance}
-                  style={forecastColor?.text && !isToday ? { color: forecastColor.text } : {}}
                   title={privacyMode ? 'Balance hidden' : fmt(forecast?.runningBalance || 0, s)}
                 >
                   {balanceLabel}
@@ -547,33 +550,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           ))}
         </div>
 
-        <div className={calStyles.summaryStrip}>
-          <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Income</span>
-            <span className={calStyles.stripVal} style={{ color: 'var(--accent)' }}>
-              {displayValue(privacyMode, `+${fmt(mIncome, s)}`, `+${maskMoney(s)}`)}
-            </span>
+        <div className={calStyles.balanceRail}>
+          <div className={calStyles.balanceRailCopy}>
+            <div className={calStyles.balanceRailLabel}>Balance for {formatBalanceDate(balanceFocusDate)}</div>
+            <div className={calStyles.balanceRailMeta}>
+              {selected
+                ? 'Selected day closing balance.'
+                : 'Tap a day to read that exact closing balance.'}
+            </div>
           </div>
-          <div className={calStyles.stripDivider} />
-          <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Expenses</span>
-            <span className={calStyles.stripVal} style={{ color: 'var(--red)' }}>
-              {displayValue(privacyMode, `−${fmt(mExpense, s)}`, `−${maskMoney(s)}`)}
-            </span>
-          </div>
-          <div className={calStyles.stripDivider} />
-          <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Net</span>
-            <span className={calStyles.stripVal} style={{ color: net >= 0 ? 'var(--blue)' : 'var(--red)' }}>
-              {displayValue(privacyMode, `${net >= 0 ? '+' : ''}${fmt(net, s)}`, `${net >= 0 ? '+' : ''}${maskMoney(s)}`)}
-            </span>
-          </div>
-        </div>
-
-        <div className={calStyles.forecastLegend}>
-          <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--accent)' }} />Healthy</span>
-          <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--amber)' }} />Tight</span>
-          <span className={calStyles.legendItem}><span className={calStyles.legendDot} style={{ background: 'var(--red)' }} />Negative</span>
+          <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
         </div>
       </div>
 

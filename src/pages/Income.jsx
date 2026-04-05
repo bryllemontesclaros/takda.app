@@ -5,7 +5,7 @@ import styles from './Page.module.css'
 
 export default function Income({ user, data, symbol }) {
   const s = symbol || '₱'
-  const [form, setForm] = useState({ desc: '', amount: '', date: today(), cat: 'Salary', recur: '' })
+  const [form, setForm] = useState({ desc: '', amount: '', date: today(), cat: 'Other', recur: '' })
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
 
   async function handleAdd() {
@@ -18,12 +18,12 @@ export default function Income({ user, data, symbol }) {
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Income</div>
-        <div className={styles.sub}>Salary, freelance work, and other income.</div>
+        <div className={styles.sub}>Track pay, freelance work, business income, and other inflows.</div>
       </div>
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add income</div>
         <div className={`${styles.formRow} ${styles.col3}`}>
-          <div className={styles.formGroup}><label>Description</label><input placeholder="e.g. Monthly salary" value={form.desc} onChange={e => set('desc', e.target.value)} /></div>
+          <div className={styles.formGroup}><label>Description</label><input placeholder="e.g. Client payment" value={form.desc} onChange={e => set('desc', e.target.value)} /></div>
           <div className={styles.formGroup}><label>Amount ({s})</label><input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} /></div>
           <div className={styles.formGroup}><label>Date</label><input type="date" value={form.date} onChange={e => set('date', e.target.value)} /></div>
         </div>

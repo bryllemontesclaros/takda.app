@@ -19,11 +19,77 @@
 
 /* BOTTOM NAV — hidden by default, shown on mobile only */
 .bottomNav { display: none; }
+.mobileNavBackdrop,
+.mobileNavSheet { display: none; }
 .main { flex: 1; overflow-y: auto; background: var(--bg); -webkit-overflow-scrolling: touch; }
 .mainWrap { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .topBar { min-height: 60px; background: color-mix(in srgb, var(--surface) 96%, #ffffff 4%); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; padding: 10px 1.5rem; flex-shrink: 0; }
 .topBarLogo { display: none; font-family: var(--font-display); font-size: 20px; color: var(--accent); letter-spacing: -0.5px; margin-right: auto; }
 .topBarRight { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.topBarStatus {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--surface2) 92%, #ffffff 8%);
+  text-align: right;
+  overflow: hidden;
+}
+.topBarStatusLabel {
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text3);
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.topBarStatusValue {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.2;
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.privacyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.privacyBtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  color: var(--text);
+}
+.privacyBtnActive {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+.privacyBtnIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.privacyBtnLabel {
+  white-space: nowrap;
+}
 .themeBtn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; transition: all 0.15s; }
 .themeBtn:hover { background: var(--surface2); color: var(--text); }
 .levelToastWrap {
@@ -296,6 +362,24 @@
   .main { flex: 1; overflow-y: auto; padding-bottom: 70px; -webkit-overflow-scrolling: touch; }
   .topBar { padding: 10px 1rem; flex-shrink: 0; }
   .topBarLogo { display: block; }
+  .topBarRight { gap: 6px; flex-wrap: nowrap; }
+  .topBarStatus {
+    padding: 7px 10px;
+    max-width: calc(100vw - 132px);
+  }
+  .topBarStatusLabel {
+    display: none;
+  }
+  .topBarStatusValue {
+    font-size: 11px;
+  }
+  .privacyBtn {
+    min-width: 36px;
+    padding: 8px;
+  }
+  .privacyBtnLabel {
+    display: none;
+  }
   .levelToastWrap {
     top: auto;
     right: 12px;
@@ -390,4 +474,68 @@
   .bottomNavItem.active { color: var(--accent); }
   .bottomNavIcon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
   .bottomNavLabel { font-size: 9px; font-weight: 500; }
+  .mobileNavBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 12, 18, 0.18);
+    border: none;
+    z-index: 98;
+  }
+  .mobileNavSheet {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    z-index: 101;
+    padding: 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
+    box-shadow: 0 22px 44px rgba(8, 12, 18, 0.22);
+  }
+  .mobileNavSheetTitle {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .mobileNavGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .mobileNavLink {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: 58px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font-body);
+    text-align: left;
+  }
+  .mobileNavLinkActive {
+    border-color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .mobileNavLinkLabel {
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .mobileNavLinkMeta {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
 }

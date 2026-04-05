@@ -18,7 +18,7 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 ## Current Features
 
 - Email/password authentication with registration, login, logout, remember-me, and password reset
-- First-run onboarding for salary, pay schedule, and preferred currency
+- First-run onboarding for preferred currency, account balances, and recurring bills
 - Dashboard with net worth, monthly income/expense summary, savings rate, budget health, recent transactions, and end-of-month forecast
 - Calendar-based income and expense tracking with add, edit, delete, and day-level summaries
 - Recurring transactions with projected entries and cash-flow forecasting
@@ -30,7 +30,7 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 - Savings goals with progress tracking and contribution updates
 - Privacy mode for masking financial values across the app
 - Light and dark theme toggle
-- In-app alerts for budgets, bills, goals, salary reminders, and high-spend days
+- In-app alerts for budgets, bills, goals, and high-spend days
 - Data export to CSV and JSON, plus a printable monthly report
 - Firestore-backed real-time sync across devices
 - Installable PWA with a basic service worker
@@ -105,7 +105,7 @@ users/{uid}/
   accounts/     { name, type, balance, color, notes, createdAt }
   budgets/      { cat, limit, createdAt }
   feedback/     { kind, rating, message, allowFeature, email, createdBy, createdAt }
-  profile/main  { salary, paySchedule, currency, privacyMode }
+  profile/main  { currency, privacyMode, notificationPrefs }
 ```
 
 ## Notes

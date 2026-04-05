@@ -1,5 +1,5 @@
-.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); z-index: 100; }
-.card { width: 100%; max-width: 420px; padding: 2.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; overflow-y: auto; padding: 24px 16px; background: var(--bg); z-index: 100; -webkit-overflow-scrolling: touch; }
+.card { width: min(420px, 100%); max-width: 420px; margin: auto; padding: 2.5rem; box-sizing: border-box; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .logo { font-family: var(--font-display); font-size: 32px; color: var(--accent); margin-bottom: 4px; letter-spacing: -1px; }
 .tagline { font-size: 13px; color: var(--text3); margin-bottom: 2rem; }
 .tabs { display: flex; margin-bottom: 1.5rem; background: var(--surface2); border-radius: var(--radius-sm); padding: 3px; }
@@ -26,3 +26,19 @@
 .forgotSub { font-size: 13px; color: var(--text3); margin-bottom: 1.5rem; }
 .backLink { background: none; border: none; color: var(--text3); font-size: 13px; cursor: pointer; font-family: var(--font-body); margin-top: 1rem; padding: 0; display: block; }
 .backLink:hover { color: var(--accent); }
+
+@media (max-width: 560px) {
+  .screen {
+    align-items: flex-start;
+    padding: max(16px, env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .card {
+    padding: 1.25rem;
+    border-radius: 24px;
+  }
+
+  .tagline {
+    margin-bottom: 1.4rem;
+  }
+}

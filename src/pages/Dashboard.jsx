@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import GamificationCard from '../components/GamificationCard'
 import { getBalanceOverrides, getCurrentBalance, getMonthEndBalanceForView, getMonthTotal } from '../lib/finance'
 import { getProjectedTransactions } from '../lib/recurrence'
 import { displayValue, fmt, isSameMonth, maskMoney } from '../lib/utils'
@@ -14,7 +13,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`
 }
 
-export default function Dashboard({ user, data, profile = {}, symbol, privacyMode = false, gamification, onTogglePrivacy }) {
+export default function Dashboard({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'
   const now = new Date()
   const year = now.getFullYear()
@@ -25,7 +24,6 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
   const mIncome = useMemo(() => getMonthTotal(data.income, year, month), [data.income, year, month])
   const mExpense = useMemo(() => getMonthTotal(data.expenses, year, month), [data.expenses, year, month])
   const mNet = mIncome - mExpense
-  const savingsRate = mIncome > 0 ? Math.round((mNet / mIncome) * 100) : 0
 
   let lm = month - 1
   let ly = year
@@ -116,19 +114,8 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
     return all.slice(0, 5)
   }, [data.income, data.expenses])
 
-  const topCat = useMemo(() => {
-    const map = {}
-    data.expenses.filter(t => isSameMonth(t.date, year, month)).forEach(t => {
-      map[t.cat] = (map[t.cat] || 0) + (t.amount || 0)
-    })
-
-    return Object.entries(map).sort((a, b) => b[1] - a[1])[0] || null
-  }, [data.expenses, year, month])
-
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
-  const privacyActionLabel = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
   const weeklyRemaining = Math.max(0, (gamification?.weeklyTarget || 0) - (gamification?.weeklyCheckins || 0))
-  const todayCheckins = gamification?.todayCheckins || 0
   const checkedInToday = Boolean(gamification?.checkedInToday)
 
   const focusPills = [
@@ -197,47 +184,6 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
     }
   }
 
-  const missionCards = [
-    {
-      title: 'Daily check-in',
-      stat: checkedInToday ? 'Done' : 'Open',
-      progressPct: checkedInToday ? 100 : 0,
-      detail: checkedInToday ? `${pluralize(todayCheckins, 'entry')} logged today.` : 'Log one income or expense today.',
-      tone: checkedInToday ? 'var(--accent)' : 'var(--blue)',
-    },
-    {
-      title: 'Weekly rhythm',
-      stat: `${gamification?.weeklyCheckins || 0}/${gamification?.weeklyTarget || 4}`,
-      progressPct: gamification?.weeklyProgressPct || 0,
-      detail: weeklyRemaining === 0
-        ? 'Weekly target complete. Protect the habit.'
-        : `${pluralize(weeklyRemaining, 'more check-in')} to finish the week strong.`,
-      tone: weeklyRemaining === 0 ? 'var(--accent)' : 'var(--blue)',
-    },
-    {
-      title: 'Budget guard',
-      stat: budgetHealth.total > 0 ? `${budgetHealth.total - budgetHealth.over}/${budgetHealth.total}` : 'Ready',
-      progressPct: budgetHealth.total > 0 ? Math.round(((budgetHealth.total - budgetHealth.over) / budgetHealth.total) * 100) : 100,
-      detail: biggestBudgetGap
-        ? `${biggestBudgetGap.cat} is over by ${money(biggestBudgetGap.over)}.`
-        : budgetHealth.total > 0
-          ? 'No budgets exceeded right now.'
-          : 'Set your first budget to turn this on.',
-      tone: biggestBudgetGap ? 'var(--red)' : 'var(--accent)',
-    },
-    {
-      title: goalHighlight ? `Goal: ${goalHighlight.name}` : 'Savings goal',
-      stat: goalHighlight ? `${goalHighlight.pct}%` : 'Open',
-      progressPct: goalHighlight ? goalHighlight.pct : 0,
-      detail: goalHighlight
-        ? goalHighlight.remaining > 0
-          ? `${money(goalHighlight.remaining)} left to finish.`
-          : 'Goal completed. Set the next one.'
-        : 'Add a savings goal to create a visible finish line.',
-      tone: goalHighlight ? (goalHighlight.pct >= 80 ? 'var(--accent)' : 'var(--blue)') : 'var(--text3)',
-    },
-  ]
-
   return (
     <div className={styles.page}>
       <div className={dStyles.greeting}>
@@ -247,25 +193,11 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         </div>
       </div>
 
-      <button
-        type="button"
-        className={`${dStyles.heroCard} ${dStyles.privacyCardButton}`}
-        onClick={onTogglePrivacy}
-        aria-pressed={privacyMode}
-        title={privacyActionLabel}
-      >
+      <div className={dStyles.heroCard}>
         <div className={dStyles.heroLabel}>Total net worth</div>
         <div className={dStyles.heroVal}>{money(netWorth)}</div>
         <div className={dStyles.heroSub}>{data.accounts.length} account{data.accounts.length !== 1 ? 's' : ''}</div>
-        <div className={dStyles.privacyHint}>{privacyActionLabel}</div>
-      </button>
-
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        title="Money momentum"
-        message={mNet >= 0 ? 'Positive months move the bar forward.' : 'Track the dip, then recover with the next good move.'}
-      />
+      </div>
 
       <div className={dStyles.focusCard} style={{ '--focus-tone': focusState.tone }}>
         <div className={dStyles.focusHeader}>
@@ -283,41 +215,14 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         </div>
       </div>
 
-      <div className={dStyles.missionGrid}>
-        {missionCards.map(card => (
-          <div key={card.title} className={dStyles.missionCard} style={{ '--mission-tone': card.tone }}>
-            <div className={dStyles.missionTop}>
-              <div className={dStyles.missionTitle}>{card.title}</div>
-              <div className={dStyles.missionStat}>{card.stat}</div>
-            </div>
-            <div className={dStyles.missionTrack}>
-              <div className={dStyles.missionFill} style={{ width: `${card.progressPct}%` }} />
-            </div>
-            <div className={dStyles.missionBody}>{card.detail}</div>
-          </div>
-        ))}
-      </div>
-
       <div className={dStyles.statsRow}>
-        <button
-          type="button"
-          className={`${dStyles.statBox} ${dStyles.privacyCardButton}`}
-          onClick={onTogglePrivacy}
-          aria-pressed={privacyMode}
-          title={privacyActionLabel}
-        >
+        <div className={dStyles.statBox}>
           <div className={dStyles.statBoxLabel}>Income</div>
           <div className={dStyles.statBoxVal} style={{ color: 'var(--accent)' }}>
             {displayValue(privacyMode, `+${fmt(mIncome, s)}`, `+${maskMoney(s)}`)}
           </div>
-        </button>
-        <button
-          type="button"
-          className={`${dStyles.statBox} ${dStyles.privacyCardButton}`}
-          onClick={onTogglePrivacy}
-          aria-pressed={privacyMode}
-          title={privacyActionLabel}
-        >
+        </div>
+        <div className={dStyles.statBox}>
           <div className={dStyles.statBoxLabel}>Expenses</div>
           <div className={dStyles.statBoxVal} style={{ color: 'var(--red)' }}>
             {displayValue(privacyMode, `−${fmt(mExpense, s)}`, `−${maskMoney(s)}`)}
@@ -327,19 +232,13 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
               {expenseChange > 0 ? '↑' : '↓'} {Math.abs(expenseChange)}% vs last month
             </div>
           )}
-        </button>
-        <button
-          type="button"
-          className={`${dStyles.statBox} ${dStyles.privacyCardButton}`}
-          onClick={onTogglePrivacy}
-          aria-pressed={privacyMode}
-          title={privacyActionLabel}
-        >
+        </div>
+        <div className={dStyles.statBox}>
           <div className={dStyles.statBoxLabel}>Net</div>
           <div className={dStyles.statBoxVal} style={{ color: mNet >= 0 ? 'var(--blue)' : 'var(--red)' }}>
             {displayValue(privacyMode, `${mNet >= 0 ? '+' : ''}${fmt(mNet, s)}`, `${mNet >= 0 ? '+' : ''}${maskMoney(s)}`)}
           </div>
-        </button>
+        </div>
       </div>
 
       <div className={dStyles.twoCol}>
@@ -411,24 +310,6 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
           })}
         </div>
       )}
-
-      <div className={dStyles.twoCol}>
-        {topCat && (
-          <div className={dStyles.miniCard}>
-            <div className={dStyles.miniLabel}>Top expense</div>
-            <div className={dStyles.miniCat}>{topCat[0]}</div>
-            <div className={dStyles.miniVal} style={{ color: 'var(--red)', fontSize: 16 }}>{money(topCat[1])}</div>
-          </div>
-        )}
-
-        <div className={dStyles.miniCard}>
-          <div className={dStyles.miniLabel}>Savings rate</div>
-          <div className={dStyles.miniVal} style={{ color: mIncome > 0 && savingsRate >= 0 ? 'var(--accent)' : 'var(--text3)' }}>
-            {displayValue(privacyMode, mIncome > 0 ? `${savingsRate}%` : '—', '•••')}
-          </div>
-          <div className={dStyles.miniSub}>of income this month</div>
-        </div>
-      </div>
 
       <div className={styles.card}>
         <div className={styles.cardTitle}>Recent transactions</div>

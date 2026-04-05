@@ -6,7 +6,6 @@ export const DEFAULT_NOTIFICATION_PREFS = {
   budget: true,
   bills: true,
   goals: true,
-  salary: true,
   spending: true,
 }
 
@@ -109,21 +108,7 @@ export function getAlerts(data, profile, privacyMode = false) {
     })
   }
 
-  // 4. No salary income logged this month
-  const hasSalary = data.income.some(t => getMonthKey(t.date) === ym && t.cat === 'Salary')
-  const profileSalary = profile?.salary
-  if (prefs.salary && profileSalary && !hasSalary && currentDay >= 5) {
-    alerts.push({
-      id: 'no-salary',
-      type: 'info',
-      icon: '💼',
-      title: 'Salary not logged yet',
-      body: `You haven't logged your salary for this month. Add it via the Calendar or + Income button.`,
-      priority: 4,
-    })
-  }
-
-  // 5. High spending day (today > 20% of monthly budget)
+  // 4. High spending day (today > 20% of monthly budget)
   const totalBudget = data.budgets.reduce((s, b) => s + (b.limit || 0), 0)
   const todayStr = todayKey()
   const todaySpend = data.expenses.filter(t => t.date === todayStr).reduce((s, t) => s + (t.amount || 0), 0)

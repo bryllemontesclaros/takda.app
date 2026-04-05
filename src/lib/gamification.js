@@ -69,41 +69,8 @@ function getExpDelta(amount, sourceType) {
   return Math.max(1, Math.floor(value / 160))
 }
 
-function getOccurrencesPerYear(freq = 'monthly') {
-  switch (freq) {
-    case 'weekly': return 52
-    case 'bi-weekly': return 26
-    case 'tri-weekly': return 365 / 21
-    case 'quad-weekly': return 365 / 28
-    case 'semi-monthly': return 24
-    case 'monthly':
-    default:
-      return 12
-  }
-}
-
-function getPerPayAmount(monthlySalary, schedule) {
-  if (!monthlySalary) return 0
-  return Math.round((((Number(monthlySalary) || 0) * 12) / getOccurrencesPerYear(schedule)) * 100) / 100
-}
-
-function isOnboardingSeededIncome(tx = {}, profile = {}) {
-  if (tx?.gamificationExcluded || tx?.seedSource === 'onboarding') return true
-
-  const onboardedAt = Number(profile?.onboardedAt || 0)
-  const createdAt = Number(tx?.createdAt || 0)
-  if (!onboardedAt || !createdAt) return false
-  if (Math.abs(createdAt - onboardedAt) > ONBOARDING_MATCH_WINDOW_MS) return false
-
-  const expectedPayAmount = getPerPayAmount(profile?.salary, profile?.paySchedule)
-  if (!expectedPayAmount) return false
-
-  return (
-    (tx?.cat || '') === 'Salary' &&
-    normalizeDate(tx?.date) === normalizeDate(profile?.lastPayday) &&
-    (tx?.recur || '') === (profile?.paySchedule || '') &&
-    Math.abs((Number(tx?.amount) || 0) - expectedPayAmount) < 0.01
-  )
+function isOnboardingSeededIncome(tx = {}) {
+  return Boolean(tx?.gamificationExcluded || tx?.seedSource === 'onboarding')
 }
 
 function isExcludedExpense(tx = {}) {

@@ -1,25 +1,20 @@
 import { useNavigate } from 'react-router-dom'
+import { auth } from '../lib/firebase'
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
   { icon: '📅', title: 'Calendar-led money tracking', desc: 'See spending and income in the shape of your month, not buried in a flat list.' },
   { icon: '⚡', title: 'Quick add from anywhere', desc: 'One add flow across the app. Log an expense, income, or import in seconds.' },
-  { icon: '📊', title: 'Forecast what happens next', desc: 'Projected month-end balances help you catch problems before they get expensive.' },
+  { icon: '📊', title: 'See each day’s balance clearly', desc: 'Track how your total moves day by day so tight weeks stand out before they become problems.' },
   { icon: '🎯', title: 'Budgets and goals that feel alive', desc: 'Track category limits and savings progress with clear momentum, not spreadsheet fatigue.' },
   { icon: '🧾', title: 'OCR-assisted import', desc: 'Pull in wallet screenshots and receipt totals, then review before anything gets saved.' },
   { icon: '☁️', title: 'Secure, synced, and personal', desc: 'Your data stays attached to your account so your ledger is available across devices.' },
 ]
 
-const PROOF_POINTS = [
-  { label: 'Month-end forecast', value: 'Catch issues early' },
-  { label: 'Quick add flow', value: 'One add flow' },
-  { label: 'Receipt import', value: 'Review before save' },
-]
-
 const USE_CASES = [
   {
-    title: 'Payday-to-payday clarity',
-    desc: 'See whether the current month is still healthy, tight, or drifting negative before the last week arrives.',
+    title: 'Day-to-day clarity',
+    desc: 'See which exact days stay healthy, tighten up, or drift negative before the last week arrives.',
   },
   {
     title: 'Faster daily logging',
@@ -31,9 +26,24 @@ const USE_CASES = [
   },
 ]
 
+const HERO_CELLS = [
+  { day: '23', balance: '321,204', tone: 'healthy' },
+  { day: '24', balance: '319,812', tone: 'expense' },
+  { day: '25', balance: '319,812', tone: 'healthy' },
+  { day: '26', balance: '321,204', tone: 'healthy' },
+  { day: '27', balance: '320,869', tone: 'healthy' },
+  { day: '28', balance: '320,869', tone: 'healthy' },
+  { day: '29', balance: '320,869', tone: 'healthy' },
+  { day: '30', balance: '320,869', tone: 'selected' },
+]
+
 export default function LandingPage() {
   const navigate = useNavigate()
-  const openApp = () => navigate('/app')
+  const isSignedIn = Boolean(auth.currentUser)
+  const primaryLabel = isSignedIn ? 'Open the app' : 'Create your account'
+  const navPrimaryLabel = isSignedIn ? 'Open the app' : 'Get started'
+  const ctaPrimaryLabel = isSignedIn ? 'Open the app' : 'Get started'
+  const openPrimary = () => navigate(isSignedIn ? '/app' : '/login')
   const goLogin = () => navigate('/login')
   return (
     <div className={styles.page}>
@@ -44,33 +54,25 @@ export default function LandingPage() {
         </div>
         <div className={styles.navActions}>
           <button className={styles.navLink} onClick={goLogin}>Log in</button>
-          <button className={styles.navCta} onClick={openApp}>Open the app</button>
+          <button className={styles.navCta} onClick={openPrimary}>{navPrimaryLabel}</button>
         </div>
       </nav>
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <div className={styles.heroBadge}>Track the month with less guesswork.</div>
+          <div className={styles.heroBadge}>See your balance every day, not just after the damage is done.</div>
           <h1 className={styles.heroTitle}>
-            Stay ahead of your money
-            <span className={styles.heroAccent}> before month-end sneaks up on you.</span>
+            Keep the whole month
+            <span className={styles.heroAccent}> visible while you’re still in it.</span>
           </h1>
           <p className={styles.heroSub}>
-            Takda puts income, expenses, bills, and forecasts into one clear month view so daily tracking feels lighter and more useful.
+            Takda puts balances, income, expenses, and recurring bills into one clear month view so the next tight day is obvious before it becomes a problem.
           </p>
           <div className={styles.heroBtns}>
-            <button className={styles.btnPrimary} onClick={openApp}>Open the app</button>
-            <button className={styles.btnSecondary} onClick={goLogin}>Log in or create an account</button>
+            <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
+            <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
           <div className={styles.heroNote}>Free to start. No credit card. Works on phone and desktop.</div>
-          <div className={styles.heroProof}>
-            {PROOF_POINTS.map(item => (
-              <div key={item.label} className={styles.heroProofCard}>
-                <div className={styles.heroProofLabel}>{item.label}</div>
-                <div className={styles.heroProofValue}>{item.value}</div>
-              </div>
-            ))}
-          </div>
         </div>
         <div className={styles.heroPanel}>
           <div className={styles.heroPanelBar}>
@@ -84,48 +86,28 @@ export default function LandingPage() {
           </div>
           <div className={styles.heroPanelTop}>
             <div>
-              <div className={styles.heroPanelEyebrow}>Live monthly view</div>
-              <div className={styles.heroPanelTitle}>April at a glance</div>
+              <div className={styles.heroPanelEyebrow}>Daily balance calendar</div>
+              <div className={styles.heroPanelTitle}>April 2026</div>
             </div>
-            <div className={styles.heroPill}>Projected month-end</div>
-          </div>
-          <div className={styles.heroForecast}>
-            <div className={styles.heroForecastValue}>₱58,420</div>
-            <div className={styles.heroForecastMeta}>healthy runway if you keep the next six days light</div>
+            <div className={styles.heroPill}>Desktop view</div>
           </div>
           <div className={styles.heroGrid}>
-            {[
-              { day: '9', tone: 'expense' },
-              { day: '10', tone: 'healthy' },
-              { day: '11', tone: 'healthy' },
-              { day: '12', tone: 'tight' },
-              { day: '13', tone: 'healthy' },
-              { day: '14', tone: 'expense' },
-              { day: '15', tone: 'healthy' },
-              { day: '16', tone: 'healthy' },
-            ].map(cell => (
+            {HERO_CELLS.map(cell => (
               <div key={cell.day} className={`${styles.heroCell} ${styles[`heroCell${cell.tone[0].toUpperCase()}${cell.tone.slice(1)}`]}`}>
-                <span>{cell.day}</span>
+                <div className={styles.heroCellTop}>
+                  <span className={styles.heroCellDay}>{cell.day}</span>
+                  {cell.tone === 'selected' && <span className={styles.heroCellPin}>Now</span>}
+                </div>
+                <div className={styles.heroCellBalance}>{cell.balance}</div>
               </div>
             ))}
           </div>
-          <div className={styles.heroMetrics}>
-            <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Income</div>
-              <div className={styles.heroMetricValue} style={{ color: 'var(--accent)' }}>+₱50,000</div>
+          <div className={styles.heroBalanceBar}>
+            <div>
+              <div className={styles.heroBalanceBarLabel}>Balance for Apr 30, 2026</div>
+              <div className={styles.heroBalanceBarMeta}>One calm place to read the selected day.</div>
             </div>
-            <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Expenses</div>
-              <div className={styles.heroMetricValue} style={{ color: 'var(--red)' }}>−₱18,750</div>
-            </div>
-            <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Net</div>
-              <div className={styles.heroMetricValue} style={{ color: 'var(--blue)' }}>+₱31,250</div>
-            </div>
-          </div>
-          <div className={styles.heroInsight}>
-            <div className={styles.heroInsightKicker}>Next best move</div>
-            <div className={styles.heroInsightText}>Keep the next three days light and your projected month-end stays above your buffer.</div>
+            <div className={styles.heroBalanceBarValue}>₱320,869</div>
           </div>
         </div>
       </section>
@@ -169,8 +151,8 @@ export default function LandingPage() {
           <div className={styles.step}>
             <div className={styles.stepNum}>1</div>
             <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Open the app and set your baseline</div>
-              <div className={styles.stepDesc}>Add income, balances, and recurring bills so the forecast starts from real numbers.</div>
+              <div className={styles.stepTitle}>{isSignedIn ? 'Open the app and set your baseline' : 'Create your account and set your baseline'}</div>
+              <div className={styles.stepDesc}>Add balances and recurring bills so the forecast starts from real numbers instead of an empty profile.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
@@ -185,24 +167,24 @@ export default function LandingPage() {
           <div className={styles.step}>
             <div className={styles.stepNum}>3</div>
             <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Use the forecast to stay ahead</div>
-              <div className={styles.stepDesc}>See projected month-end, budget pressure, and where to adjust before you overspend.</div>
+              <div className={styles.stepTitle}>Use the calendar to stay ahead</div>
+              <div className={styles.stepDesc}>See daily balances, budget pressure, and where to adjust before the month gets away from you.</div>
             </div>
           </div>
         </div>
       </section>
 
       <section className={styles.cta}>
-        <h2 className={styles.ctaTitle}>Open Takda and start with the month in view.</h2>
-        <p className={styles.ctaSub}>If you already have an account, this takes you straight in. If not, you’ll land on sign-in first.</p>
-        <button className={styles.btnPrimary} onClick={openApp}>Open the app</button>
+        <h2 className={styles.ctaTitle}>Start with a clearer month, not a heavier setup.</h2>
+        <p className={styles.ctaSub}>Create your account first, then Takda drops you into setup with the right next step.</p>
+        <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
       </section>
 
       <footer className={styles.footer}>
         <div className={styles.footerLogo}>Takda</div>
         <div className={styles.footerTagline}>Bawat piso, sinusubaybayan.</div>
         <div className={styles.footerLinks}>
-          <span onClick={openApp} style={{ cursor: 'pointer' }}>Open app</span>
+          <span onClick={openPrimary} style={{ cursor: 'pointer' }}>{isSignedIn ? 'Open app' : 'Get started'}</span>
           <span>·</span>
           <span onClick={goLogin} style={{ cursor: 'pointer' }}>Log in</span>
         </div>

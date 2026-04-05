@@ -1,5 +1,4 @@
 import { useMemo, useState } from 'react'
-import GamificationCard from '../components/GamificationCard'
 import { getMonthTotal, getMonthTransactions } from '../lib/finance'
 import { getProjectedTransactions } from '../lib/recurrence'
 import { displayValue, fmt, maskMoney } from '../lib/utils'
@@ -78,7 +77,7 @@ function BarChart({ months, income, expenses, symbol, privacyMode }) {
   )
 }
 
-export default function Breakdown({ data, symbol, privacyMode = false, gamification }) {
+export default function Breakdown({ data, symbol, privacyMode = false }) {
   const s = symbol || '₱'
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())
@@ -186,14 +185,6 @@ export default function Breakdown({ data, symbol, privacyMode = false, gamificat
         <div className={styles.title}>Breakdown</div>
         <div className={styles.sub}>See where money comes in and where it goes.</div>
       </div>
-
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        compact
-        title="Trend view"
-        message="Use charts to spot pressure, drift, and healthy patterns across the month."
-      />
 
       <div className={bStyles.monthNav}>
         <button className={bStyles.navBtn} onClick={prevMonth}>←</button>

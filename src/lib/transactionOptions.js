@@ -22,12 +22,12 @@ export const TRANSACTION_CATEGORIES = {
 }
 
 export const DEFAULT_CATEGORY_BY_TYPE = {
-  income: 'Salary',
+  income: 'Other',
   expense: 'Food & Dining',
 }
 
 export const DEFAULT_LABEL_BY_TYPE = {
-  income: 'Salary',
+  income: 'Income',
   expense: 'Food',
 }
 

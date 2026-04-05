@@ -81,16 +81,16 @@
 }
 
 .hero {
-  max-width: 1180px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 4.5rem 1.5rem 3rem;
+  padding: 5rem 1.5rem 3rem;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-  gap: 2rem;
-  align-items: center;
+  grid-template-columns: minmax(0, 1.06fr) minmax(420px, 0.94fr);
+  gap: 3rem;
+  align-items: start;
 }
 
-.heroCopy { max-width: 620px; }
+.heroCopy { max-width: 640px; padding-top: 1rem; }
 
 .heroBadge {
   display: inline-flex;
@@ -175,10 +175,12 @@
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 16%, transparent), transparent 36%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
   border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent) 20%);
-  border-radius: 30px;
-  padding: 1.4rem;
+  border-radius: 34px;
+  padding: 1.5rem;
   box-shadow: 0 34px 80px rgba(8, 12, 18, 0.18);
   overflow: hidden;
+  max-width: 540px;
+  justify-self: end;
 }
 
 .heroPanelBar {
@@ -255,29 +257,6 @@
   white-space: nowrap;
 }
 
-.heroForecast {
-  padding: 1rem 1rem 1.1rem;
-  border-radius: 20px;
-  background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
-  border: 1px solid var(--border);
-  margin-bottom: 1rem;
-}
-
-.heroForecastValue {
-  font-family: var(--font-display);
-  font-size: clamp(30px, 5vw, 46px);
-  line-height: 0.95;
-  color: var(--accent);
-  letter-spacing: -1px;
-}
-
-.heroForecastMeta {
-  margin-top: 8px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text2);
-}
-
 .heroGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -286,18 +265,88 @@
 }
 
 .heroCell {
-  min-height: 78px;
+  min-height: 90px;
   border-radius: 18px;
   border: 1px solid var(--border);
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 15px;
-  font-weight: 600;
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .heroCellHealthy { background: color-mix(in srgb, var(--accent-glow) 88%, var(--surface) 12%); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
 .heroCellExpense { background: color-mix(in srgb, var(--red-dim) 88%, var(--surface) 12%); color: var(--red); border-color: color-mix(in srgb, var(--red) 28%, var(--border)); }
 .heroCellTight { background: color-mix(in srgb, var(--amber-dim) 88%, var(--surface) 12%); color: var(--amber); border-color: color-mix(in srgb, var(--amber) 28%, var(--border)); }
+.heroCellSelected { background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); color: var(--text); border-color: color-mix(in srgb, var(--text) 16%, var(--border)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); }
+
+.heroCellTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.heroCellDay {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.heroCellPin {
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue-dim) 90%, var(--surface) 10%);
+  border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--border));
+  color: var(--blue);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.heroCellBalance {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: inherit;
+}
+
+.heroBalanceBar {
+  margin-bottom: 1rem;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.heroBalanceBarLabel {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.heroBalanceBarMeta {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text3);
+}
+
+.heroBalanceBarValue {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+}
 
 .heroMetrics {
   display: grid;
@@ -533,6 +582,13 @@
     padding-top: 3.5rem;
   }
 
+  .heroCopy { padding-top: 0; }
+
+  .heroPanel {
+    max-width: none;
+    justify-self: stretch;
+  }
+
   .useCaseGrid,
   .featureGrid,
   .steps {
@@ -593,6 +649,15 @@
   .heroCell {
     min-height: 64px;
     border-radius: 16px;
+  }
+
+  .heroCellBalance {
+    font-size: 11px;
+  }
+
+  .heroBalanceBar {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .heroMetrics,
