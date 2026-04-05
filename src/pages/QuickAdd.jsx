@@ -8,7 +8,7 @@ import {
   getSuggestedDescription,
   getTransactionCategories,
 } from '../lib/transactionOptions'
-import { RECUR_OPTIONS, today } from '../lib/utils'
+import { formatDisplayDate, RECUR_OPTIONS, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
 import styles from './QuickAdd.module.css'
 
@@ -152,7 +152,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
   const color = isIncome ? 'var(--accent)' : 'var(--red)'
   const bgColor = isIncome ? 'var(--accent-glow)' : 'var(--red-dim)'
 
-  if (showScanner) return <ReceiptScanner defaultMode="wallet" onResult={handleReceiptResult} onClose={() => setShowScanner(false)} />
+  if (showScanner) return <ReceiptScanner defaultMode="receipt" onResult={handleReceiptResult} onClose={() => setShowScanner(false)} />
 
   return (
     <div className={styles.wrap}>
@@ -190,7 +190,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
       <div className={styles.utilityRow}>
         <button className={styles.importBtn} onClick={() => setShowScanner(true)}>
           <span className={styles.importBtnIcon}>🧾</span>
-          <span>Scan or import</span>
+          <span>Import receipt</span>
         </button>
       </div>
 
@@ -237,15 +237,21 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
       <div className={styles.metaGrid}>
         <label className={styles.metaField}>
           <span className={styles.fieldLabel}>Date</span>
-          <input
-            type="date"
-            className={styles.fieldControl}
-            value={entryDate}
-            onChange={event => {
-              setEntryDate(event.target.value)
-              setError('')
-            }}
-          />
+          <div className={styles.dateFieldWrap}>
+            <div className={`${styles.fieldControl} ${styles.dateFieldDisplay}`}>
+              {formatDisplayDate(entryDate)}
+            </div>
+            <input
+              type="date"
+              className={`${styles.fieldControl} ${styles.dateFieldNative}`}
+              value={entryDate}
+              aria-label="Date"
+              onChange={event => {
+                setEntryDate(event.target.value)
+                setError('')
+              }}
+            />
+          </div>
         </label>
         <label className={styles.metaField}>
           <span className={styles.fieldLabel}>Recurrence</span>

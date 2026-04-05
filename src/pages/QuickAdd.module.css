@@ -37,6 +37,41 @@
 .fieldLabel { font-size: 12px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
 .fieldControl { width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; font-family: var(--font-body); min-height: 44px; }
 .fieldControl:focus { border-color: var(--accent); }
+.dateFieldWrap { position: relative; }
+.dateFieldWrap:focus-within .dateFieldDisplay { border-color: var(--accent); }
+.dateFieldDisplay {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-right: 44px;
+  pointer-events: none;
+}
+.dateFieldDisplay::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text2);
+}
+.dateFieldNative {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  color: transparent;
+}
+.dateFieldNative::-webkit-date-and-time-value { opacity: 0; }
+.dateFieldNative::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 .formError { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
 
 .numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }

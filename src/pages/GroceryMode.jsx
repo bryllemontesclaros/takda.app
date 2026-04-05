@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { fsAdd } from '../lib/firestore'
-import { fmt, today } from '../lib/utils'
+import { fmt, formatDisplayDate, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
 import styles from './GroceryMode.module.css'
 
@@ -117,7 +117,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
           <div className={styles.eyebrow}>Grocery mode</div>
           <div className={styles.title}>Build your grocery total before checkout.</div>
           <div className={styles.sub}>
-            Scan price tags one by one, confirm each item, and import the final total as one expense to your calendar.
+            Import price tag photos one by one, confirm each item, and save the final total as one expense on your calendar.
           </div>
         </div>
         <button className={styles.close} onClick={onClose}>✕</button>
@@ -135,7 +135,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
           </div>
         </div>
         <div className={styles.summaryHint}>
-          Keep scanning or add items manually. When you’re done, Takda will save one grocery expense with the item breakdown attached.
+          Keep importing photos or add items manually. When you’re done, Takda will save one grocery expense with the item breakdown attached.
         </div>
       </div>
 
@@ -146,7 +146,18 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
         </label>
         <label className={styles.field}>
           <span>Date</span>
-          <input type="date" value={tripDate} onChange={event => setTripDate(event.target.value)} />
+          <div className={styles.dateFieldWrap}>
+            <div className={styles.dateFieldDisplay}>
+              {formatDisplayDate(tripDate)}
+            </div>
+            <input
+              type="date"
+              className={styles.dateFieldNative}
+              value={tripDate}
+              aria-label="Trip date"
+              onChange={event => setTripDate(event.target.value)}
+            />
+          </div>
         </label>
         <label className={`${styles.field} ${styles.fieldWide}`}>
           <span>Import category</span>
@@ -157,7 +168,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
       </div>
 
       <div className={styles.actionRow}>
-        <button className={styles.secondaryBtn} onClick={() => setScannerOpen(true)}>🧾 Scan price tag</button>
+        <button className={styles.secondaryBtn} onClick={() => setScannerOpen(true)}>🧾 Import price tag photo</button>
         <button className={styles.secondaryBtn} onClick={openManualDraft}>+ Add item manually</button>
       </div>
 
@@ -206,7 +217,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
           </div>
         ) : (
           <div className={styles.emptyState}>
-            Scan a price tag or add an item manually to start this trip.
+            Import a price tag photo or add an item manually to start this trip.
           </div>
         )}
       </div>

@@ -64,6 +64,20 @@ export function normalizeDate(value) {
   return `${year}-${month}-${day}`
 }
 
+export function formatDisplayDate(value, locale = 'en-PH') {
+  const normalized = normalizeDate(value)
+  if (!normalized) return 'Pick a date'
+
+  const parsed = new Date(`${normalized}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) return normalized
+
+  return parsed.toLocaleDateString(locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+}
+
 export function toMonthKey(year, month) {
   return `${year}-${String(month + 1).padStart(2, '0')}`
 }

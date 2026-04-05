@@ -154,6 +154,54 @@
 .field select:focus {
   border-color: var(--accent);
 }
+.dateFieldWrap {
+  position: relative;
+}
+.dateFieldWrap:focus-within .dateFieldDisplay {
+  border-color: var(--accent);
+}
+.dateFieldDisplay {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 44px 11px 13px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 16px;
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  position: relative;
+  pointer-events: none;
+}
+.dateFieldDisplay::after {
+  content: '▾';
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text2);
+}
+.dateFieldNative {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  color: transparent;
+}
+.dateFieldNative::-webkit-date-and-time-value { opacity: 0; }
+.dateFieldNative::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 
 .actionRow,
 .draftActions {

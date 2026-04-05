@@ -23,7 +23,6 @@
 .uploadIcon { font-size: 40px; }
 .uploadTitle { font-size: 15px; font-weight: 600; color: var(--text); }
 .uploadSub { font-size: 13px; color: var(--text3); line-height: 1.5; }
-.uploadHint { font-size: 12px; color: var(--text3); line-height: 1.5; max-width: 320px; }
 
 .loadingArea { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .loadingText { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text2); }
@@ -45,6 +44,7 @@
 .formGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .formField { display: flex; flex-direction: column; gap: 4px; }
 .formField span { font-size: 11px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; }
+.formFieldControl,
 .formField input, .formField select {
   padding: 10px 12px;
   background: var(--surface2);
@@ -56,8 +56,44 @@
   font-family: var(--font-body);
   min-height: 42px;
 }
-.formField input:focus, .formField select:focus { border-color: var(--accent); }
+.formField input:focus, .formField select:focus, .formFieldControl:focus { border-color: var(--accent); }
 .fullWidth { grid-column: 1 / -1; }
+.dateFieldWrap { position: relative; }
+.dateFieldWrap:focus-within .dateFieldDisplay { border-color: var(--accent); }
+.dateFieldDisplay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-right: 44px;
+  pointer-events: none;
+}
+.dateFieldDisplay::after {
+  content: '▾';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--text2);
+}
+.dateFieldNative {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
+  cursor: pointer;
+  color: transparent;
+}
+.dateFieldNative::-webkit-date-and-time-value { opacity: 0; }
+.dateFieldNative::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 .detailSection { display: flex; flex-direction: column; gap: 8px; }
 .detailToggle {
   display: flex;
@@ -94,110 +130,8 @@
   font-size: 12px;
 }
 
-.liveArea { display: flex; flex-direction: column; gap: 12px; }
-.liveFrame {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background:
-    radial-gradient(circle at top, rgba(34, 216, 122, 0.14), transparent 38%),
-    #091017;
-  min-height: 320px;
-}
-.liveVideo {
-  width: 100%;
-  height: min(62vh, 420px);
-  object-fit: cover;
-  display: block;
-}
-.liveOverlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  pointer-events: none;
-  padding: 16px;
-}
-.liveGuide {
-  width: min(82%, 320px);
-  margin: 0 auto;
-  margin-top: 18%;
-  min-height: 140px;
-  border-radius: 24px;
-  border: 2px solid rgba(255, 255, 255, 0.78);
-  box-shadow: 0 0 0 999px rgba(5, 10, 16, 0.34);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 12px;
-}
-.liveGuide span {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: rgba(7, 12, 18, 0.68);
-  color: #f6fbff;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.liveBadge {
-  align-self: center;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(7, 12, 18, 0.74);
-  color: #f6fbff;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(10px);
-}
-.liveBadgeLocked {
-  background: rgba(34, 216, 122, 0.16);
-  color: #d7ffe7;
-  border-color: rgba(34, 216, 122, 0.42);
-}
-.liveCanvas { display: none; }
-.livePanel {
-  padding: 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
-}
-.liveStats {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-.liveStat {
-  padding: 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--surface2);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.liveStat span {
-  font-size: 11px;
-  color: var(--text3);
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-.liveStat strong {
-  font-size: 18px;
-  line-height: 1.15;
-  color: var(--text);
-  word-break: break-word;
-}
-.liveStatWide { grid-column: 1 / -1; }
-
 .btnRow { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
-.btnLive, .btnCamera, .btnUpload {
+.btnCamera, .btnUpload {
   flex: 1;
   padding: 12px;
   background: var(--surface2);
@@ -209,16 +143,6 @@
   cursor: pointer;
   font-family: var(--font-body);
   min-height: 48px;
-}
-.btnLive {
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
-  background: var(--accent-glow);
-  color: var(--accent);
-  font-weight: 600;
-}
-.btnLive:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 .btnRetry {
   flex: 1;
@@ -250,11 +174,4 @@
 @media (max-width: 640px) {
   .modeRow { grid-template-columns: 1fr; }
   .formGrid { grid-template-columns: 1fr; }
-  .liveStats { grid-template-columns: 1fr; }
-  .liveGuide {
-    width: calc(100% - 28px);
-    min-height: 120px;
-    margin-top: 24%;
-  }
-  .liveVideo { height: min(58vh, 360px); }
 }

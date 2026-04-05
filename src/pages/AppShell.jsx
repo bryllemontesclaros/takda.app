@@ -435,7 +435,7 @@ export default function AppShell({ user }) {
         <div className={styles.quickAddLayer}>
           <div className={`${styles.quickAddSheet} ${quickAddSheet.mode === 'grocery' ? styles.quickAddSheetWide : ''}`}>
             {quickAddSheet.mode === 'import' ? (
-              <ReceiptScanner defaultMode="wallet" onResult={handleQuickImportResult} onClose={closeQuickAdd} />
+              <ReceiptScanner defaultMode="receipt" onResult={handleQuickImportResult} onClose={closeQuickAdd} />
             ) : quickAddSheet.mode === 'grocery' ? (
               <GroceryMode
                 user={user}
