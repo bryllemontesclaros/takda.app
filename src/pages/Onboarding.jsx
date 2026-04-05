@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
+import { getCurrentBalance } from '../lib/finance'
 import { fsCompleteOnboarding } from '../lib/firestore'
-import { CURRENCIES, PAY_SCHEDULES, RECUR_OPTIONS, fmt, normalizeDate, today } from '../lib/utils'
+import { CURRENCIES, formatDisplayDate, PAY_SCHEDULES, RECUR_OPTIONS, fmt, normalizeDate, today } from '../lib/utils'
 import styles from './Onboarding.module.css'
 
 const STEPS = ['welcome', 'income', 'accounts', 'bills', 'review']
@@ -214,7 +215,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     gamificationExcluded: true,
   })), [preparedBills])
 
-  const startingBalance = preparedAccounts.reduce((sum, account) => sum + (account.balance || 0), 0)
+  const startingBalance = getCurrentBalance(preparedAccounts)
   const fixedBillsEstimate = preparedBills.reduce((sum, bill) => sum + getMonthlyEquivalent(bill.amount, bill.freq), 0)
   const projectedMonthEnd = startingBalance + salaryAmount - fixedBillsEstimate
   const progressPercent = Math.round((step / (STEPS.length - 1)) * 100)
@@ -454,7 +455,18 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
               <div className={styles.inputGroup}>
                 <label>Latest payday</label>
-                <input type="date" value={form.lastPayday} onChange={event => set('lastPayday', event.target.value)} />
+                <div className={styles.dateFieldWrap}>
+                  <div className={`${styles.inputControl} ${styles.dateFieldDisplay}`}>
+                    {formatDisplayDate(form.lastPayday)}
+                  </div>
+                  <input
+                    type="date"
+                    className={`${styles.inputControl} ${styles.dateFieldNative}`}
+                    value={form.lastPayday}
+                    aria-label="Latest payday"
+                    onChange={event => set('lastPayday', event.target.value)}
+                  />
+                </div>
                 <div className={styles.helper}>
                   {form.paySchedule === 'semi-monthly'
                     ? 'For semi-monthly pay, Takda uses the 1st and 15th as the recurring anchor.'
@@ -504,10 +516,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                         </select>
                       </div>
                     </div>
-                    <div className={styles.inputGroup}>
-                      <label>Current balance ({symbol})</label>
-                      <input type="number" min="0" placeholder="0.00" value={account.balance} onChange={event => updateAccountRow(account.id, 'balance', event.target.value)} />
-                    </div>
+                      <div className={styles.inputGroup}>
+                        <label>{account.type === 'Credit Card' ? `Current amount owed (${symbol})` : `Current balance (${symbol})`}</label>
+                        <input type="number" min="0" placeholder="0.00" value={account.balance} onChange={event => updateAccountRow(account.id, 'balance', event.target.value)} />
+                      </div>
                   </div>
                 ))}
               </div>

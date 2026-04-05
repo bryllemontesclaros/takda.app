@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
+import { getAccountSignedBalance, getCurrentBalance } from '../lib/finance'
 import { displayValue, fmt, maskMoney, validateAmount, confirmDelete } from '../lib/utils'
 import styles from './Page.module.css'
 import accStyles from './Accounts.module.css'
@@ -68,9 +69,10 @@ export default function Accounts({ user, data, symbol, privacyMode = false, gami
     await fsDel(user.uid, 'accounts', id)
   }
 
-  const totalBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0)
+  const totalBalance = getCurrentBalance(accounts)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const privacyActionLabel = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
+  const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
 
   useEffect(() => {
     if (showModal && editorRef.current) {
@@ -137,7 +139,7 @@ export default function Accounts({ user, data, symbol, privacyMode = false, gami
 
           <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
             <div className={styles.formGroup}>
-              <label>Balance now ({s})</label>
+              <label>{balanceFieldLabel}</label>
               <input type="number" min="0" placeholder="0.00" value={form.balance} onChange={event => set('balance', event.target.value)} />
             </div>
             <div className={styles.formGroup}>
@@ -186,7 +188,7 @@ export default function Accounts({ user, data, symbol, privacyMode = false, gami
               </div>
 
               <div className={accStyles.accountBalance} style={{ color: account.color || 'var(--accent)' }}>
-                {money(account.balance || 0)}
+                {money(getAccountSignedBalance(account))}
               </div>
 
               {account.notes && <div className={accStyles.accountNotes}>{account.notes}</div>}

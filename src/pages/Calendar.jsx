@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
-import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthEndBalanceForView, getMonthForecast, getMonthTransactions } from '../lib/finance'
+import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
 import { fsAdd, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDel, fsSetDailyBalanceOverride, fsUpdate } from '../lib/firestore'
-import { getForecastColor, getTransactionImpact } from '../lib/forecast'
+import { getEndOfMonthBalance, getForecastColor, getTransactionImpact } from '../lib/forecast'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
   DEFAULT_CATEGORY_BY_TYPE,
@@ -84,10 +84,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     [data.accounts, data.income, data.expenses, projectedIncome, projectedExpenses, year, month, balanceOverrides],
   )
 
-  const endOfMonthBalance = useMemo(
-    () => getMonthEndBalanceForView(data.accounts, data.income, data.expenses, projectedIncome, projectedExpenses, year, month, balanceOverrides),
-    [data.accounts, data.income, data.expenses, projectedIncome, projectedExpenses, year, month, balanceOverrides],
-  )
+  const endOfMonthBalance = useMemo(() => getEndOfMonthBalance(forecastMap), [forecastMap])
 
   const mIncome = allIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const mExpense = allExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0)
@@ -383,7 +380,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const selectedDayExpense = selectedExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const selectedDayNet = selectedDayIncome - selectedDayExpense
   const selectedDayBalance = selected
-    ? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, selected, balanceOverrides)
+    ? (forecastMap[selected]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, selected, balanceOverrides))
     : 0
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
@@ -547,7 +544,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
           <div className={calStyles.stripDivider} />
           <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Projected Month-End</span>
+            <span className={calStyles.stripLabel}>Projected month-end balance</span>
             <span className={calStyles.stripVal} style={{ color: endOfMonthBalance >= 0 ? 'var(--accent)' : 'var(--red)', fontWeight: 700 }}>
               {money(endOfMonthBalance)}
             </span>
@@ -579,7 +576,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               {!editingDayBalance ? (
                 <>
                   <div className={calStyles.dayBalanceHeader}>
-                    <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Manual balance on this day' : 'Total balance on this day'}</span>
+                    <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Manual closing balance on this day' : 'Closing balance on this day'}</span>
                     <button className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor}>
                       Edit
                     </button>
@@ -588,7 +585,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   <div className={calStyles.dayBalanceMeta}>
                     {hasManualBalanceOnSelectedDay
                       ? 'Pinned as the closing balance for this date. Later days inherit from it until another manual balance appears.'
-                      : 'Calculated from your account balances, transactions, and any earlier manual balance anchors.'}
+                      : 'Calculated as the end-of-day total from your account balances, transactions, and any earlier manual balance anchors.'}
                   </div>
                 </>
               ) : (

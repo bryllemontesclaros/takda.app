@@ -13,8 +13,16 @@ function toLedgerEntry(tx, sign) {
   }
 }
 
+export function getAccountSignedBalance(account = {}) {
+  const value = Number(account?.balance) || 0
+  if (String(account?.type || '').toLowerCase() === 'credit card') {
+    return -Math.abs(value)
+  }
+  return value
+}
+
 export function getCurrentBalance(accounts = []) {
-  return accounts.reduce((sum, account) => sum + (Number(account?.balance) || 0), 0)
+  return accounts.reduce((sum, account) => sum + getAccountSignedBalance(account), 0)
 }
 
 export function getActualLedger(income = [], expenses = []) {
