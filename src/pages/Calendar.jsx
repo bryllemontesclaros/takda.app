@@ -42,6 +42,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [quickPick, setQuickPick] = useState(() => getDefaultTransactionDraft('income').desc)
   const [descTouched, setDescTouched] = useState(false)
   const [formError, setFormError] = useState('')
+  const [formSaving, setFormSaving] = useState(false)
   const [editGoalId, setEditGoalId] = useState(null)
   const [goalInput, setGoalInput] = useState('')
   const [entryFeedback, setEntryFeedback] = useState(null)
@@ -50,7 +51,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [dayBalanceSaving, setDayBalanceSaving] = useState(false)
   const touchStartX = useRef(null)
   const navLock = useRef(false)
-  const composerRef = useRef(null)
   const feedbackTimerRef = useRef(null)
 
   const todayStr = today()
@@ -155,6 +155,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   function openComposer(type = 'income') {
     const nextDraft = getEmptyForm(type)
+    closeDayBalanceEditor()
     setEditTx(null)
     setModalType(type)
     setForm(nextDraft)
@@ -193,6 +194,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     const nextType = tx.type || 'income'
     const nextCat = tx.cat || DEFAULT_CATEGORY_BY_TYPE[nextType]
     const nextDesc = tx.desc || ''
+    closeDayBalanceEditor()
     setEditTx(tx)
     setModalType(nextType)
     setForm({
@@ -216,6 +218,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setQuickPick(getDefaultTransactionDraft('income').desc)
     setDescTouched(false)
     setFormError('')
+    setFormSaving(false)
   }
 
   function showEntryFeedback(nextFeedback) {
@@ -328,16 +331,23 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       setFormError('Pick a date on the calendar before saving.')
       return
     }
-    const trimmedDesc = form.desc.trim()
-    if (editTx) {
-      const col = editTx.type === 'income' ? 'income' : 'expenses'
-      await fsUpdate(user.uid, col, editTx._id, { desc: trimmedDesc, amount, cat: form.cat, recur: form.recur })
-    } else {
-      const col = modalType === 'income' ? 'income' : 'expenses'
-      await fsAdd(user.uid, col, { desc: trimmedDesc, amount, date: selected, cat: form.cat, recur: form.recur, type: modalType })
+    setFormSaving(true)
+    try {
+      const trimmedDesc = form.desc.trim()
+      if (editTx) {
+        const col = editTx.type === 'income' ? 'income' : 'expenses'
+        await fsUpdate(user.uid, col, editTx._id, { desc: trimmedDesc, amount, cat: form.cat, recur: form.recur })
+      } else {
+        const col = modalType === 'income' ? 'income' : 'expenses'
+        await fsAdd(user.uid, col, { desc: trimmedDesc, amount, date: selected, cat: form.cat, recur: form.recur, type: modalType })
+      }
+      showEntryFeedback(buildEntryFeedback())
+      closeTransactionEditor()
+    } catch {
+      setFormError('Could not save this transaction. Try again.')
+    } finally {
+      setFormSaving(false)
     }
-    showEntryFeedback(buildEntryFeedback())
-    closeTransactionEditor()
   }
 
   async function handleDelete(tx) {
@@ -354,10 +364,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }
 
   function handleWheel(event) {
-    const dominantDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
-    if (Math.abs(dominantDelta) < 18) return
+    const horizontalDelta = event.deltaX
+    if (Math.abs(horizontalDelta) < 24) return
+    if (Math.abs(horizontalDelta) <= Math.abs(event.deltaY)) return
     event.preventDefault()
-    if (dominantDelta > 0) next()
+    if (horizontalDelta > 0) next()
     else prev()
   }
 
@@ -417,12 +428,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       msg: `${impact.msg} This only carries until ${nextManualBalanceDate}, where a manual day balance takes over.`,
     }
   }, [forecastMap, selected, form.amount, modalType, hasManualBalanceOnSelectedDay, nextManualBalanceDate])
-
-  useEffect(() => {
-    if (showModal && composerRef.current) {
-      composerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
-  }, [showModal, editTx?._id])
 
   useEffect(() => {
     setEditingDayBalance(false)
@@ -732,115 +737,120 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       )}
 
       {showModal && (
-        <div ref={composerRef} className={`${styles.card} ${calStyles.inlineComposerCard}`}>
-          <div className={calStyles.modalHeader}>
-            <div className={calStyles.modalTitle}>
-              {editTx ? 'Edit transaction' : `Add ${isIncome ? 'Income' : 'Expense'}`}
-              {selected && !editTx && <span style={{ fontSize: 13, color: 'var(--text3)', marginLeft: 8 }}>{selected}</span>}
+        <div className={calStyles.modalOverlay} onClick={closeTransactionEditor}>
+          <div className={calStyles.modal} onClick={event => event.stopPropagation()}>
+            <div className={calStyles.modalHeader}>
+              <div className={calStyles.modalTitle}>
+                {editTx ? 'Edit transaction' : `Add ${isIncome ? 'Income' : 'Expense'}`}
+                {selected && !editTx && <span style={{ fontSize: 13, color: 'var(--text3)', marginLeft: 8 }}>{selected}</span>}
+              </div>
+            <button onClick={closeTransactionEditor} className={calStyles.modalClose} disabled={formSaving}>✕</button>
             </div>
-            <button onClick={closeTransactionEditor} className={calStyles.modalClose}>✕</button>
-          </div>
 
-          {!editTx && (
-            <div className={calStyles.typeToggle}>
-              <button className={`${calStyles.typeBtn} ${isIncome ? calStyles.typeBtnIncome : ''}`} onClick={() => switchComposerType('income')}>
-                <span className={calStyles.typeBtnSign}>+</span><span>Income</span>
-              </button>
-              <button className={`${calStyles.typeBtn} ${!isIncome ? calStyles.typeBtnExpense : ''}`} onClick={() => switchComposerType('expense')}>
-                <span className={calStyles.typeBtnSign}>−</span><span>Expense</span>
-              </button>
+            {!editTx && (
+              <div className={calStyles.typeToggle}>
+                <button className={`${calStyles.typeBtn} ${isIncome ? calStyles.typeBtnIncome : ''}`} onClick={() => switchComposerType('income')} disabled={formSaving}>
+                  <span className={calStyles.typeBtnSign}>+</span><span>Income</span>
+                </button>
+                <button className={`${calStyles.typeBtn} ${!isIncome ? calStyles.typeBtnExpense : ''}`} onClick={() => switchComposerType('expense')} disabled={formSaving}>
+                  <span className={calStyles.typeBtnSign}>−</span><span>Expense</span>
+                </button>
+              </div>
+            )}
+
+            <div className={calStyles.amountField}>
+              <span className={calStyles.amountSign} style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}>
+                {isIncome ? '+' : '−'}
+              </span>
+              <span className={calStyles.amountSymbol}>{s}</span>
+              <input
+                className={calStyles.amountInput}
+                type="number"
+                min="0"
+                placeholder="0.00"
+                value={form.amount}
+                disabled={formSaving}
+                onChange={event => set('amount', event.target.value)}
+                style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}
+              />
             </div>
-          )}
 
-          <div className={calStyles.amountField}>
-            <span className={calStyles.amountSign} style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}>
-              {isIncome ? '+' : '−'}
-            </span>
-            <span className={calStyles.amountSymbol}>{s}</span>
-            <input
-              className={calStyles.amountInput}
-              type="number"
-              min="0"
-              placeholder="0.00"
-              value={form.amount}
-              onChange={event => set('amount', event.target.value)}
-              style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}
-            />
-          </div>
-
-          <div className={calStyles.modalSectionLabel}>Category</div>
-          <div className={calStyles.quickCats}>
-            {quickCats.map(item => (
-              <button
-                key={item.label}
-                className={`${calStyles.quickCat} ${quickPick === item.label ? calStyles.quickCatActive : ''}`}
-                style={quickPick === item.label ? {
-                  borderColor: isIncome ? 'var(--accent)' : 'var(--red)',
-                  background: isIncome ? 'var(--accent-glow)' : 'var(--red-dim)',
-                  color: isIncome ? 'var(--accent)' : 'var(--red)',
-                } : {}}
-                onClick={() => applyComposerCategory(item.cat, item.label)}
-                aria-pressed={quickPick === item.label}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className={calStyles.modalFields}>
-            <div className={styles.formGroup}>
-              <label>All categories</label>
-              <select value={form.cat} onChange={event => applyComposerCategory(event.target.value)}>
-                {cats.map(option => <option key={option}>{option}</option>)}
-              </select>
-            </div>
-            <div className={styles.formGroup}>
-              <label>Merchant or note</label>
-              <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} />
-            </div>
-          </div>
-
-          {formError && <div className={calStyles.formError}>{formError}</div>}
-
-          <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
-            <label>Recurrence</label>
-            <div className={calStyles.recurGrid}>
-              {RECUR_OPTIONS.map(option => (
+            <div className={calStyles.modalSectionLabel}>Category</div>
+            <div className={calStyles.quickCats}>
+              {quickCats.map(item => (
                 <button
-                  key={option.value}
-                  onClick={() => set('recur', option.value)}
-                  className={`${calStyles.recurChip} ${form.recur === option.value ? calStyles.recurChipActive : ''}`}
+                  key={item.label}
+                  className={`${calStyles.quickCat} ${quickPick === item.label ? calStyles.quickCatActive : ''}`}
+                  style={quickPick === item.label ? {
+                    borderColor: isIncome ? 'var(--accent)' : 'var(--red)',
+                    background: isIncome ? 'var(--accent-glow)' : 'var(--red-dim)',
+                    color: isIncome ? 'var(--accent)' : 'var(--red)',
+                  } : {}}
+                  disabled={formSaving}
+                  onClick={() => applyComposerCategory(item.cat, item.label)}
+                  aria-pressed={quickPick === item.label}
                 >
-                  {option.label}
+                  <span>{item.icon}</span>
+                  <span>{item.label}</span>
                 </button>
               ))}
             </div>
-          </div>
 
-          {formImpact && (
-            <div
-              className={calStyles.impactPreview}
-              style={{
-                background: formImpact.level === 'negative' ? 'var(--red-dim)' : formImpact.level === 'tight' ? 'var(--amber-dim)' : 'var(--accent-glow)',
-                borderColor: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
-                color: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
-              }}
-            >
-              {formImpact.msg}
+            <div className={calStyles.modalFields}>
+              <div className={styles.formGroup}>
+                <label>All categories</label>
+                <select value={form.cat} onChange={event => applyComposerCategory(event.target.value)} disabled={formSaving}>
+                  {cats.map(option => <option key={option}>{option}</option>)}
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Merchant or note</label>
+                <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
+              </div>
             </div>
-          )}
 
-          <div className={calStyles.modalActions}>
-            <button onClick={closeTransactionEditor} className={calStyles.btnCancel}>Cancel</button>
-            <button
-              onClick={handleSave}
-              className={calStyles.btnSave}
-              style={{ background: isIncome ? 'var(--accent)' : 'var(--red)', color: isIncome ? '#0a0a0f' : '#fff' }}
-              disabled={!Number.isFinite(parseFloat(form.amount)) || parseFloat(form.amount) <= 0}
-            >
-              {editTx ? 'Save changes' : isIncome ? '+ Add income' : '− Add expense'}
-            </button>
+            {formError && <div className={calStyles.formError}>{formError}</div>}
+
+            <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
+              <label>Recurrence</label>
+              <div className={calStyles.recurGrid}>
+                {RECUR_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => set('recur', option.value)}
+                    className={`${calStyles.recurChip} ${form.recur === option.value ? calStyles.recurChipActive : ''}`}
+                    disabled={formSaving}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {formImpact && (
+              <div
+                className={calStyles.impactPreview}
+                style={{
+                  background: formImpact.level === 'negative' ? 'var(--red-dim)' : formImpact.level === 'tight' ? 'var(--amber-dim)' : 'var(--accent-glow)',
+                  borderColor: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
+                  color: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
+                }}
+              >
+                {formImpact.msg}
+              </div>
+            )}
+
+            <div className={calStyles.modalActions}>
+              <button onClick={closeTransactionEditor} className={calStyles.btnCancel} disabled={formSaving}>Cancel</button>
+              <button
+                onClick={handleSave}
+                className={calStyles.btnSave}
+                style={{ background: isIncome ? 'var(--accent)' : 'var(--red)', color: isIncome ? '#0a0a0f' : '#fff' }}
+                disabled={formSaving || !Number.isFinite(parseFloat(form.amount)) || parseFloat(form.amount) <= 0}
+              >
+                {formSaving ? 'Saving...' : editTx ? 'Save changes' : isIncome ? '+ Add income' : '− Add expense'}
+              </button>
+            </div>
           </div>
         </div>
       )}
