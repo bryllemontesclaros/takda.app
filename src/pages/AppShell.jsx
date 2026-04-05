@@ -304,7 +304,7 @@ export default function AppShell({ user }) {
   }
 
   return (
-    <div className={styles.shell}>
+    <div className={`${styles.shell} ${page === 'calendar' ? styles.shellCalendar : ''}`}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <div className={styles.logo}>Takda</div>
@@ -328,7 +328,7 @@ export default function AppShell({ user }) {
           <button className={styles.btnLogout} onClick={() => signOut(auth)}>← Log out</button>
         </div>
       </aside>
-      <div className={styles.mainWrap}>
+      <div className={`${styles.mainWrap} ${page === 'calendar' ? styles.mainWrapCalendar : ''}`}>
         <header className={styles.topBar}>
           <div className={styles.topBarLogo}>Takda</div>
           <div className={styles.topBarRight}>

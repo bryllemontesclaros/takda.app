@@ -347,8 +347,10 @@
 /* MOBILE */
 @media (max-width: 768px) {
   .shell { flex-direction: column; height: 100%; min-height: 100vh; overflow: auto; }
+  .shellCalendar { overflow: hidden; }
   .sidebar { display: none; }
   .mainWrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .mainWrapCalendar { overflow: hidden; }
   .main { flex: 1; overflow-y: auto; padding-bottom: 70px; -webkit-overflow-scrolling: touch; }
   .mainCalendar {
     display: flex;
