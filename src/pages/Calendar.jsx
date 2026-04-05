@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
 import { fsAdd, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDel, fsSetDailyBalanceOverride, fsUpdate } from '../lib/firestore'
-import { getEndOfMonthBalance, getForecastColor, getTransactionImpact } from '../lib/forecast'
+import { getForecastColor, getTransactionImpact } from '../lib/forecast'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
   DEFAULT_CATEGORY_BY_TYPE,
@@ -84,8 +84,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     [data.accounts, data.income, data.expenses, projectedIncome, projectedExpenses, year, month, balanceOverrides],
   )
 
-  const endOfMonthBalance = useMemo(() => getEndOfMonthBalance(forecastMap), [forecastMap])
-
   const mIncome = allIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const mExpense = allExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const net = mIncome - mExpense
@@ -94,6 +92,17 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const cats = getTransactionCategories(modalType)
   const quickCats = getQuickItems(modalType)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const formatCellBalance = value => {
+    if (privacyMode) return `${s}•••`
+    const numericValue = Number(value) || 0
+    const abs = Math.abs(numericValue)
+    const compact = new Intl.NumberFormat('en-PH', {
+      notation: 'compact',
+      compactDisplay: 'short',
+      maximumFractionDigits: abs >= 1000 ? 1 : 0,
+    }).format(abs)
+    return `${numericValue < 0 ? '−' : ''}${s}${compact}`
+  }
 
   function bumpMonth(direction) {
     if (navLock.current) return
@@ -502,6 +511,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             const isToday = ds === todayStr
             const forecast = forecastMap[ds]
             const forecastColor = forecast ? getForecastColor(forecast.status) : null
+            const balanceLabel = forecast ? formatCellBalance(forecast.runningBalance) : ''
 
             return (
               <div
@@ -510,14 +520,23 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 style={forecastColor?.bg && !isToday ? { background: forecastColor.bg, borderColor: forecastColor.border } : {}}
                 onClick={() => setSelected(ds === selected ? null : ds)}
               >
-                <div className={calStyles.dateNum} style={forecastColor?.text && !isToday ? { color: forecastColor.text } : {}}>{day}</div>
-                {(hasIncome || hasExpense || hasManualBalance) && (
-                  <div className={calStyles.dots}>
-                    {hasManualBalance && <div className={`${calStyles.dot} ${calStyles.dotBalance}`} />}
-                    {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
-                    {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
-                  </div>
-                )}
+                <div className={calStyles.cellTop}>
+                  <div className={calStyles.dateNum} style={forecastColor?.text && !isToday ? { color: forecastColor.text } : {}}>{day}</div>
+                  {(hasIncome || hasExpense || hasManualBalance) && (
+                    <div className={calStyles.dots}>
+                      {hasManualBalance && <div className={`${calStyles.dot} ${calStyles.dotBalance}`} />}
+                      {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
+                      {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
+                    </div>
+                  )}
+                </div>
+                <div
+                  className={calStyles.cellBalance}
+                  style={forecastColor?.text && !isToday ? { color: forecastColor.text } : {}}
+                  title={privacyMode ? 'Balance hidden' : fmt(forecast?.runningBalance || 0, s)}
+                >
+                  {balanceLabel}
+                </div>
               </div>
             )
           })}
@@ -547,13 +566,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             <span className={calStyles.stripLabel}>Net</span>
             <span className={calStyles.stripVal} style={{ color: net >= 0 ? 'var(--blue)' : 'var(--red)' }}>
               {displayValue(privacyMode, `${net >= 0 ? '+' : ''}${fmt(net, s)}`, `${net >= 0 ? '+' : ''}${maskMoney(s)}`)}
-            </span>
-          </div>
-          <div className={calStyles.stripDivider} />
-          <div className={calStyles.stripItem}>
-            <span className={calStyles.stripLabel}>Projected month-end balance</span>
-            <span className={calStyles.stripVal} style={{ color: endOfMonthBalance >= 0 ? 'var(--accent)' : 'var(--red)', fontWeight: 700 }}>
-              {money(endOfMonthBalance)}
             </span>
           </div>
         </div>
