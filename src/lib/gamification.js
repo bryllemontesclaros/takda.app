@@ -5,6 +5,8 @@ const WEEKLY_CHECKIN_TARGET = 4
 const INCOME_CATS = new Set(['Salary', 'Bonus', 'Freelance', 'Business', 'Investment', '13th Month', 'Other'])
 const EXPENSE_EXCLUDED_CATS = new Set(['Bills'])
 const ONBOARDING_MATCH_WINDOW_MS = 120000
+const RECUR_BONUS_MULTIPLIER = 1.2
+const BILL_PAYMENT_BONUS_MULTIPLIER = 1.35
 
 function toDateValue(date) {
   return new Date(`${normalizeDate(date)}T00:00:00`)
@@ -61,12 +63,19 @@ function getWeeklyCheckins(days = []) {
   }).length
 }
 
-function getExpDelta(amount, sourceType) {
+function getExpDelta(amount, sourceType, options = {}) {
   const value = Math.abs(Number(amount) || 0)
+  let delta = 0
   if (sourceType === 'income') {
-    return Math.max(3, Math.floor(value / 80))
+    delta = Math.max(3, Math.floor(value / 80))
+  } else if (sourceType === 'bill') {
+    delta = Math.max(4, Math.floor(value / 75))
+  } else {
+    delta = Math.max(1, Math.floor(value / 160))
   }
-  return Math.max(1, Math.floor(value / 160))
+  if (options.isRecurring) delta = Math.max(1, Math.round(delta * RECUR_BONUS_MULTIPLIER))
+  if (sourceType === 'bill') delta = Math.max(1, Math.round(delta * BILL_PAYMENT_BONUS_MULTIPLIER))
+  return delta
 }
 
 function isOnboardingSeededIncome(tx = {}) {
@@ -83,6 +92,12 @@ function getActivityDate(tx = {}) {
   return normalizeDate(tx?.date)
 }
 
+function getBillActivityDate(bill = {}) {
+  const paidAt = Number(bill?.paidAt || 0)
+  if (paidAt) return normalizeDate(new Date(paidAt))
+  return getActivityDate(bill)
+}
+
 function isExcludedCheckin(tx = {}, profile = {}) {
   return Boolean(
     tx?.gamificationExcluded ||
@@ -91,27 +106,36 @@ function isExcludedCheckin(tx = {}, profile = {}) {
   )
 }
 
-function buildCheckinEntries(income = [], expenses = [], profile = {}) {
-  return [...income, ...expenses]
+function buildCheckinEntries(income = [], expenses = [], bills = [], profile = {}) {
+  const transactionEntries = [...income, ...expenses]
     .filter(tx => !isExcludedCheckin(tx, profile))
     .map(tx => ({
       ...tx,
       activityDate: getActivityDate(tx),
     }))
     .filter(entry => entry.activityDate)
+  const billEntries = bills
+    .filter(bill => bill?.paid && !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
+    .map(bill => ({
+      ...bill,
+      activityDate: getBillActivityDate(bill),
+    }))
+    .filter(entry => entry.activityDate)
+
+  return [...transactionEntries, ...billEntries]
     .sort((a, b) => {
       if (a.activityDate !== b.activityDate) return a.activityDate.localeCompare(b.activityDate)
-      return (a.createdAt || 0) - (b.createdAt || 0)
+      return ((a.paidAt || a.createdAt) || 0) - ((b.paidAt || b.createdAt) || 0)
     })
 }
 
-function buildExpLedger(income = [], expenses = [], profile = {}) {
+function buildExpLedger(income = [], expenses = [], bills = [], profile = {}) {
   const gains = income
     .filter(tx => INCOME_CATS.has(tx?.cat || 'Other') && !isOnboardingSeededIncome(tx, profile))
     .map(tx => ({
       ...tx,
       date: normalizeDate(tx?.date),
-      delta: getExpDelta(tx?.amount, 'income'),
+      delta: getExpDelta(tx?.amount, 'income', { isRecurring: Boolean(tx?.recur) }),
       sourceType: 'income',
     }))
 
@@ -120,21 +144,30 @@ function buildExpLedger(income = [], expenses = [], profile = {}) {
     .map(tx => ({
       ...tx,
       date: normalizeDate(tx?.date),
-      delta: -getExpDelta(tx?.amount, 'expense'),
+      delta: -getExpDelta(tx?.amount, 'expense', { isRecurring: Boolean(tx?.recur) }),
       sourceType: 'expense',
     }))
 
-  return [...gains, ...losses]
+  const billPayments = bills
+    .filter(bill => bill?.paid && !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
+    .map(bill => ({
+      ...bill,
+      date: getBillActivityDate(bill),
+      delta: getExpDelta(bill?.amount, 'bill', { isRecurring: true }),
+      sourceType: 'bill',
+    }))
+
+  return [...gains, ...losses, ...billPayments]
     .filter(entry => entry.date)
     .sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date)
-      return (a.createdAt || 0) - (b.createdAt || 0)
+      return ((a.paidAt || a.createdAt) || 0) - ((b.paidAt || b.createdAt) || 0)
     })
 }
 
-export function getGamificationSnapshot(income = [], expenses = [], profile = {}) {
-  const ledger = buildExpLedger(income, expenses, profile)
-  const checkinEntries = buildCheckinEntries(income, expenses, profile)
+export function getGamificationSnapshot(income = [], expenses = [], bills = [], profile = {}) {
+  const ledger = buildExpLedger(income, expenses, bills, profile)
+  const checkinEntries = buildCheckinEntries(income, expenses, bills, profile)
   const now = new Date()
   const todayStr = today()
   const trackedDays = getTrackedDays(checkinEntries)

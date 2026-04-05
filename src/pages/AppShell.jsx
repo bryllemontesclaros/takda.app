@@ -111,8 +111,8 @@ export default function AppShell({ user }) {
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
   const privacyMode = Boolean(profile.privacyMode)
   const gamification = useMemo(
-    () => getGamificationSnapshot(data.income, data.expenses, profile),
-    [data.income, data.expenses, profile],
+    () => getGamificationSnapshot(data.income, data.expenses, data.bills, profile),
+    [data.income, data.expenses, data.bills, profile],
   )
 
   useEffect(() => {

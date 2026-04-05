@@ -16,6 +16,14 @@ export default function Bills({ user, data, symbol }) {
     setForm(f => ({ ...f, name: '', amount: '', due: '' }))
   }
 
+  async function togglePaid(bill) {
+    const nextPaid = !bill.paid
+    await fsUpdate(user.uid, 'bills', bill._id, {
+      paid: nextPaid,
+      paidAt: nextPaid ? Date.now() : null,
+    })
+  }
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -61,7 +69,7 @@ export default function Bills({ user, data, symbol }) {
                     <td>{BILL_FREQS.find(o => o.value === r.freq)?.label || r.freq}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(r.amount, s)}</td>
                     <td>
-                      <button onClick={() => fsUpdate(user.uid, 'bills', r._id, { paid: !r.paid })} style={{ background: r.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: r.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => togglePaid(r)} style={{ background: r.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: r.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                         {r.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
