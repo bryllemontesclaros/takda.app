@@ -48,13 +48,15 @@ export default function LandingPage() {
   return (
     <div className={styles.page}>
       <nav className={styles.nav}>
-        <div className={styles.navBrand}>
-          <div className={styles.navLogo}>Takda</div>
-          <div className={styles.navTag}>Personal finance tracker for Filipinos</div>
-        </div>
-        <div className={styles.navActions}>
-          <button className={styles.navLink} onClick={goLogin}>Log in</button>
-          <button className={styles.navCta} onClick={openPrimary}>{navPrimaryLabel}</button>
+        <div className={styles.navInner}>
+          <div className={styles.navBrand}>
+            <div className={styles.navLogo}>Takda</div>
+            <div className={styles.navTag}>Personal finance tracker for Filipinos</div>
+          </div>
+          <div className={styles.navActions}>
+            <button className={styles.navLink} onClick={goLogin}>Log in</button>
+            <button className={styles.navCta} onClick={openPrimary}>{navPrimaryLabel}</button>
+          </div>
         </div>
       </nav>
 
@@ -113,8 +115,15 @@ export default function LandingPage() {
       </section>
 
       <section className={styles.useCases}>
-        <div className={styles.sectionLabel}>Why it feels better</div>
-        <h2 className={styles.sectionTitle}>A finance app should make the month clearer, not heavier.</h2>
+        <div className={styles.sectionTop}>
+          <div className={styles.sectionIntro}>
+            <div className={styles.sectionLabel}>Why it feels better</div>
+            <h2 className={styles.sectionTitle}>A finance app should make the month clearer, not heavier.</h2>
+          </div>
+          <p className={styles.sectionLead}>
+            Takda is designed around one job: help you understand this month while you are still living inside it.
+          </p>
+        </div>
         <div className={styles.useCaseGrid}>
           {USE_CASES.map(item => (
             <div key={item.title} className={styles.useCaseCard}>
@@ -126,8 +135,15 @@ export default function LandingPage() {
       </section>
 
       <section className={styles.features}>
-        <div className={styles.sectionLabel}>What you get</div>
-        <h2 className={styles.sectionTitle}>Built to make tracking feel clear, not punishing</h2>
+        <div className={styles.sectionTop}>
+          <div className={styles.sectionIntro}>
+            <div className={styles.sectionLabel}>What you get</div>
+            <h2 className={styles.sectionTitle}>Built to make tracking feel clear, not punishing</h2>
+          </div>
+          <p className={styles.sectionLead}>
+            The product stays calm because the calendar, add flow, imports, budgets, and goals all reinforce the same mental model.
+          </p>
+        </div>
         <div className={styles.featureGrid}>
           {FEATURES.map((f, i) => (
             <div
@@ -145,8 +161,15 @@ export default function LandingPage() {
       </section>
 
       <section className={styles.howItWorks}>
-        <div className={styles.sectionLabel}>How it works</div>
-        <h2 className={styles.sectionTitle}>Set it up once, then stay ahead each day</h2>
+        <div className={styles.sectionTop}>
+          <div className={styles.sectionIntro}>
+            <div className={styles.sectionLabel}>How it works</div>
+            <h2 className={styles.sectionTitle}>Set it up once, then stay ahead each day</h2>
+          </div>
+          <p className={styles.sectionLead}>
+            No spreadsheet marathon. Just enough setup to make your next few weeks legible, then quick daily updates to keep them honest.
+          </p>
+        </div>
         <div className={styles.steps}>
           <div className={styles.step}>
             <div className={styles.stepNum}>1</div>
@@ -175,20 +198,26 @@ export default function LandingPage() {
       </section>
 
       <section className={styles.cta}>
-        <h2 className={styles.ctaTitle}>Start with a clearer month, not a heavier setup.</h2>
-        <p className={styles.ctaSub}>Create your account first, then Takda drops you into setup with the right next step.</p>
-        <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
+        <div className={styles.ctaCard}>
+          <h2 className={styles.ctaTitle}>Start with a clearer month, not a heavier setup.</h2>
+          <p className={styles.ctaSub}>Create your account first, then Takda drops you into setup with the right next step.</p>
+          <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
+        </div>
       </section>
 
       <footer className={styles.footer}>
-        <div className={styles.footerLogo}>Takda</div>
-        <div className={styles.footerTagline}>Bawat piso, sinusubaybayan.</div>
-        <div className={styles.footerLinks}>
-          <span onClick={openPrimary} style={{ cursor: 'pointer' }}>{isSignedIn ? 'Open app' : 'Get started'}</span>
-          <span>·</span>
-          <span onClick={goLogin} style={{ cursor: 'pointer' }}>Log in</span>
+        <div className={styles.footerInner}>
+          <div>
+            <div className={styles.footerLogo}>Takda</div>
+            <div className={styles.footerTagline}>Bawat piso, sinusubaybayan.</div>
+          </div>
+          <div className={styles.footerLinks}>
+            <span onClick={openPrimary} style={{ cursor: 'pointer' }}>{isSignedIn ? 'Open app' : 'Get started'}</span>
+            <span>·</span>
+            <span onClick={goLogin} style={{ cursor: 'pointer' }}>Log in</span>
+          </div>
+          <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Simple personal finance tracking for Filipinos.</div>
         </div>
-        <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Simple personal finance tracking for Filipinos.</div>
       </footer>
     </div>
   )

@@ -36,22 +36,33 @@ function PieChart({ data, size = 160 }) {
   const cx = size / 2
   const cy = size / 2
   const radius = size / 2 - 8
+  const fullSweep = 2 * Math.PI
+  const fullSliceThreshold = fullSweep - 0.0001
   let angle = -Math.PI / 2
   const slices = data.map(item => {
-    const sweep = (item.value / total) * 2 * Math.PI
+    const sweep = (item.value / total) * fullSweep
     const x1 = cx + radius * Math.cos(angle)
     const y1 = cy + radius * Math.sin(angle)
     angle += sweep
     const x2 = cx + radius * Math.cos(angle)
     const y2 = cy + radius * Math.sin(angle)
     const large = sweep > Math.PI ? 1 : 0
-    return { ...item, path: `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2} Z` }
+    const isFullSlice = sweep >= fullSliceThreshold
+    return {
+      ...item,
+      isFullSlice,
+      path: isFullSlice ? '' : `M ${cx} ${cy} L ${x1} ${y1} A ${radius} ${radius} 0 ${large} 1 ${x2} ${y2} Z`,
+    }
   })
 
   return (
     <div style={{ width: size, height: size, flexShrink: 0 }}>
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
-        {slices.map((slice, index) => <path key={index} d={slice.path} fill={slice.color} opacity={0.9} />)}
+        {slices.map((slice, index) => (
+          slice.isFullSlice
+            ? <circle key={index} cx={cx} cy={cy} r={radius} fill={slice.color} opacity={0.9} />
+            : <path key={index} d={slice.path} fill={slice.color} opacity={0.9} />
+        ))}
         <circle cx={cx} cy={cy} r={radius * 0.55} fill="var(--surface)" />
       </svg>
     </div>

@@ -1,4 +1,6 @@
 .page {
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 12%, transparent), transparent 26%),
@@ -6,6 +8,8 @@
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, #ffffff 8%), var(--bg));
   color: var(--text);
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -13,14 +17,19 @@
   position: sticky;
   top: 0;
   z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   padding: 1rem 1.5rem;
   background: color-mix(in srgb, var(--bg) 82%, transparent 18%);
   border-bottom: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   backdrop-filter: blur(14px);
+}
+
+.navInner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .navBrand { display: flex; flex-direction: column; gap: 2px; }
@@ -83,14 +92,14 @@
 .hero {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 5rem 1.5rem 3rem;
+  padding: 4.5rem 1.5rem 3rem;
   display: grid;
-  grid-template-columns: minmax(0, 1.06fr) minmax(420px, 0.94fr);
-  gap: 3rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(470px, 0.92fr);
+  gap: 3.5rem;
+  align-items: center;
 }
 
-.heroCopy { max-width: 640px; padding-top: 1rem; }
+.heroCopy { max-width: 620px; }
 
 .heroBadge {
   display: inline-flex;
@@ -179,7 +188,8 @@
   padding: 1.5rem;
   box-shadow: 0 34px 80px rgba(8, 12, 18, 0.18);
   overflow: hidden;
-  max-width: 540px;
+  width: 100%;
+  max-width: 560px;
   justify-self: end;
 }
 
@@ -408,6 +418,27 @@
   padding: 3.5rem 1.5rem;
 }
 
+.sectionTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  gap: 1.5rem;
+  align-items: end;
+  margin-bottom: 1.75rem;
+}
+
+.sectionIntro {
+  min-width: 0;
+}
+
+.sectionLead {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text2);
+  max-width: 34ch;
+  justify-self: end;
+  margin: 0;
+}
+
 .sectionLabel {
   font-size: 11px;
   color: var(--accent);
@@ -418,13 +449,13 @@
 }
 
 .sectionTitle {
-  max-width: 720px;
+  max-width: 760px;
   font-family: var(--font-display);
   font-size: clamp(28px, 4vw, 46px);
   line-height: 1.02;
   letter-spacing: -0.8px;
   color: var(--text);
-  margin-bottom: 1.75rem;
+  margin-bottom: 0;
 }
 
 .useCaseGrid {
@@ -493,8 +524,9 @@
 
 .steps {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr) 36px minmax(0, 1fr);
   gap: 1rem;
+  align-items: stretch;
 }
 
 .step {
@@ -535,12 +567,30 @@
   color: var(--text2);
 }
 
-.stepArrow { display: none; }
+.stepArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: color-mix(in srgb, var(--accent) 62%, var(--text3));
+  font-size: 22px;
+  font-weight: 700;
+}
 
 .cta {
   display: grid;
   justify-items: center;
   text-align: center;
+}
+
+.ctaCard {
+  width: 100%;
+  padding: 2.75rem 2rem;
+  border-radius: 32px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+  box-shadow: 0 22px 48px rgba(8, 12, 18, 0.08);
 }
 
 .ctaTitle {
@@ -564,22 +614,31 @@
 .footer {
   border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   padding: 2rem 1.5rem 2.5rem;
-  display: flex;
-  flex-direction: column;
+}
+
+.footerInner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 8px;
-  text-align: center;
+  gap: 16px;
 }
 
 .footerLogo { font-family: var(--font-display); font-size: 21px; color: var(--accent); }
 .footerTagline { font-size: 13px; color: var(--text3); }
 .footerLinks { display: flex; gap: 10px; font-size: 13px; color: var(--text3); }
-.footerCopy { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.footerCopy { font-size: 11px; color: var(--text3); text-align: right; }
 
 @media (max-width: 980px) {
+  .navInner {
+    flex-wrap: wrap;
+  }
+
   .hero {
     grid-template-columns: 1fr;
     padding-top: 3.5rem;
+    gap: 2rem;
   }
 
   .heroCopy { padding-top: 0; }
@@ -589,16 +648,43 @@
     justify-self: stretch;
   }
 
+  .sectionTop {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .sectionLead {
+    justify-self: start;
+    max-width: 48ch;
+  }
+
   .useCaseGrid,
   .featureGrid,
   .steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stepArrow {
+    display: none;
+  }
+
+  .footerInner {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .footerCopy {
+    text-align: center;
   }
 }
 
 @media (max-width: 680px) {
   .nav {
     padding: 0.9rem 1rem;
+  }
+
+  .navInner {
     align-items: center;
     flex-wrap: wrap;
   }
@@ -665,6 +751,11 @@
   .featureGrid,
   .steps {
     grid-template-columns: 1fr;
+  }
+
+  .ctaCard {
+    padding: 2rem 1.25rem;
+    border-radius: 24px;
   }
 }
 

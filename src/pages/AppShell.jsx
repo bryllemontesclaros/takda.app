@@ -214,10 +214,10 @@ export default function AppShell({ user }) {
   const bottomNav = [
     { id: 'dashboard', label: 'Home', iconKey: 'home' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar' },
-    { id: 'breakdown', label: 'Charts', iconKey: 'breakdown' },
+    { id: 'savings', label: 'Savings', iconKey: 'savings' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
-  const mobileMoreNav = nav.filter(item => ['history', 'budget', 'savings', 'settings'].includes(item.id))
+  const mobileMoreNav = nav.filter(item => ['history', 'breakdown', 'budget', 'settings'].includes(item.id))
   const isMorePage = mobileMoreNav.some(item => item.id === page)
 
   const { theme, toggle: toggleTheme } = useTheme()
