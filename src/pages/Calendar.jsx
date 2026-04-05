@@ -96,12 +96,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (privacyMode) return `${s}•••`
     const numericValue = Number(value) || 0
     const abs = Math.abs(numericValue)
-    const compact = new Intl.NumberFormat('en-PH', {
-      notation: 'compact',
-      compactDisplay: 'short',
-      maximumFractionDigits: abs >= 1000 ? 1 : 0,
+    const hasDecimals = Math.round(abs * 100) !== Math.round(abs) * 100
+    const exact = new Intl.NumberFormat('en-PH', {
+      minimumFractionDigits: hasDecimals ? 2 : 0,
+      maximumFractionDigits: hasDecimals ? 2 : 0,
     }).format(abs)
-    return `${numericValue < 0 ? '−' : ''}${s}${compact}`
+    return `${numericValue < 0 ? '−' : ''}${exact}`
   }
 
   function bumpMonth(direction) {
