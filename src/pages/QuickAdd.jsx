@@ -284,15 +284,16 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
         ))}
       </div>
 
-      {/* SAVE */}
-      <button
-        className={styles.saveBtn}
-        style={{ background: done ? 'var(--accent)' : color, color: isIncome || done ? '#0a0a0f' : '#fff' }}
-        onClick={handleSave}
-        disabled={saving || !entryDate || !amount || Number.parseFloat(amount) <= 0}
-      >
-        {done ? '✓ Saved!' : saving ? 'Saving...' : `${isIncome ? '+ Add Income' : '− Add Expense'} · ${s}${amount || '0'}`}
-      </button>
+      <div className={styles.saveDock}>
+        <button
+          className={styles.saveBtn}
+          style={{ background: done ? 'var(--accent)' : color, color: isIncome || done ? '#0a0a0f' : '#fff' }}
+          onClick={handleSave}
+          disabled={saving || !entryDate || !amount || Number.parseFloat(amount) <= 0}
+        >
+          {done ? '✓ Saved!' : saving ? 'Saving...' : `${isIncome ? '+ Add Income' : '− Add Expense'} · ${s}${amount || '0'}`}
+        </button>
+      </div>
     </div>
   )
 }

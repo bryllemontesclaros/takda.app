@@ -222,9 +222,11 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
         )}
       </div>
 
-      <button className={styles.importBtn} onClick={handleImport} disabled={saving || done || !items.length || total <= 0}>
-        {done ? '✓ Imported to calendar' : saving ? 'Importing...' : `Import grocery total to calendar · ${fmt(total, s)}`}
-      </button>
+      <div className={styles.footerDock}>
+        <button className={styles.importBtn} onClick={handleImport} disabled={saving || done || !items.length || total <= 0}>
+          {done ? '✓ Imported to calendar' : saving ? 'Importing...' : `Import grocery total to calendar · ${fmt(total, s)}`}
+        </button>
+      </div>
     </div>
   )
 }

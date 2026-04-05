@@ -84,7 +84,34 @@
 .saveBtn { width: 100%; padding: 16px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; font-family: var(--font-body); transition: opacity 0.2s; min-height: 56px; }
 .saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .saveBtn:hover:not(:disabled) { opacity: 0.9; }
+.saveDock {
+  position: sticky;
+  bottom: calc(-1rem - env(safe-area-inset-bottom));
+  margin: 2px -1rem calc(-1rem - env(safe-area-inset-bottom));
+  padding: 10px 1rem calc(1rem + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 26%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
 
 @media (max-width: 420px) {
   .metaGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .wrap { gap: 10px; }
+  .sectionLabel,
+  .fieldLabel { font-size: 11px; }
+  .amountDisplay { padding: 12px 14px; }
+  .currencySign { font-size: 20px; }
+  .amountInput { font-size: 34px; letter-spacing: -1px; }
+  .quickCats { gap: 5px; }
+  .quickCat { padding: 6px 10px; font-size: 11px; }
+  .numpad { display: none; }
+  .saveDock {
+    bottom: calc(-12px - env(safe-area-inset-bottom));
+    margin: 0 -12px calc(-12px - env(safe-area-inset-bottom));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  }
 }

@@ -232,6 +232,11 @@
   width: min(440px, calc(100vw - 24px));
   max-height: min(760px, calc(100vh - 40px));
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: color-mix(in srgb, var(--surface) 96%, #ffffff 4%);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -247,7 +252,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 .quickAddEyebrow {
   font-size: 10px;
@@ -328,15 +333,27 @@
     justify-content: center;
   }
   .quickAddLayer {
-    padding: 12px;
+    padding: 0;
     align-items: flex-end;
   }
   .quickAddSheet {
     width: 100%;
     max-width: none;
-    max-height: calc(100vh - 92px - env(safe-area-inset-bottom));
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    min-height: calc(100dvh - 76px - env(safe-area-inset-bottom));
+    border-radius: 22px 22px 0 0;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+    box-shadow: 0 -24px 48px rgba(8, 12, 18, 0.24);
+  }
+  .quickAddHeader {
+    position: sticky;
+    top: -12px;
+    z-index: 3;
+    margin: -12px -12px 2px;
+    padding: 14px 12px 10px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
+    border-bottom: 1px solid var(--border);
   }
   .bottomNav {
     display: flex;

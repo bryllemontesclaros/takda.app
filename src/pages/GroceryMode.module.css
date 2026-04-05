@@ -9,6 +9,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-bottom: 6px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
 }
 
 .eyebrow {
@@ -349,6 +355,16 @@
   font-size: 15px;
   font-weight: 700;
 }
+.footerDock {
+  position: sticky;
+  bottom: calc(-1rem - env(safe-area-inset-bottom));
+  margin: 0 -1rem calc(-1rem - env(safe-area-inset-bottom));
+  padding: 10px 1rem calc(1rem + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 28%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
 
 .secondaryBtn:hover,
 .ghostBtn:hover,
@@ -366,6 +382,37 @@
 }
 
 @media (max-width: 640px) {
+  .wrap {
+    gap: 10px;
+  }
+
+  .header {
+    top: -12px;
+    margin: -12px -12px 0;
+    padding: 14px 12px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .sub,
+  .summaryHint,
+  .emptyState {
+    font-size: 12px;
+  }
+
+  .summaryCard,
+  .draftCard,
+  .itemsCard {
+    padding: 12px;
+  }
+
+  .summaryValue {
+    font-size: 30px;
+  }
+
   .tripGrid {
     grid-template-columns: 1fr;
   }
@@ -390,5 +437,11 @@
   .ghostBtn,
   .primaryBtn {
     width: 100%;
+  }
+
+  .footerDock {
+    bottom: calc(-12px - env(safe-area-inset-bottom));
+    margin: 0 -12px calc(-12px - env(safe-area-inset-bottom));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
   }
 }

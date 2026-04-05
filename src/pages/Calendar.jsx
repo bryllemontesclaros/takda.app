@@ -139,7 +139,9 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }
 
   function closeSelectedDay() {
-    if (showModal || editingDayBalance || dayBalanceSaving) return
+    if (dayBalanceSaving) return
+    if (showModal) closeTransactionEditor()
+    if (editingDayBalance) closeDayBalanceEditor()
     setSelected(null)
   }
 
