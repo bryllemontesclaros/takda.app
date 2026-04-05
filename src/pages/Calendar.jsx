@@ -468,14 +468,14 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }, [selected, onSelectedDateChange])
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
+    <div className={`${styles.page} ${calStyles.page}`}>
+      <div className={`${styles.header} ${calStyles.pageHeader}`}>
         <div className={styles.title}>Calendar</div>
-        <div className={styles.sub}>Swipe or scroll sideways to move month by month</div>
+        <div className={`${styles.sub} ${calStyles.pageSub}`}>Swipe or scroll sideways to move month by month</div>
       </div>
 
       {entryFeedback && (
-        <div className={`${styles.card} ${calStyles.feedbackBanner}`} style={{ '--feedback-tone': entryFeedback.tone }}>
+        <div className={`${styles.card} ${calStyles.feedbackBanner} ${calStyles.feedbackDock}`} style={{ '--feedback-tone': entryFeedback.tone }}>
           <div className={calStyles.feedbackEyebrow}>{entryFeedback.eyebrow || 'Entry saved'}</div>
           <div className={calStyles.feedbackTitle}>{entryFeedback.title}</div>
           <div className={calStyles.feedbackBody}>{entryFeedback.body}</div>
@@ -483,7 +483,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       )}
 
       <div
-        className={styles.card}
+        className={`${styles.card} ${calStyles.calendarCard}`}
         onWheel={handleWheel}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
@@ -496,58 +496,60 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
         </div>
 
-        <div className={calStyles.dayNames}>
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => <div key={index} className={calStyles.dayName}>{day}</div>)}
-        </div>
+        <div className={calStyles.monthBoard}>
+          <div className={calStyles.dayNames}>
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => <div key={index} className={calStyles.dayName}>{day}</div>)}
+          </div>
 
-        <div className={calStyles.grid}>
-          {Array.from({ length: firstDay }, (_, index) => (
-            <div key={`p${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
-              <div className={calStyles.dateNum}>{prevDays - firstDay + 1 + index}</div>
-            </div>
-          ))}
-          {Array.from({ length: daysInMonth }, (_, index) => {
-            const day = index + 1
-            const ds = dateStr(day)
-            const { income, expenses } = getDayData(day)
-            const hasIncome = income.length > 0
-            const hasExpense = expenses.length > 0
-            const hasManualBalance = Object.prototype.hasOwnProperty.call(balanceOverrides, ds)
-            const isSelected = selected === ds
-            const isToday = ds === todayStr
-            const forecast = forecastMap[ds]
-            const balanceLabel = forecast ? formatCellBalance(forecast.runningBalance) : ''
-
-            return (
-              <div
-                key={day}
-                className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
-                onClick={() => setSelected(ds === selected ? null : ds)}
-              >
-                <div className={calStyles.cellTop}>
-                  <div className={calStyles.dateNum}>{day}</div>
-                  {(hasIncome || hasExpense || hasManualBalance) && (
-                    <div className={calStyles.dots}>
-                      {hasManualBalance && <div className={`${calStyles.dot} ${calStyles.dotBalance}`} />}
-                      {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
-                      {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
-                    </div>
-                  )}
-                </div>
-                <div
-                  className={calStyles.cellBalance}
-                  title={privacyMode ? 'Balance hidden' : fmt(forecast?.runningBalance || 0, s)}
-                >
-                  {balanceLabel}
-                </div>
+          <div className={calStyles.grid}>
+            {Array.from({ length: firstDay }, (_, index) => (
+              <div key={`p${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
+                <div className={calStyles.dateNum}>{prevDays - firstDay + 1 + index}</div>
               </div>
-            )
-          })}
-          {Array.from({ length: (7 - (firstDay + daysInMonth) % 7) % 7 }, (_, index) => (
-            <div key={`n${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
-              <div className={calStyles.dateNum}>{index + 1}</div>
-            </div>
-          ))}
+            ))}
+            {Array.from({ length: daysInMonth }, (_, index) => {
+              const day = index + 1
+              const ds = dateStr(day)
+              const { income, expenses } = getDayData(day)
+              const hasIncome = income.length > 0
+              const hasExpense = expenses.length > 0
+              const hasManualBalance = Object.prototype.hasOwnProperty.call(balanceOverrides, ds)
+              const isSelected = selected === ds
+              const isToday = ds === todayStr
+              const forecast = forecastMap[ds]
+              const balanceLabel = forecast ? formatCellBalance(forecast.runningBalance) : ''
+
+              return (
+                <div
+                  key={day}
+                  className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
+                  onClick={() => setSelected(ds === selected ? null : ds)}
+                >
+                  <div className={calStyles.cellTop}>
+                    <div className={calStyles.dateNum}>{day}</div>
+                    {(hasIncome || hasExpense || hasManualBalance) && (
+                      <div className={calStyles.dots}>
+                        {hasManualBalance && <div className={`${calStyles.dot} ${calStyles.dotBalance}`} />}
+                        {hasIncome && <div className={`${calStyles.dot} ${calStyles.dotIncome}`} />}
+                        {hasExpense && <div className={`${calStyles.dot} ${calStyles.dotExpense}`} />}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className={calStyles.cellBalance}
+                    title={privacyMode ? 'Balance hidden' : fmt(forecast?.runningBalance || 0, s)}
+                  >
+                    {balanceLabel}
+                  </div>
+                </div>
+              )
+            })}
+            {Array.from({ length: (7 - (firstDay + daysInMonth) % 7) % 7 }, (_, index) => (
+              <div key={`n${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
+                <div className={calStyles.dateNum}>{index + 1}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className={calStyles.balanceRail}>

@@ -28,16 +28,39 @@
 .topBarRight { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .topBarStatus {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 38px;
+  padding: 6px 8px 6px 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background:
+    radial-gradient(circle at top right, rgba(34, 216, 122, 0.1), transparent 48%),
+    color-mix(in srgb, var(--surface2) 92%, #ffffff 8%);
+  overflow: hidden;
+}
+.topBarStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.topBarStatusMain {
+  display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  min-height: 36px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--surface2) 92%, #ffffff 8%);
-  text-align: right;
-  overflow: hidden;
 }
 .topBarStatusLabel {
   font-size: 9px;
@@ -47,48 +70,15 @@
   text-transform: uppercase;
   font-weight: 700;
 }
-.topBarStatusValue {
+.topBarStatusMeta {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.2;
-  color: var(--accent);
+  color: var(--text2);
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-.privacyBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 36px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
-  color: var(--text2);
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 700;
-  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-}
-.privacyBtn:hover {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
-  color: var(--text);
-}
-.privacyBtnActive {
-  border-color: color-mix(in srgb, var(--accent) 36%, var(--border));
-  background: var(--accent-glow);
-  color: var(--accent);
-}
-.privacyBtnIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.privacyBtnLabel {
-  white-space: nowrap;
 }
 .themeBtn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 8px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; min-width: 36px; min-height: 36px; transition: all 0.15s; }
 .themeBtn:hover { background: var(--surface2); color: var(--text); }
@@ -360,25 +350,27 @@
   .sidebar { display: none; }
   .mainWrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
   .main { flex: 1; overflow-y: auto; padding-bottom: 70px; -webkit-overflow-scrolling: touch; }
+  .mainCalendar {
+    display: flex;
+    overflow: hidden;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    overscroll-behavior: none;
+  }
   .topBar { padding: 10px 1rem; flex-shrink: 0; }
   .topBarLogo { display: block; }
   .topBarRight { gap: 6px; flex-wrap: nowrap; }
   .topBarStatus {
-    padding: 7px 10px;
-    max-width: calc(100vw - 132px);
+    gap: 0;
+    padding: 4px;
+    max-width: calc(100vw - 120px);
   }
-  .topBarStatusLabel {
+  .topBarStatusMain {
     display: none;
   }
-  .topBarStatusValue {
+  .topBarStatusBadge {
+    min-width: 44px;
+    min-height: 28px;
     font-size: 11px;
-  }
-  .privacyBtn {
-    min-width: 36px;
-    padding: 8px;
-  }
-  .privacyBtnLabel {
-    display: none;
   }
   .levelToastWrap {
     top: auto;

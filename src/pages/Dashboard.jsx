@@ -13,7 +13,7 @@ function pluralize(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`
 }
 
-export default function Dashboard({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
+export default function Dashboard({ user, data, profile = {}, symbol, privacyMode = false, gamification, onTogglePrivacy }) {
   const s = symbol || '₱'
   const now = new Date()
   const year = now.getFullYear()
@@ -115,6 +115,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
   }, [data.income, data.expenses])
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
   const weeklyRemaining = Math.max(0, (gamification?.weeklyTarget || 0) - (gamification?.weeklyCheckins || 0))
   const checkedInToday = Boolean(gamification?.checkedInToday)
 
@@ -193,11 +194,18 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         </div>
       </div>
 
-      <div className={dStyles.heroCard}>
+      <button
+        type="button"
+        className={`${dStyles.heroCard} ${dStyles.privacyCardButton}`}
+        onClick={onTogglePrivacy}
+        aria-pressed={privacyMode}
+        title={privacyHint}
+      >
         <div className={dStyles.heroLabel}>Total net worth</div>
         <div className={dStyles.heroVal}>{money(netWorth)}</div>
         <div className={dStyles.heroSub}>{data.accounts.length} account{data.accounts.length !== 1 ? 's' : ''}</div>
-      </div>
+        <div className={dStyles.privacyHint}>{privacyHint}</div>
+      </button>
 
       <div className={dStyles.focusCard} style={{ '--focus-tone': focusState.tone }}>
         <div className={dStyles.focusHeader}>

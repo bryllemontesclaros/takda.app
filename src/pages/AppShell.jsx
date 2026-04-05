@@ -210,7 +210,6 @@ export default function AppShell({ user }) {
   const pages = { dashboard: Dashboard, calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
   const PageComponent = pages[page] || Dashboard
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
-  const privacyActionLabel = privacyMode ? 'Show balances' : 'Hide balances'
 
   const bottomNav = [
     { id: 'dashboard', label: 'Home', iconKey: 'home' },
@@ -334,35 +333,17 @@ export default function AppShell({ user }) {
           <div className={styles.topBarLogo}>Takda</div>
           <div className={styles.topBarRight}>
             {headerExpLabel && gamification && (
-              <div className={styles.topBarStatus}>
-                <div className={styles.topBarStatusLabel}>{headerExpLabel}</div>
-                <div className={styles.topBarStatusValue}>Lv {gamification.level} · {gamification.totalExp} EXP</div>
+              <div
+                className={styles.topBarStatus}
+                aria-label={`${headerExpLabel}. Level ${gamification.level}. ${gamification.totalExp} EXP.`}
+              >
+                <div className={styles.topBarStatusBadge}>Lv {gamification.level}</div>
+                <div className={styles.topBarStatusMain}>
+                  <div className={styles.topBarStatusLabel}>{headerExpLabel}</div>
+                  <div className={styles.topBarStatusMeta}>{gamification.totalExp} EXP</div>
+                </div>
               </div>
             )}
-            <button
-              type="button"
-              className={`${styles.privacyBtn} ${privacyMode ? styles.privacyBtnActive : ''}`}
-              onClick={handleTogglePrivacy}
-              aria-pressed={privacyMode}
-              title={privacyActionLabel}
-            >
-              <span className={styles.privacyBtnIcon} aria-hidden="true">
-                {privacyMode ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.92-2.19 2.52-4.12 4.58-5.56"/>
-                    <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c5 0 9.27 3.89 11 8a11.8 11.8 0 0 1-1.67 2.68"/>
-                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                )}
-              </span>
-              <span className={styles.privacyBtnLabel}>{privacyActionLabel}</span>
-            </button>
             <button className={styles.themeBtn} onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
               {theme === 'dark' ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -415,7 +396,7 @@ export default function AppShell({ user }) {
             </div>
           </div>
         )}
-        <main className={styles.main}>
+        <main className={`${styles.main} ${page === 'calendar' ? styles.mainCalendar : ''}`}>
           <PageComponent {...pageProps} />
         </main>
       </div>

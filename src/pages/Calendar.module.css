@@ -1,3 +1,28 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.pageHeader {
+  flex-shrink: 0;
+}
+
+.pageSub {
+  max-width: 42ch;
+}
+
+.feedbackDock {
+  flex-shrink: 0;
+}
+
+.calendarCard {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  margin-bottom: 0;
+}
+
 /* CALENDAR HEADER */
 .calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
 .nav { display: flex; align-items: center; gap: 0.5rem; }
@@ -15,9 +40,21 @@
 .addBtnImport:hover { opacity: 0.9; border-color: var(--accent); }
 
 /* DAY NAMES + GRID */
+.monthBoard {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+}
 .dayNames { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-bottom: 2px; }
 .dayName { text-align: center; font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; padding: 4px 0; }
-.grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 2px;
+  min-height: 0;
+  height: 100%;
+}
 
 /* CELL — clean, no text overflow */
 .cell {
@@ -298,27 +335,99 @@
 
 /* MOBILE */
 @media (max-width: 768px) {
+  .page {
+    flex: 1;
+    overflow: hidden;
+    padding: 10px;
+    padding-bottom: 0;
+    gap: 8px;
+  }
+  .pageHeader {
+    display: none;
+  }
+  .feedbackDock {
+    padding: 10px 12px;
+  }
+  .feedbackTitle {
+    font-size: 18px;
+    margin-bottom: 0;
+  }
+  .feedbackBody {
+    display: none;
+  }
+  .calendarCard {
+    flex: 1;
+    padding: 10px;
+    border-radius: 18px;
+  }
   .calHeader { flex-direction: column; align-items: stretch; }
+  .calHeader {
+    margin-bottom: 8px;
+    gap: 6px;
+  }
   .nav { justify-content: space-between; }
+  .monthLabel {
+    width: auto;
+    flex: 1;
+    font-size: 17px;
+  }
+  .navBtn {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 6px 12px;
+  }
   .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
+  .monthBoard {
+    gap: 2px;
+  }
+  .dayNames {
+    margin-bottom: 0;
+  }
+  .dayName {
+    padding: 2px 0;
+    font-size: 9px;
+  }
   .cell {
-    min-height: 84px;
-    padding: 7px 6px;
-    gap: 5px;
+    min-height: 0;
+    padding: 5px 4px;
+    gap: 3px;
+    border-radius: 7px;
+  }
+  .cellTop {
+    gap: 3px;
+  }
+  .dateNum {
+    font-size: 11px;
   }
   .cellBalance {
-    font-size: 10px;
-    line-height: 1.15;
+    font-size: 9px;
+    line-height: 1.1;
+    -webkit-line-clamp: 2;
+  }
+  .dots {
+    gap: 1px;
+  }
+  .dot {
+    width: 5px;
+    height: 5px;
   }
   .balanceRail {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px 14px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    align-items: center;
+    gap: 10px;
+  }
+  .balanceRailLabel {
+    font-size: 12px;
+  }
+  .balanceRailMeta {
+    display: none;
   }
   .balanceRailValue {
-    font-size: 18px;
-    white-space: normal;
+    font-size: 17px;
+    white-space: nowrap;
   }
   .dayPanelActions { grid-template-columns: 1fr; }
   .modalFields { grid-template-columns: 1fr; }
