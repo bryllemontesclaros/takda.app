@@ -174,7 +174,7 @@
 
 /* DAY PANEL — inline on desktop */
 .dayPanelOverlay { display: none; }
-.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; box-sizing: border-box; overflow-x: hidden; }
 .dayPanelHandle { display: none; }
 .dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; gap: 8px; }
 .dayPanelClose { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -210,12 +210,12 @@
 .inlineComposerCard { margin-top: 1rem; scroll-margin-top: 88px; }
 
 /* MODAL */
-.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 260; display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
+.modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 340; display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
 @media (min-width: 640px) { .modalOverlay { align-items: center; } }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: min(520px, 100%); max-width: 100%; max-height: 90vh; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: min(520px, 100%); max-width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
 @media (min-width: 640px) { .modal { border-radius: var(--radius-lg); max-width: 500px; max-height: unset; } }
-.modalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
-.modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.25rem; }
+.modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); min-width: 0; }
 .modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
 .modalClose:disabled,
 .typeBtn:disabled,
@@ -237,13 +237,13 @@
 .amountInput { flex: 1; background: none; border: none; outline: none; font-size: 26px; font-weight: 600; font-family: var(--font-mono); min-width: 0; }
 .modalSectionLabel { font-size: 11px; color: var(--text3); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
 .quickCats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; }
+.quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; max-width: 100%; }
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
 .modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .formError { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
 .recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; }
+.recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; max-width: 100%; white-space: normal; line-height: 1.25; text-align: center; }
 .recurChipActive { border-color: var(--purple); background: var(--purple-dim); color: var(--purple); }
 .modalActions { display: flex; gap: 8px; margin-top: 1.25rem; }
 .btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
@@ -283,9 +283,20 @@
   .modalFields { grid-template-columns: 1fr; }
 
   /* Bottom sheet day panel */
-  .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; }
-  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 200; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
+  .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; }
+  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 310; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
   .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1rem; }
   .modalOverlay { padding: 0; }
   .modal { width: 100%; max-height: calc(100dvh - 74px - env(safe-area-inset-bottom)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
+  .modalActions {
+    position: sticky;
+    bottom: calc(-1rem - env(safe-area-inset-bottom));
+    margin: 12px -1rem calc(-1rem - env(safe-area-inset-bottom));
+    padding: 10px 1rem calc(1rem + env(safe-area-inset-bottom));
+    background:
+      linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 28%);
+    backdrop-filter: blur(10px);
+    z-index: 2;
+    box-sizing: border-box;
+  }
 }

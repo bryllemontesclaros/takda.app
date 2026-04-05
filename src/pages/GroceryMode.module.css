@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .header {
@@ -15,6 +18,10 @@
   padding-bottom: 6px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
+}
+.header > div {
+  min-width: 0;
+  flex: 1;
 }
 
 .eyebrow {
@@ -31,6 +38,8 @@
   font-size: 26px;
   line-height: 0.98;
   color: var(--text);
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .sub {
@@ -38,6 +47,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text2);
+  overflow-wrap: anywhere;
 }
 
 .close {
@@ -72,6 +82,9 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+}
+.summaryTop > * {
+  min-width: 0;
 }
 
 .summaryLabel {
@@ -117,6 +130,7 @@
   font-size: 12px;
   line-height: 1.55;
   color: var(--text2);
+  overflow-wrap: anywhere;
 }
 
 .tripGrid {
@@ -299,6 +313,9 @@
   padding: 12px 0;
   border-top: 1px solid var(--border);
 }
+.itemRow > * {
+  min-width: 0;
+}
 
 .itemRow:first-child {
   border-top: none;
@@ -364,6 +381,7 @@
     linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 28%);
   backdrop-filter: blur(10px);
   z-index: 2;
+  box-sizing: border-box;
 }
 
 .secondaryBtn:hover,

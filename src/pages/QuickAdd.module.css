@@ -1,4 +1,4 @@
-.wrap { display: flex; flex-direction: column; gap: 12px; }
+.wrap { display: flex; flex-direction: column; gap: 12px; width: 100%; min-width: 0; overflow-x: hidden; }
 
 .sectionLabel {
   font-size: 12px;
@@ -24,7 +24,7 @@
 .importBtnIcon { font-size: 16px; }
 
 .quickCats { display: flex; flex-wrap: wrap; gap: 6px; }
-.quickCat { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 34px; }
+.quickCat { display: flex; align-items: center; gap: 5px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 34px; max-width: 100%; }
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
 
@@ -93,6 +93,7 @@
     linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 26%);
   backdrop-filter: blur(10px);
   z-index: 2;
+  box-sizing: border-box;
 }
 
 @media (max-width: 420px) {
