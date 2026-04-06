@@ -11,6 +11,25 @@
 .field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.3px; }
 .field input { width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; transition: border 0.2s; }
 .field input:focus { border-color: var(--accent); }
+.passwordInputWrap { position: relative; display: flex; align-items: center; }
+.passwordInputWrap input { padding-right: 72px; }
+.passwordToggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.passwordToggle:hover { color: var(--accent); background: color-mix(in srgb, var(--accent-glow) 70%, transparent); }
+.passwordToggle:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 1px; }
 .checkRow { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); margin-bottom: 12px; cursor: pointer; user-select: none; }
 .checkRow input { width: 16px; height: 16px; accent-color: var(--accent); }
 .btnPrimary { width: 100%; padding: 11px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 4px; }

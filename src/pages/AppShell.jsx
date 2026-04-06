@@ -60,6 +60,12 @@ const NAV_ICONS = {
       <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
     </svg>
   ),
+  history: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
+      <path d="M12 7v5l3 2"/>
+    </svg>
+  ),
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
@@ -217,7 +223,12 @@ export default function AppShell({ user }) {
     { id: 'savings', label: 'Savings', iconKey: 'savings' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
-  const mobileMoreNav = nav.filter(item => ['history', 'breakdown', 'budget', 'settings'].includes(item.id))
+  const mobileMoreNav = nav
+    .filter(item => ['history', 'breakdown', 'budget', 'settings'].includes(item.id))
+    .map(item => ({
+      ...item,
+      iconKey: item.id === 'history' ? 'history' : item.id,
+    }))
   const isMorePage = mobileMoreNav.some(item => item.id === page)
 
   const { theme, toggle: toggleTheme } = useTheme()
@@ -230,6 +241,11 @@ export default function AppShell({ user }) {
     if (quickAddSheet.open) return
     setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(current => !current)
+  }
+
+  function toggleMobileNavMenu() {
+    setQuickAddMenuOpen(false)
+    setMobileNavMenuOpen(current => !current)
   }
 
   function openQuickAdd(type) {
@@ -409,7 +425,7 @@ export default function AppShell({ user }) {
           }}
         />
       )}
-      <div className={styles.fabWrap}>
+      <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
         {quickAddMenuOpen && (
           <div className={styles.fabMenu}>
             <button className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')}>
@@ -484,8 +500,22 @@ export default function AppShell({ user }) {
             aria-label="Close more pages"
           />
           <div className={styles.mobileNavSheet}>
-            <div className={styles.mobileNavSheetTitle}>More pages</div>
-            <div className={styles.mobileNavGrid}>
+            <div className={styles.mobileNavSheetHandle} />
+            <div className={styles.mobileNavSheetHeader}>
+              <div>
+                <div className={styles.mobileNavSheetTitle}>More</div>
+                <div className={styles.mobileNavSheetMeta}>Open the rest of your tools here.</div>
+              </div>
+              <button
+                type="button"
+                className={styles.mobileNavSheetClose}
+                onClick={() => setMobileNavMenuOpen(false)}
+                aria-label="Close more pages"
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.mobileNavList}>
               {mobileMoreNav.map(n => (
                 <button
                   key={n.id}
@@ -496,8 +526,12 @@ export default function AppShell({ user }) {
                     setMobileNavMenuOpen(false)
                   }}
                 >
-                  <span className={styles.mobileNavLinkLabel}>{n.label}</span>
-                  <span className={styles.mobileNavLinkMeta}>{n.section || 'More'}</span>
+                  <span className={styles.mobileNavLinkIcon}>{NAV_ICONS[n.iconKey]}</span>
+                  <span className={styles.mobileNavLinkCopy}>
+                    <span className={styles.mobileNavLinkLabel}>{n.label}</span>
+                    <span className={styles.mobileNavLinkMeta}>{n.section || 'More'}</span>
+                  </span>
+                  <span className={styles.mobileNavLinkChevron}>›</span>
                 </button>
               ))}
             </div>
@@ -514,7 +548,7 @@ export default function AppShell({ user }) {
         <button
           type="button"
           className={`${styles.bottomNavItem} ${(isMorePage || mobileNavMenuOpen) ? styles.active : ''}`}
-          onClick={() => setMobileNavMenuOpen(current => !current)}
+          onClick={toggleMobileNavMenu}
           aria-expanded={mobileNavMenuOpen}
           aria-label="More pages"
         >

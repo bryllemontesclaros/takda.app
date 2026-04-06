@@ -78,6 +78,8 @@ export default function AuthScreen() {
   const [showForgot, setShowForgot] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [resetLoading, setResetLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   function set(field, val) { setForm(f => ({ ...f, [field]: val })) }
 
@@ -156,7 +158,27 @@ export default function AuthScreen() {
             {tab === 'login' ? (
               <form onSubmit={handleLogin}>
                 <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
-                <div className={styles.field}><label>Password</label><input type="password" placeholder="••••••••" value={form.password} onChange={e => set('password', e.target.value)} autoComplete="current-password" /></div>
+                <div className={styles.field}>
+                  <label>Password</label>
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={form.password}
+                      onChange={e => set('password', e.target.value)}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowPassword(current => !current)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
                 <label className={styles.checkRow}>
                   <input type="checkbox" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)} />
                   <span>Keep me signed in</span>
@@ -168,8 +190,48 @@ export default function AuthScreen() {
               <form onSubmit={handleRegister}>
                 <div className={styles.field}><label>Full name</label><input type="text" placeholder="Juan dela Cruz" value={form.name} onChange={e => set('name', e.target.value)} autoComplete="name" /></div>
                 <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
-                <div className={styles.field}><label>Password</label><input type="password" placeholder="Min. 6 characters" value={form.password} onChange={e => set('password', e.target.value)} autoComplete="new-password" /></div>
-                <div className={styles.field}><label>Confirm password</label><input type="password" placeholder="••••••••" value={form.confirm} onChange={e => set('confirm', e.target.value)} autoComplete="new-password" /></div>
+                <div className={styles.field}>
+                  <label>Password</label>
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Min. 6 characters"
+                      value={form.password}
+                      onChange={e => set('password', e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowPassword(current => !current)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
+                <div className={styles.field}>
+                  <label>Confirm password</label>
+                  <div className={styles.passwordInputWrap}>
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={form.confirm}
+                      onChange={e => set('confirm', e.target.value)}
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className={styles.passwordToggle}
+                      onClick={() => setShowConfirm(current => !current)}
+                      aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                      aria-pressed={showConfirm}
+                    >
+                      {showConfirm ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
                 <button className={styles.btnPrimary} type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Create account'}</button>
               </form>
             )}

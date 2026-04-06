@@ -3,26 +3,26 @@ import { auth } from '../lib/firebase'
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
-  { icon: '📅', title: 'Calendar-led money tracking', desc: 'See spending and income in the shape of your month, not buried in a flat list.' },
-  { icon: '⚡', title: 'Quick add from anywhere', desc: 'One add flow across the app. Log an expense, income, or import in seconds.' },
-  { icon: '📊', title: 'See each day’s balance clearly', desc: 'Track how your total moves day by day so tight weeks stand out before they become problems.' },
-  { icon: '🎯', title: 'Budgets and goals that feel alive', desc: 'Track category limits and savings progress with clear momentum, not spreadsheet fatigue.' },
-  { icon: '🧾', title: 'OCR-assisted import', desc: 'Pull in wallet screenshots and receipt totals, then review before anything gets saved.' },
-  { icon: '☁️', title: 'Secure, synced, and personal', desc: 'Your data stays attached to your account so your ledger is available across devices.' },
+  { icon: '📅', title: 'Daily balance calendar', desc: 'Read your month as daily closing balances, not just a list of old transactions.' },
+  { icon: '⚡', title: 'Quick logging that stays consistent', desc: 'Use the same quick flow to log income or expenses without hunting through different screens.' },
+  { icon: '🧾', title: 'Receipt and wallet import', desc: 'Import receipt photos or wallet screenshots, review the result, and save only what looks right.' },
+  { icon: '🛒', title: 'Grocery total mode', desc: 'Build a grocery trip from price tag photos or manual items, then save one clean expense total.' },
+  { icon: '🎯', title: 'Bills, budgets, and goals in one place', desc: 'Keep recurring bills, category budgets, and savings goals tied to the same month you are tracking.' },
+  { icon: '☁️', title: 'Synced to your account', desc: 'Your balances, entries, and settings stay attached to your account across phone and desktop.' },
 ]
 
 const USE_CASES = [
   {
-    title: 'Day-to-day clarity',
-    desc: 'See which exact days stay healthy, tighten up, or drift negative before the last week arrives.',
+    title: 'See the next tight day sooner',
+    desc: 'Daily closing balances make it obvious where the month starts tightening before you feel it late.',
   },
   {
-    title: 'Faster daily logging',
-    desc: 'One persistent add flow keeps entry consistent whether you are on Calendar, Charts, Accounts, or Home.',
+    title: 'Keep logging light',
+    desc: 'Quick add, imports, and grocery mode reduce friction so the app stays usable every day.',
   },
   {
-    title: 'A calmer money habit',
-    desc: 'The app stays helpful without turning every screen into a warning or a guilt trip.',
+    title: 'Track the whole picture',
+    desc: 'Accounts, bills, budgets, and savings all support the same month view instead of living in separate silos.',
   },
 ]
 
@@ -51,7 +51,7 @@ export default function LandingPage() {
         <div className={styles.navInner}>
           <div className={styles.navBrand}>
             <div className={styles.navLogo}>Takda</div>
-            <div className={styles.navTag}>Personal finance tracker for Filipinos</div>
+            <div className={styles.navTag}>Calendar-first money tracking for Filipinos</div>
           </div>
           <div className={styles.navActions}>
             <button className={styles.navLink} onClick={goLogin}>Log in</button>
@@ -62,13 +62,13 @@ export default function LandingPage() {
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <div className={styles.heroBadge}>See your balance every day, not just after the damage is done.</div>
+          <div className={styles.heroBadge}>See your month before it surprises you.</div>
           <h1 className={styles.heroTitle}>
-            Keep the whole month
-            <span className={styles.heroAccent}> visible while you’re still in it.</span>
+            A clearer way to track money
+            <span className={styles.heroAccent}> day by day.</span>
           </h1>
           <p className={styles.heroSub}>
-            Takda puts balances, income, expenses, and recurring bills into one clear month view so the next tight day is obvious before it becomes a problem.
+            Takda is a calendar-first finance app for Filipinos. See daily closing balances, log income and expenses quickly, and keep bills, budgets, and goals in one calm view.
           </p>
           <div className={styles.heroBtns}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
@@ -115,15 +115,15 @@ export default function LandingPage() {
       </section>
 
       <section className={styles.useCases}>
-        <div className={styles.sectionTop}>
-          <div className={styles.sectionIntro}>
-            <div className={styles.sectionLabel}>Why it feels better</div>
-            <h2 className={styles.sectionTitle}>A finance app should make the month clearer, not heavier.</h2>
+          <div className={styles.sectionTop}>
+            <div className={styles.sectionIntro}>
+              <div className={styles.sectionLabel}>Why it feels better</div>
+              <h2 className={styles.sectionTitle}>One month view, fewer surprises.</h2>
+            </div>
+            <p className={styles.sectionLead}>
+            Takda is built around one question: what will my money look like on each day of this month?
+            </p>
           </div>
-          <p className={styles.sectionLead}>
-            Takda is designed around one job: help you understand this month while you are still living inside it.
-          </p>
-        </div>
         <div className={styles.useCaseGrid}>
           {USE_CASES.map(item => (
             <div key={item.title} className={styles.useCaseCard}>
@@ -138,10 +138,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>What you get</div>
-            <h2 className={styles.sectionTitle}>Built to make tracking feel clear, not punishing</h2>
+            <h2 className={styles.sectionTitle}>Everything supports one clear money view</h2>
           </div>
           <p className={styles.sectionLead}>
-            The product stays calm because the calendar, add flow, imports, budgets, and goals all reinforce the same mental model.
+            Calendar, imports, accounts, bills, budgets, and goals all feed the same picture instead of competing for attention.
           </p>
         </div>
         <div className={styles.featureGrid}>
@@ -164,10 +164,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>How it works</div>
-            <h2 className={styles.sectionTitle}>Set it up once, then stay ahead each day</h2>
+            <h2 className={styles.sectionTitle}>Set your baseline, keep it honest, stay ahead</h2>
           </div>
           <p className={styles.sectionLead}>
-            No spreadsheet marathon. Just enough setup to make your next few weeks legible, then quick daily updates to keep them honest.
+            The setup gives the calendar real numbers. After that, quick entries and imports keep the month accurate.
           </p>
         </div>
         <div className={styles.steps}>
@@ -175,15 +175,15 @@ export default function LandingPage() {
             <div className={styles.stepNum}>1</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>{isSignedIn ? 'Open the app and set your baseline' : 'Create your account and set your baseline'}</div>
-              <div className={styles.stepDesc}>Add balances and recurring bills so the forecast starts from real numbers instead of an empty profile.</div>
+              <div className={styles.stepDesc}>Choose your currency, add your accounts, and add recurring bills so the month starts from real balances and known obligations.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
           <div className={styles.step}>
             <div className={styles.stepNum}>2</div>
             <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Track from one consistent add flow</div>
-              <div className={styles.stepDesc}>Log expense, income, or import from anywhere without hunting for page-specific buttons.</div>
+              <div className={styles.stepTitle}>Log what actually happens</div>
+              <div className={styles.stepDesc}>Use quick add for income and expenses, or import from receipts, wallet screenshots, and grocery items.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
@@ -191,7 +191,7 @@ export default function LandingPage() {
             <div className={styles.stepNum}>3</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>Use the calendar to stay ahead</div>
-              <div className={styles.stepDesc}>See daily balances, budget pressure, and where to adjust before the month gets away from you.</div>
+              <div className={styles.stepDesc}>Check each day’s closing balance, tap any date for detail, and adjust before a tight stretch turns into a surprise.</div>
             </div>
           </div>
         </div>
@@ -199,8 +199,8 @@ export default function LandingPage() {
 
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
-          <h2 className={styles.ctaTitle}>Start with a clearer month, not a heavier setup.</h2>
-          <p className={styles.ctaSub}>Create your account first, then Takda drops you into setup with the right next step.</p>
+          <h2 className={styles.ctaTitle}>Start with a month you can actually read.</h2>
+          <p className={styles.ctaSub}>Create your account, add your balances and bills, and Takda gives you a usable first view right away.</p>
           <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
         </div>
       </section>
@@ -209,14 +209,14 @@ export default function LandingPage() {
         <div className={styles.footerInner}>
           <div>
             <div className={styles.footerLogo}>Takda</div>
-            <div className={styles.footerTagline}>Bawat piso, sinusubaybayan.</div>
+            <div className={styles.footerTagline}>Mas klaro ang buwan, araw-araw.</div>
           </div>
           <div className={styles.footerLinks}>
             <span onClick={openPrimary} style={{ cursor: 'pointer' }}>{isSignedIn ? 'Open app' : 'Get started'}</span>
             <span>·</span>
             <span onClick={goLogin} style={{ cursor: 'pointer' }}>Log in</span>
           </div>
-          <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Simple personal finance tracking for Filipinos.</div>
+          <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Calendar-first personal finance tracking for Filipinos.</div>
         </div>
       </footer>
     </div>

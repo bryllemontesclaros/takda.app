@@ -338,6 +338,75 @@
 .btnSave { flex: 2; padding: 12px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; font-weight: 600; min-height: 48px; }
 .btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
 
+@media (min-width: 1024px) {
+  .page {
+    width: 100%;
+    max-width: 1080px;
+    margin-inline: auto;
+  }
+  .calendarCard {
+    padding: 1rem;
+  }
+  .calHeader {
+    margin-bottom: 0.75rem;
+  }
+  .monthLabel {
+    width: 168px;
+    font-size: 17px;
+  }
+  .dayNames {
+    margin-bottom: 1px;
+  }
+  .dayName {
+    padding: 2px 0;
+    font-size: 9px;
+  }
+  .grid {
+    gap: 1px;
+  }
+  .cell {
+    min-height: 76px;
+    padding: 6px;
+    gap: 4px;
+    border-radius: 7px;
+  }
+  .dateNum {
+    font-size: 11px;
+  }
+  .cellBalance {
+    font-size: 10px;
+    line-height: 1.1;
+    -webkit-line-clamp: 2;
+  }
+  .dots {
+    gap: 1px;
+  }
+  .dot {
+    width: 5px;
+    height: 5px;
+  }
+  .balanceRail {
+    margin-top: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+  }
+  .balanceRailLabel {
+    font-size: 12px;
+  }
+  .balanceRailMeta {
+    margin-top: 2px;
+    font-size: 10px;
+  }
+  .balanceRailValue {
+    font-size: 18px;
+  }
+  .dayPanel {
+    max-width: 920px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 /* MOBILE */
 @media (max-width: 768px) {
   .page {

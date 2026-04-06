@@ -378,10 +378,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   function handleWheel(event) {
     const horizontalDelta = event.deltaX
-    if (Math.abs(horizontalDelta) < 24) return
-    if (Math.abs(horizontalDelta) <= Math.abs(event.deltaY)) return
+    const verticalDelta = event.deltaY
+    const primaryDelta =
+      Math.abs(verticalDelta) > Math.abs(horizontalDelta) ? verticalDelta : horizontalDelta
+    if (Math.abs(primaryDelta) < 24) return
     event.preventDefault()
-    if (horizontalDelta > 0) next()
+    if (primaryDelta > 0) next()
     else prev()
   }
 

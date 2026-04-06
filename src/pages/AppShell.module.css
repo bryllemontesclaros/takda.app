@@ -218,6 +218,12 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.fabWrapHidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
 }
 .fabMenu {
   display: flex;
@@ -375,14 +381,14 @@
     font-size: 11px;
   }
   .levelToastWrap {
-    top: auto;
+    top: calc(70px + env(safe-area-inset-top));
     right: 12px;
-    left: 12px;
-    bottom: calc(74px + env(safe-area-inset-bottom));
+    left: auto;
+    bottom: auto;
   }
   .levelToast {
     min-width: 0;
-    width: 100%;
+    width: min(300px, calc(100vw - 24px));
   }
   .verifyBannerWrap {
     padding: 12px 12px 0;
@@ -472,64 +478,126 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(8, 12, 18, 0.18);
+    background: rgba(8, 12, 18, 0.34);
     border: none;
     z-index: 98;
+    backdrop-filter: blur(6px);
   }
   .mobileNavSheet {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     position: fixed;
-    left: 12px;
-    right: 12px;
+    left: 0;
+    right: 0;
     bottom: calc(72px + env(safe-area-inset-bottom));
     z-index: 101;
-    padding: 12px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
+    padding: 10px 14px 14px;
+    border-radius: 22px 22px 0 0;
+    border-top: 1px solid var(--border);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
-    box-shadow: 0 22px 44px rgba(8, 12, 18, 0.22);
+    box-shadow: 0 -22px 44px rgba(8, 12, 18, 0.22);
+  }
+  .mobileNavSheetHandle {
+    width: 42px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border2);
+    align-self: center;
+  }
+  .mobileNavSheetHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
   }
   .mobileNavSheetTitle {
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .mobileNavSheetMeta {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.45;
     color: var(--text3);
   }
-  .mobileNavGrid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .mobileNavSheetClose {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  .mobileNavList {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
   .mobileNavLink {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    align-items: center;
+    gap: 12px;
     min-height: 58px;
-    padding: 10px 12px;
-    border-radius: 16px;
+    padding: 10px 14px;
+    border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--surface2);
     color: var(--text);
     font-family: var(--font-body);
     text-align: left;
+    width: 100%;
   }
   .mobileNavLinkActive {
     border-color: var(--accent);
     background: var(--accent-glow);
   }
+  .mobileNavLinkIcon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--surface3) 90%, #ffffff 10%);
+    color: var(--text2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .mobileNavLinkCopy {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
   .mobileNavLinkLabel {
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
   }
   .mobileNavLinkMeta {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0;
+  }
+  .mobileNavLinkChevron {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--text3);
+    flex-shrink: 0;
+  }
+  .mobileNavLinkActive .mobileNavLinkIcon {
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+    color: var(--accent);
+  }
+  .mobileNavLinkActive .mobileNavLinkChevron {
+    color: var(--accent);
   }
 }
