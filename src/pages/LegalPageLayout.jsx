@@ -15,6 +15,7 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
 
   return (
     <div className={styles.page}>
+      <a href="#legal-main" className="skipLink">Skip to main content</a>
       <nav className={styles.nav}>
         <div className={styles.navInner}>
           <Link to="/" className={styles.navBrand}>
@@ -29,7 +30,7 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
         </div>
       </nav>
 
-      <main className={styles.main}>
+      <main id="legal-main" className={styles.main}>
         <aside className={styles.sidebar}>
           <section className={styles.summaryCard}>
             <div className={styles.eyebrow}>{eyebrow}</div>

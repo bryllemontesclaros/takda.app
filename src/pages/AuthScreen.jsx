@@ -153,8 +153,8 @@ export default function AuthScreen() {
               <button className={`${styles.tab} ${tab === 'register' ? styles.active : ''}`} onClick={() => { setTab('register'); setError(''); setSuccess('') }}>Create account</button>
             </div>
 
-            {error && <div className={styles.error}>{error}</div>}
-            {success && <div className={styles.successMsg}>{success}</div>}
+            {error && <div className={styles.error} role="alert">{error}</div>}
+            {success && <div className={styles.successMsg} role="status" aria-live="polite">{success}</div>}
 
             {tab === 'login' ? (
               <form onSubmit={handleLogin}>
@@ -247,7 +247,7 @@ export default function AuthScreen() {
           <>
             <div className={styles.forgotTitle}>Reset password</div>
             <div className={styles.forgotSub}>Enter your email and we’ll send you a reset link.</div>
-            {error && <div className={styles.error}>{error}</div>}
+            {error && <div className={styles.error} role="alert">{error}</div>}
             <form onSubmit={handleReset}>
               <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} autoFocus /></div>
               <button className={styles.btnPrimary} type="submit" disabled={resetLoading}>{resetLoading ? 'Sending...' : 'Send reset link'}</button>

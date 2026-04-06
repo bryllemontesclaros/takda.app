@@ -48,6 +48,7 @@ export default function LandingPage() {
   const goLogin = () => navigate('/login')
   return (
     <div className={styles.page}>
+      <a href="#landing-main" className="skipLink">Skip to main content</a>
       <nav className={styles.nav}>
         <div className={styles.navInner}>
           <div className={styles.navBrand}>
@@ -61,6 +62,7 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      <main id="landing-main">
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <div className={styles.heroBadge}>See your month before it surprises you.</div>
@@ -210,6 +212,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      </main>
 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>

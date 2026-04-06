@@ -28,6 +28,20 @@ function getLegacyMonthStartKeyForDate(dateKey, monthStartBalances = {}) {
   return Object.prototype.hasOwnProperty.call(monthStartBalances, candidate) ? candidate : ''
 }
 
+function buildDayAriaLabel({ ds, day, forecast, hasIncome, hasExpense, hasManualBalance, isToday, isSelected, privacyMode, s }) {
+  const parts = [
+    `${day}, ${new Date(`${ds}T00:00:00`).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}`,
+  ]
+  if (privacyMode) parts.push('Balance hidden')
+  else parts.push(`Closing balance ${fmt(forecast?.runningBalance || 0, s)}`)
+  if (hasIncome) parts.push('has income')
+  if (hasExpense) parts.push('has expenses')
+  if (hasManualBalance) parts.push('has manual balance override')
+  if (isToday) parts.push('today')
+  if (isSelected) parts.push('selected')
+  return parts.join(', ')
+}
+
 export default function Calendar({ user, data, profile = {}, symbol, privacyMode = false, onSelectedDateChange }) {
   const s = symbol || '₱'
   const now = new Date()
@@ -492,9 +506,9 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       >
         <div className={calStyles.calHeader}>
           <div className={calStyles.nav}>
-            <button className={calStyles.navBtn} onClick={prev}>←</button>
-            <div className={calStyles.monthLabel}>{label}</div>
-            <button className={calStyles.navBtn} onClick={next}>→</button>
+            <button type="button" className={calStyles.navBtn} onClick={prev} aria-label="Previous month">←</button>
+            <div className={calStyles.monthLabel} id="calendar-month-label">{label}</div>
+            <button type="button" className={calStyles.navBtn} onClick={next} aria-label="Next month">→</button>
           </div>
         </div>
 
@@ -503,9 +517,9 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => <div key={index} className={calStyles.dayName}>{day}</div>)}
           </div>
 
-          <div className={calStyles.grid}>
+          <div className={calStyles.grid} aria-label={`${label} calendar`}>
             {Array.from({ length: firstDay }, (_, index) => (
-              <div key={`p${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
+              <div key={`p${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`} aria-hidden="true">
                 <div className={calStyles.dateNum}>{prevDays - firstDay + 1 + index}</div>
               </div>
             ))}
@@ -520,12 +534,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               const isToday = ds === todayStr
               const forecast = forecastMap[ds]
               const balanceLabel = forecast ? formatCellBalance(forecast.runningBalance) : ''
+              const dayAriaLabel = buildDayAriaLabel({ ds, day, forecast, hasIncome, hasExpense, hasManualBalance, isToday, isSelected, privacyMode, s })
 
               return (
-                <div
+                <button
+                  type="button"
                   key={day}
                   className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
                   onClick={() => setSelected(ds === selected ? null : ds)}
+                  aria-pressed={isSelected}
+                  aria-label={dayAriaLabel}
                 >
                   <div className={calStyles.cellTop}>
                     <div className={calStyles.dateNum}>{day}</div>
@@ -543,11 +561,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   >
                     {balanceLabel}
                   </div>
-                </div>
+                </button>
               )
             })}
             {Array.from({ length: (7 - (firstDay + daysInMonth) % 7) % 7 }, (_, index) => (
-              <div key={`n${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`}>
+              <div key={`n${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`} aria-hidden="true">
                 <div className={calStyles.dateNum}>{index + 1}</div>
               </div>
             ))}
@@ -569,15 +587,15 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
       {selected && (
         <>
-          <div className={calStyles.dayPanelOverlay} onClick={closeSelectedDay} />
-          <div className={calStyles.dayPanel}>
+          <div className={calStyles.dayPanelOverlay} onClick={closeSelectedDay} aria-hidden="true" />
+          <div className={calStyles.dayPanel} role="dialog" aria-modal="true" aria-labelledby="calendar-day-panel-title">
             <div className={calStyles.dayPanelHandle} />
             <div className={calStyles.dayPanelHeader}>
               <div>
-                <span style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+                <span id="calendar-day-panel-title" style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
               </div>
               <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                <button onClick={closeSelectedDay} className={calStyles.dayPanelClose}>✕</button>
+                <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close selected day">✕</button>
               </div>
             </div>
 
@@ -586,7 +604,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 <>
                   <div className={calStyles.dayBalanceHeader}>
                     <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Manual closing balance on this day' : 'Closing balance on this day'}</span>
-                    <button className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor}>
+                    <button type="button" className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor} aria-label={`Edit closing balance for ${selected}`}>
                       Edit
                     </button>
                   </div>
@@ -621,15 +639,15 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                     This becomes the total balance at the end of this day and recalculates all later days from here.
                   </div>
                   <div className={calStyles.dayBalanceActions}>
-                    <button className={calStyles.dayBalanceGhostBtn} onClick={closeDayBalanceEditor} disabled={dayBalanceSaving}>
+                    <button type="button" className={calStyles.dayBalanceGhostBtn} onClick={closeDayBalanceEditor} disabled={dayBalanceSaving}>
                       Cancel
                     </button>
                     {hasManualBalanceOnSelectedDay && (
-                      <button className={calStyles.dayBalanceGhostBtn} onClick={handleClearDayBalance} disabled={dayBalanceSaving}>
+                      <button type="button" className={calStyles.dayBalanceGhostBtn} onClick={handleClearDayBalance} disabled={dayBalanceSaving}>
                         Reset to auto
                       </button>
                     )}
-                    <button className={calStyles.dayBalanceSaveBtn} onClick={handleSaveDayBalance} disabled={dayBalanceSaving}>
+                    <button type="button" className={calStyles.dayBalanceSaveBtn} onClick={handleSaveDayBalance} disabled={dayBalanceSaving}>
                       {dayBalanceSaving ? 'Saving...' : 'Save'}
                     </button>
                   </div>
@@ -638,10 +656,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             </div>
 
             <div className={calStyles.dayPanelActions}>
-              <button className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')}>
+              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')}>
                 + Add income
               </button>
-              <button className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')}>
+              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')}>
                 − Add expense
               </button>
             </div>
@@ -703,6 +721,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>{money(goal.current || 0)}</span>
                           <span style={{ fontSize: 11, color: 'var(--text3)' }}>/ {money(goal.target)}</span>
                           <button
+                            type="button"
                             onClick={() => {
                               setEditGoalId(isEditing ? null : goal._id)
                               setGoalInput(String(goal.current || 0))
@@ -726,7 +745,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                             placeholder="New total saved"
                             style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
                           />
-                          <button onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                          <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
                         </div>
                       )}
                     </div>
@@ -740,21 +759,21 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
       {showModal && (
         <div className={calStyles.modalOverlay} onClick={closeTransactionEditor}>
-          <div className={calStyles.modal} onClick={event => event.stopPropagation()}>
+          <div className={calStyles.modal} onClick={event => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="calendar-transaction-modal-title">
             <div className={calStyles.modalHeader}>
-              <div className={calStyles.modalTitle}>
+              <div className={calStyles.modalTitle} id="calendar-transaction-modal-title">
                 {editTx ? 'Edit transaction' : `Add ${isIncome ? 'Income' : 'Expense'}`}
                 {selected && !editTx && <span style={{ fontSize: 13, color: 'var(--text3)', marginLeft: 8 }}>{selected}</span>}
               </div>
-            <button onClick={closeTransactionEditor} className={calStyles.modalClose} disabled={formSaving}>✕</button>
+            <button type="button" onClick={closeTransactionEditor} className={calStyles.modalClose} disabled={formSaving} aria-label="Close transaction editor">✕</button>
             </div>
 
             {!editTx && (
               <div className={calStyles.typeToggle}>
-                <button className={`${calStyles.typeBtn} ${isIncome ? calStyles.typeBtnIncome : ''}`} onClick={() => switchComposerType('income')} disabled={formSaving}>
+                <button type="button" className={`${calStyles.typeBtn} ${isIncome ? calStyles.typeBtnIncome : ''}`} onClick={() => switchComposerType('income')} disabled={formSaving} aria-pressed={isIncome}>
                   <span className={calStyles.typeBtnSign}>+</span><span>Income</span>
                 </button>
-                <button className={`${calStyles.typeBtn} ${!isIncome ? calStyles.typeBtnExpense : ''}`} onClick={() => switchComposerType('expense')} disabled={formSaving}>
+                <button type="button" className={`${calStyles.typeBtn} ${!isIncome ? calStyles.typeBtnExpense : ''}`} onClick={() => switchComposerType('expense')} disabled={formSaving} aria-pressed={!isIncome}>
                   <span className={calStyles.typeBtnSign}>−</span><span>Expense</span>
                 </button>
               </div>
@@ -774,6 +793,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 disabled={formSaving}
                 onChange={event => set('amount', event.target.value)}
                 style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}
+                aria-label={`${isIncome ? 'Income' : 'Expense'} amount`}
               />
             </div>
 
@@ -811,17 +831,19 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               </div>
             </div>
 
-            {formError && <div className={calStyles.formError}>{formError}</div>}
+            {formError && <div className={calStyles.formError} role="alert">{formError}</div>}
 
             <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
               <label>Recurrence</label>
               <div className={calStyles.recurGrid}>
                 {RECUR_OPTIONS.map(option => (
                   <button
+                    type="button"
                     key={option.value}
                     onClick={() => set('recur', option.value)}
                     className={`${calStyles.recurChip} ${form.recur === option.value ? calStyles.recurChipActive : ''}`}
                     disabled={formSaving}
+                    aria-pressed={form.recur === option.value}
                   >
                     {option.label}
                   </button>
@@ -832,6 +854,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             {formImpact && (
               <div
                 className={calStyles.impactPreview}
+                role="status"
                 style={{
                   background: formImpact.level === 'negative' ? 'var(--red-dim)' : formImpact.level === 'tight' ? 'var(--amber-dim)' : 'var(--accent-glow)',
                   borderColor: formImpact.level === 'negative' ? 'var(--red)' : formImpact.level === 'tight' ? 'var(--amber)' : 'var(--accent)',
@@ -843,8 +866,9 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             )}
 
             <div className={calStyles.modalActions}>
-              <button onClick={closeTransactionEditor} className={calStyles.btnCancel} disabled={formSaving}>Cancel</button>
+              <button type="button" onClick={closeTransactionEditor} className={calStyles.btnCancel} disabled={formSaving}>Cancel</button>
               <button
+                type="button"
                 onClick={handleSave}
                 className={calStyles.btnSave}
                 style={{ background: isIncome ? 'var(--accent)' : 'var(--red)', color: isIncome ? '#0a0a0f' : '#fff' }}
@@ -884,8 +908,8 @@ function DayTxRow({ t, s, privacyMode, onEdit, onDelete }) {
           {displayValue(privacyMode, `${isIncome ? '+' : '−'}${fmt(t.amount, s)}`, `${isIncome ? '+' : '−'}${maskMoney(s)}`)}
         </div>
         <div className={calStyles.txActions}>
-          {!t._projected && <button className={calStyles.editBtn} onClick={() => onEdit(t)}>Edit</button>}
-          <button className={calStyles.delBtnSm} onClick={() => onDelete(t)}>✕</button>
+          {!t._projected && <button type="button" className={calStyles.editBtn} onClick={() => onEdit(t)} aria-label={`Edit ${t.desc || t.cat}`}>Edit</button>}
+          <button type="button" className={calStyles.delBtnSm} onClick={() => onDelete(t)} aria-label={`Delete ${t.desc || t.cat}`}>✕</button>
         </div>
       </div>
     </div>

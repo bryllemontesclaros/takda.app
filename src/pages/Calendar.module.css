@@ -62,6 +62,7 @@
 
 /* CELL — clean, no text overflow */
 .cell {
+  appearance: none;
   min-height: 92px;
   background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
   border: 1px solid var(--border);
@@ -76,6 +77,8 @@
   flex-direction: column;
   justify-content: space-between;
   gap: 6px;
+  text-align: left;
+  font-family: var(--font-body);
 }
 .cell:hover { border-color: var(--border2); background: var(--surface3); }
 .today { border-color: var(--accent) !important; background: color-mix(in srgb, var(--accent-glow) 68%, var(--surface) 32%) !important; }

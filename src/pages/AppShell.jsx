@@ -319,20 +319,36 @@ export default function AppShell({ user }) {
     onSelectedDateChange: setCalendarQuickAddDate,
   }
 
+  const quickAddDialogLabel = quickAddSheet.mode === 'import'
+    ? 'Import transaction'
+    : quickAddSheet.mode === 'grocery'
+      ? 'Grocery mode'
+      : quickAddSheet.type === 'income'
+        ? 'Log income'
+        : 'Track expense'
+
   return (
     <div className={`${styles.shell} ${page === 'calendar' ? styles.shellCalendar : ''}`}>
+      <a href="#app-main" className="skipLink">Skip to main content</a>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
           <div className={styles.logo}>Takda</div>
         </div>
-        {nav.map(n => (
-          <div key={n.id}>
-            {n.section && <div className={styles.navSection}>{n.section}</div>}
-            <div className={`${styles.navItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>
-              <span className={styles.icon}>{n.icon}</span> {n.label}
+        <nav className={styles.sidebarNav} aria-label="Primary navigation">
+          {nav.map(n => (
+            <div key={n.id}>
+              {n.section && <div className={styles.navSection}>{n.section}</div>}
+              <button
+                type="button"
+                className={`${styles.navItem} ${page === n.id ? styles.active : ''}`}
+                onClick={() => setPage(n.id)}
+                aria-current={page === n.id ? 'page' : undefined}
+              >
+                <span className={styles.icon} aria-hidden="true">{n.icon}</span> {n.label}
+              </button>
             </div>
-          </div>
-        ))}
+          ))}
+        </nav>
         <div className={styles.sidebarBottom}>
           <div className={styles.userInfo}>
             <div className={styles.avatar}>{getInitials(user.displayName || user.email)}</div>
@@ -360,7 +376,13 @@ export default function AppShell({ user }) {
                 </div>
               </div>
             )}
-            <button className={styles.themeBtn} onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            <button
+              type="button"
+              className={styles.themeBtn}
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
               {theme === 'dark' ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="5"/>
@@ -412,13 +434,14 @@ export default function AppShell({ user }) {
             </div>
           </div>
         )}
-        <main className={`${styles.main} ${page === 'calendar' ? styles.mainCalendar : ''}`}>
+        <main id="app-main" className={`${styles.main} ${page === 'calendar' ? styles.mainCalendar : ''}`}>
           <PageComponent {...pageProps} />
         </main>
       </div>
       {(quickAddMenuOpen || quickAddSheet.open) && (
         <div
           className={styles.fabBackdrop}
+          aria-hidden="true"
           onClick={() => {
             setQuickAddMenuOpen(false)
             closeQuickAdd()
@@ -427,20 +450,20 @@ export default function AppShell({ user }) {
       )}
       <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
         {quickAddMenuOpen && (
-          <div className={styles.fabMenu}>
-            <button className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')}>
+          <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
+            <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
               <span className={styles.fabActionIcon}>−</span>
               <span>Expense</span>
             </button>
-            <button className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')}>
+            <button type="button" className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')} role="menuitem">
               <span className={styles.fabActionIcon}>+</span>
               <span>Income</span>
             </button>
-            <button className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport}>
+            <button type="button" className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport} role="menuitem">
               <span className={styles.fabActionIcon}>🧾</span>
               <span>Import</span>
             </button>
-            <button className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode}>
+            <button type="button" className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode} role="menuitem">
               <span className={styles.fabActionIcon}>🛒</span>
               <span>Grocery</span>
             </button>
@@ -451,13 +474,19 @@ export default function AppShell({ user }) {
           onClick={toggleQuickAddMenu}
           aria-expanded={quickAddMenuOpen}
           aria-label="Add transaction"
+          aria-haspopup="menu"
         >
           +
         </button>
       </div>
       {quickAddSheet.open && (
         <div className={styles.quickAddLayer}>
-          <div className={`${styles.quickAddSheet} ${quickAddSheet.mode === 'grocery' ? styles.quickAddSheetWide : ''}`}>
+          <div
+            className={`${styles.quickAddSheet} ${quickAddSheet.mode === 'grocery' ? styles.quickAddSheetWide : ''}`}
+            role="dialog"
+            aria-modal="true"
+            aria-label={quickAddDialogLabel}
+          >
             {quickAddSheet.mode === 'import' ? (
               <ReceiptScanner defaultMode="receipt" onResult={handleQuickImportResult} onClose={closeQuickAdd} />
             ) : quickAddSheet.mode === 'grocery' ? (
@@ -472,11 +501,11 @@ export default function AppShell({ user }) {
                 <div className={styles.quickAddHeader}>
                   <div>
                     <div className={styles.quickAddEyebrow}>Quick add</div>
-                    <div className={styles.quickAddTitle}>
+                    <div className={styles.quickAddTitle} id="quick-add-title">
                       {quickAddSheet.type === 'income' ? 'Log income' : 'Track expense'}
                     </div>
                   </div>
-                  <button className={styles.quickAddClose} onClick={closeQuickAdd}>✕</button>
+                  <button type="button" className={styles.quickAddClose} onClick={closeQuickAdd} aria-label="Close quick add">✕</button>
                 </div>
                 <QuickAdd
                   user={user}
@@ -499,11 +528,12 @@ export default function AppShell({ user }) {
             onClick={() => setMobileNavMenuOpen(false)}
             aria-label="Close more pages"
           />
-          <div className={styles.mobileNavSheet}>
-            <div className={styles.mobileNavSheetHandle} />
+          <div className={styles.mobileNavSheet} role="dialog" aria-modal="true" aria-labelledby="mobile-more-title" aria-describedby="mobile-more-description">
+            <div className="srOnly" id="mobile-more-description">Extra app pages and tools.</div>
+            <div className={styles.mobileNavSheetHandle} aria-hidden="true" />
             <div className={styles.mobileNavSheetHeader}>
               <div>
-                <div className={styles.mobileNavSheetTitle}>More</div>
+                <div className={styles.mobileNavSheetTitle} id="mobile-more-title">More</div>
                 <div className={styles.mobileNavSheetMeta}>Open the rest of your tools here.</div>
               </div>
               <button
@@ -525,6 +555,7 @@ export default function AppShell({ user }) {
                     setPage(n.id)
                     setMobileNavMenuOpen(false)
                   }}
+                  aria-current={page === n.id ? 'page' : undefined}
                 >
                   <span className={styles.mobileNavLinkIcon}>{NAV_ICONS[n.iconKey]}</span>
                   <span className={styles.mobileNavLinkCopy}>
@@ -538,9 +569,9 @@ export default function AppShell({ user }) {
           </div>
         </>
       )}
-      <nav className={styles.bottomNav}>
+      <nav className={styles.bottomNav} aria-label="Primary navigation">
         {bottomNav.map(n => (
-          <button key={n.id} type="button" className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)}>
+          <button key={n.id} type="button" className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)} aria-current={page === n.id ? 'page' : undefined}>
             <span className={styles.bottomNavIcon}>{NAV_ICONS[n.iconKey]}</span>
             <span className={styles.bottomNavLabel}>{n.label}</span>
           </button>
@@ -551,6 +582,7 @@ export default function AppShell({ user }) {
           onClick={toggleMobileNavMenu}
           aria-expanded={mobileNavMenuOpen}
           aria-label="More pages"
+          aria-haspopup="dialog"
         >
           <span className={styles.bottomNavIcon}>{NAV_ICONS.more}</span>
           <span className={styles.bottomNavLabel}>More</span>

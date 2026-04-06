@@ -168,6 +168,8 @@ function StatusBanner({ message }) {
   const ok = Boolean(message.ok)
   return (
     <div
+      role={ok ? 'status' : 'alert'}
+      aria-live={ok ? 'polite' : 'assertive'}
       style={{
         background: ok ? 'var(--accent-glow)' : 'var(--red-dim)',
         color: ok ? 'var(--accent)' : 'var(--red)',
