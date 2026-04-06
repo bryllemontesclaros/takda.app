@@ -20,9 +20,12 @@ import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
 
 const NAV_ICONS = {
-  home: (
+  dashboard: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="14" width="7" height="7" rx="1.5"/>
     </svg>
   ),
   calendar: (
@@ -32,22 +35,28 @@ const NAV_ICONS = {
   ),
   breakdown: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      <path d="M12 3a9 9 0 1 1-9 9h9z"/>
+      <path d="M12 3a9 9 0 0 1 9 9h-9z"/>
     </svg>
   ),
   budget: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      <circle cx="12" cy="12" r="9"/>
+      <circle cx="12" cy="12" r="3"/>
+      <line x1="12" y1="3" x2="12" y2="5"/>
+      <line x1="21" y1="12" x2="19" y2="12"/>
+      <line x1="12" y1="21" x2="12" y2="19"/>
+      <line x1="3" y1="12" x2="5" y2="12"/>
     </svg>
   ),
   savings: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      <path d="M12 3l2.8 5.7 6.2.9-4.5 4.3 1 6.1L12 17l-5.5 3 1-6.1L3 9.6l6.2-.9L12 3z"/>
     </svg>
   ),
   accounts: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
+      <rect x="2.5" y="5" width="19" height="14" rx="3"/><line x1="2.5" y1="10" x2="21.5" y2="10"/><line x1="16" y1="15" x2="18.5" y2="15"/>
     </svg>
   ),
   settings: (
@@ -62,8 +71,9 @@ const NAV_ICONS = {
   ),
   history: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/>
-      <path d="M12 7v5l3 2"/>
+      <path d="M3 4v5h5"/>
+      <path d="M3.5 13a8.5 8.5 0 1 0 2.5-6l-3 2"/>
+      <path d="M12 8v4l2.5 2.5"/>
     </svg>
   ),
 }
@@ -203,14 +213,14 @@ export default function AppShell({ user }) {
   }, [user])
 
   const nav = [
-    { id: 'dashboard', label: 'Dashboard', icon: '◈', section: 'Overview' },
-    { id: 'calendar', label: 'Calendar', icon: '◻', section: 'Track' },
-    { id: 'history', label: 'History', icon: '☰', section: null },
-    { id: 'breakdown', label: 'Breakdown', icon: '◑', section: 'Analyse' },
-    { id: 'budget', label: 'Budget', icon: '◎', section: null },
-    { id: 'accounts', label: 'Accounts', icon: '◉', section: null },
-    { id: 'savings', label: 'Savings Goals', icon: '◆', section: null },
-    { id: 'settings', label: 'Settings', icon: '⚙', section: 'Account' },
+    { id: 'dashboard', label: 'Dashboard', iconKey: 'dashboard', section: 'Overview' },
+    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: 'Track' },
+    { id: 'history', label: 'History', iconKey: 'history', section: null },
+    { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: 'Analyse' },
+    { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
+    { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
+    { id: 'savings', label: 'Savings Goals', iconKey: 'savings', section: null },
+    { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
   const pages = { dashboard: Dashboard, calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
@@ -218,7 +228,7 @@ export default function AppShell({ user }) {
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
 
   const bottomNav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'home' },
+    { id: 'dashboard', label: 'Home', iconKey: 'dashboard' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar' },
     { id: 'savings', label: 'Savings', iconKey: 'savings' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
@@ -344,7 +354,7 @@ export default function AppShell({ user }) {
                 onClick={() => setPage(n.id)}
                 aria-current={page === n.id ? 'page' : undefined}
               >
-                <span className={styles.icon} aria-hidden="true">{n.icon}</span> {n.label}
+                <span className={styles.icon} aria-hidden="true">{NAV_ICONS[n.iconKey]}</span> {n.label}
               </button>
             </div>
           ))}
