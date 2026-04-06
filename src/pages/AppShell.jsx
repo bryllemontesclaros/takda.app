@@ -360,14 +360,17 @@ export default function AppShell({ user }) {
           ))}
         </nav>
         <div className={styles.sidebarBottom}>
-          <div className={styles.userInfo}>
-            <div className={styles.avatar}>{getInitials(user.displayName || user.email)}</div>
-            <div>
-              <div className={styles.userName}>{user.displayName || 'User'}</div>
-              <div className={styles.userEmail}>{user.email}</div>
+          <div className={styles.sidebarBottomLabel}>Signed in</div>
+          <div className={styles.userCard}>
+            <div className={styles.userInfo}>
+              <div className={styles.avatar}>{getInitials(user.displayName || user.email)}</div>
+              <div className={styles.userCopy}>
+                <div className={styles.userName}>{user.displayName || 'User'}</div>
+                <div className={styles.userEmail}>{user.email}</div>
+              </div>
             </div>
           </div>
-          <button className={styles.btnLogout} onClick={() => signOut(auth)}>← Log out</button>
+          <button type="button" className={styles.btnLogout} onClick={() => signOut(auth)}>Log out</button>
         </div>
       </aside>
       <div className={`${styles.mainWrap} ${page === 'calendar' ? styles.mainWrapCalendar : ''}`}>

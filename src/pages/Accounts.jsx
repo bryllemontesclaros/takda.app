@@ -20,7 +20,7 @@ const COLORS = [
 
 const EMPTY_FORM = { name: '', type: 'Cash', balance: '', color: '#22d87a', notes: '' }
 
-export default function Accounts({ user, data, symbol, privacyMode = false }) {
+export default function Accounts({ user, data, symbol, privacyMode = false, onTogglePrivacy = () => {} }) {
   const s = symbol || '₱'
   const accounts = data.accounts || []
   const [form, setForm] = useState(EMPTY_FORM)
@@ -71,6 +71,7 @@ export default function Accounts({ user, data, symbol, privacyMode = false }) {
   const totalBalance = getCurrentBalance(accounts)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
+  const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
 
   useEffect(() => {
     if (showModal && editorRef.current) {
@@ -85,11 +86,18 @@ export default function Accounts({ user, data, symbol, privacyMode = false }) {
         <div className={styles.sub}>Keep your cash, bank, and e-wallet balances in one clear view.</div>
       </div>
 
-      <div className={accStyles.totalCard}>
+      <button
+        type="button"
+        className={`${accStyles.totalCard} ${accStyles.privacyCardButton}`}
+        onClick={onTogglePrivacy}
+        aria-pressed={privacyMode}
+        title={privacyHint}
+      >
         <div className={accStyles.totalLabel}>Total balance</div>
         <div className={accStyles.totalVal}>{money(totalBalance)}</div>
         <div className={accStyles.totalSub}>{accounts.length} account{accounts.length !== 1 ? 's' : ''}</div>
-      </div>
+        <div className={accStyles.privacyHint}>{privacyHint}</div>
+      </button>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
         <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={openAdd}>+ Add account</button>
