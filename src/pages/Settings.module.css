@@ -79,10 +79,27 @@
 .consentRow input { width: 16px; height: 16px; accent-color: var(--accent); }
 .feedbackActions { display: flex; gap: 8px; }
 .feedbackCancel { padding: 11px 14px; background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); cursor: pointer; font-family: var(--font-body); }
+.payMongoActions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.payMongoLinkBox {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.payMongoUrl {
+  margin-top: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text2);
+  word-break: break-all;
+}
 
 @media (max-width: 640px) {
   .summaryGrid { grid-template-columns: 1fr 1fr; }
   .donateGrid { grid-template-columns: 1fr; }
   .feedbackGrid { grid-template-columns: 1fr; }
   .preferenceRow { align-items: flex-start; }
+  .payMongoActions { align-items: stretch; }
 }

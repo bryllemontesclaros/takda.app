@@ -16,6 +16,7 @@ import { auth } from '../lib/firebase'
 import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
+import { PAYMONGO_TEST_TOOLS_ENABLED, createPayMongoTestLink } from '../lib/paymongo'
 import { generateMonthlyReport } from '../lib/report'
 import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, today } from '../lib/utils'
 import styles from './Page.module.css'
@@ -269,6 +270,10 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [donationMsg, setDonationMsg] = useState({ text: '', ok: false })
   const [legalMsg, setLegalMsg] = useState({ text: '', ok: false })
+  const [payMongoForm, setPayMongoForm] = useState({ amount: '99', description: 'Takda Pro test checkout' })
+  const [payMongoMsg, setPayMongoMsg] = useState({ text: '', ok: false })
+  const [payMongoLoading, setPayMongoLoading] = useState(false)
+  const [payMongoLink, setPayMongoLink] = useState(null)
 
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
@@ -313,6 +318,10 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
   function setAccountField(key, value) {
     setAccountForm(current => ({ ...current, [key]: value }))
+  }
+
+  function setPayMongoField(key, value) {
+    setPayMongoForm(current => ({ ...current, [key]: value }))
   }
 
   async function handleSaveProfile() {
@@ -678,6 +687,42 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       setLegalMsg({ text: 'Could not copy the support email right now.', ok: false })
     }
     window.setTimeout(() => setLegalMsg({ text: '', ok: false }), 2800)
+  }
+
+  async function handleCreatePayMongoLink() {
+    const amount = Number(payMongoForm.amount)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setPayMongoMsg({ text: 'Enter a valid peso amount first.', ok: false })
+      return
+    }
+
+    setPayMongoLoading(true)
+    setPayMongoMsg({ text: '', ok: false })
+    try {
+      const payload = await createPayMongoTestLink({
+        amount,
+        description: payMongoForm.description.trim() || 'Takda Pro test checkout',
+        remarks: `Takda test link for ${user.uid}`,
+      })
+      setPayMongoLink(payload)
+      setPayMongoMsg({ text: 'PayMongo test checkout link created.', ok: true })
+    } catch (error) {
+      setPayMongoLink(null)
+      setPayMongoMsg({ text: error.message || 'Could not create a PayMongo test link.', ok: false })
+    } finally {
+      setPayMongoLoading(false)
+    }
+  }
+
+  async function handleCopyPayMongoLink() {
+    if (!payMongoLink?.checkoutUrl) return
+    try {
+      await copyToClipboard(payMongoLink.checkoutUrl)
+      setPayMongoMsg({ text: 'PayMongo checkout link copied.', ok: true })
+    } catch {
+      setPayMongoMsg({ text: 'Could not copy the PayMongo checkout link.', ok: false })
+    }
+    window.setTimeout(() => setPayMongoMsg({ text: '', ok: false }), 2800)
   }
 
   const totalTx = data.income.length + data.expenses.length
@@ -1149,6 +1194,60 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           ))}
         </div>
       </div>
+
+      {PAYMONGO_TEST_TOOLS_ENABLED && (
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>PayMongo test billing</div>
+          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+            Create a one-time PayMongo <strong>test</strong> checkout link from inside Takda. This is a safe billing foundation and does <strong>not</strong> mean subscriptions are finished yet.
+          </p>
+          <StatusBanner message={payMongoMsg} />
+
+          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+            <div className={styles.formGroup}>
+              <label>Amount (PHP)</label>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                placeholder="99.00"
+                value={payMongoForm.amount}
+                onChange={event => setPayMongoField('amount', event.target.value)}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Description</label>
+              <input
+                placeholder="Takda Pro test checkout"
+                value={payMongoForm.description}
+                onChange={event => setPayMongoField('description', event.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className={settStyles.payMongoActions}>
+            <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleCreatePayMongoLink} disabled={payMongoLoading}>
+              {payMongoLoading ? 'Creating...' : 'Create test checkout'}
+            </button>
+            {payMongoLink?.checkoutUrl && (
+              <>
+                <a className={settStyles.btnExportLink} href={payMongoLink.checkoutUrl} target="_blank" rel="noreferrer">
+                  Open checkout
+                </a>
+                <button className={settStyles.btnExport} onClick={handleCopyPayMongoLink}>Copy link</button>
+              </>
+            )}
+          </div>
+
+          {payMongoLink?.checkoutUrl && (
+            <div className={settStyles.payMongoLinkBox}>
+              <div className={settStyles.preferenceTitle}>Latest test link</div>
+              <div className={settStyles.preferenceMeta}>Reference {payMongoLink.referenceNumber || payMongoLink.linkId || 'pending'}</div>
+              <div className={settStyles.payMongoUrl}>{payMongoLink.checkoutUrl}</div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.3)' }}>
         <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete financial data</div>
