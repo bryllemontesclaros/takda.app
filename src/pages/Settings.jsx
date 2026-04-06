@@ -270,7 +270,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [donationMsg, setDonationMsg] = useState({ text: '', ok: false })
   const [legalMsg, setLegalMsg] = useState({ text: '', ok: false })
-  const [payMongoForm, setPayMongoForm] = useState({ amount: '99', description: 'Takda Pro test checkout' })
+  const [payMongoForm, setPayMongoForm] = useState({ amount: '99', description: 'Takda Pro monthly (test)' })
   const [payMongoMsg, setPayMongoMsg] = useState({ text: '', ok: false })
   const [payMongoLoading, setPayMongoLoading] = useState(false)
   const [payMongoLink, setPayMongoLink] = useState(null)
@@ -1197,13 +1197,27 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
       {PAYMONGO_TEST_TOOLS_ENABLED && (
         <div className={styles.card}>
-          <div className={styles.cardTitle}>PayMongo test billing</div>
+          <div className={styles.cardTitle}>Billing</div>
           <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-            Create a one-time PayMongo <strong>test</strong> checkout link from inside Takda. This is a safe billing foundation and does <strong>not</strong> mean subscriptions are finished yet.
+            Billing is set up in <strong>test mode</strong> right now. You can rehearse Takda&apos;s upgrade flow with PayMongo safely before switching to live payments.
           </p>
+          <div className={settStyles.billingOverview}>
+            <div className={settStyles.billingStat}>
+              <div className={settStyles.billingLabel}>Current plan</div>
+              <div className={settStyles.billingValue}>Free</div>
+            </div>
+            <div className={settStyles.billingStat}>
+              <div className={settStyles.billingLabel}>Provider</div>
+              <div className={settStyles.billingValue}>PayMongo</div>
+            </div>
+            <div className={settStyles.billingStat}>
+              <div className={settStyles.billingLabel}>Mode</div>
+              <div className={settStyles.billingBadge}>Test only</div>
+            </div>
+          </div>
           <StatusBanner message={payMongoMsg} />
 
-          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+          <div className={`${styles.formRow} ${styles.col2} ${settStyles.billingComposer}`} style={{ marginBottom: 12 }}>
             <div className={styles.formGroup}>
               <label>Amount (PHP)</label>
               <input
@@ -1216,9 +1230,9 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
               />
             </div>
             <div className={styles.formGroup}>
-              <label>Description</label>
+              <label>Checkout description</label>
               <input
-                placeholder="Takda Pro test checkout"
+                placeholder="Takda Pro monthly (test)"
                 value={payMongoForm.description}
                 onChange={event => setPayMongoField('description', event.target.value)}
               />
@@ -1227,7 +1241,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
           <div className={settStyles.payMongoActions}>
             <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleCreatePayMongoLink} disabled={payMongoLoading}>
-              {payMongoLoading ? 'Creating...' : 'Create test checkout'}
+              {payMongoLoading ? 'Creating...' : 'Create checkout link'}
             </button>
             {payMongoLink?.checkoutUrl && (
               <>
@@ -1238,10 +1252,13 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
               </>
             )}
           </div>
+          <div className={settStyles.billingHelper}>
+            This is still a one-time <strong>test</strong> checkout link. It does not unlock premium access automatically yet, and it will not charge real money while you keep using test credentials.
+          </div>
 
           {payMongoLink?.checkoutUrl && (
             <div className={settStyles.payMongoLinkBox}>
-              <div className={settStyles.preferenceTitle}>Latest test link</div>
+              <div className={settStyles.preferenceTitle}>Latest checkout link</div>
               <div className={settStyles.preferenceMeta}>Reference {payMongoLink.referenceNumber || payMongoLink.linkId || 'pending'}</div>
               <div className={settStyles.payMongoUrl}>{payMongoLink.checkoutUrl}</div>
             </div>
