@@ -35,6 +35,22 @@
 .btnPrimary { width: 100%; padding: 11px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; margin-top: 4px; }
 .btnPrimary:hover { opacity: 0.9; }
 .btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+.legalNotice {
+  margin: 12px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text3);
+}
+
+.legalLink {
+  color: color-mix(in srgb, var(--text) 72%, var(--accent) 28%);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legalLink:hover {
+  color: var(--accent);
+}
 .divider { display: flex; align-items: center; gap: 12px; margin: 1rem 0; color: var(--text3); font-size: 12px; }
 .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .btnGoogle { width: 100%; padding: 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: border-color 0.2s; }

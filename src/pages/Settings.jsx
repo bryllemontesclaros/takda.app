@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   deleteUser,
   EmailAuthProvider,
@@ -13,6 +14,7 @@ import { deleteField } from 'firebase/firestore'
 import GamificationCard from '../components/GamificationCard'
 import { auth } from '../lib/firebase'
 import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
+import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
 import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, today } from '../lib/utils'
@@ -264,6 +266,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const [deleteAccountMsg, setDeleteAccountMsg] = useState({ text: '', ok: false })
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [donationMsg, setDonationMsg] = useState({ text: '', ok: false })
+  const [legalMsg, setLegalMsg] = useState({ text: '', ok: false })
 
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
@@ -665,6 +668,16 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     window.setTimeout(() => setDonationMsg({ text: '', ok: false }), 2800)
   }
 
+  async function handleCopyLegalEmail() {
+    try {
+      await copyToClipboard(LEGAL_CONTACT_EMAIL)
+      setLegalMsg({ text: 'Support email copied.', ok: true })
+    } catch {
+      setLegalMsg({ text: 'Could not copy the support email right now.', ok: false })
+    }
+    window.setTimeout(() => setLegalMsg({ text: '', ok: false }), 2800)
+  }
+
   const totalTx = data.income.length + data.expenses.length
   const savingsTotal = data.goals.reduce((sum, goal) => sum + (goal.current || 0), 0)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
@@ -845,6 +858,47 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
+        <div className={styles.cardTitle}>Legal & privacy</div>
+        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+          Review Takda&apos;s legal terms, understand how your data is handled, and reach the privacy contact if you need help with access, correction, export, deletion, or a complaint.
+        </p>
+        <StatusBanner message={legalMsg} />
+
+        <div className={settStyles.preferenceRow}>
+          <div>
+            <div className={settStyles.preferenceTitle}>Privacy Policy</div>
+            <div className={settStyles.preferenceMeta}>How Takda handles account data, app data, imports, exports, deletion, and privacy rights.</div>
+          </div>
+          <Link className={settStyles.btnExportLink} to="/privacy">Open policy</Link>
+        </div>
+
+        <div className={settStyles.preferenceRow} style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 12 }}>
+          <div>
+            <div className={settStyles.preferenceTitle}>Terms of Use</div>
+            <div className={settStyles.preferenceMeta}>What Takda provides, what it does not provide, and your responsibilities when using the app.</div>
+          </div>
+          <Link className={settStyles.btnExportLink} to="/terms">Open terms</Link>
+        </div>
+
+        <div className={settStyles.preferenceRow} style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 12 }}>
+          <div>
+            <div className={settStyles.preferenceTitle}>Privacy contact</div>
+            <div className={settStyles.preferenceMeta}>
+              Operated by {LEGAL_OPERATOR_NAME}. Email <a className={settStyles.inlineLink} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a> for privacy requests, account-data concerns, or support.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <a className={settStyles.btnExportLink} href={LEGAL_CONTACT_HREF}>Email</a>
+            <button className={settStyles.btnExport} onClick={handleCopyLegalEmail}>Copy email</button>
+          </div>
+        </div>
+
+        <div className={settStyles.legalNote}>
+          Your in-app data rights tools are below: edit your profile, export a CSV or JSON backup, restore a backup, reset financial data, or fully delete your account and records.
+        </div>
+      </div>
+
+      <div className={styles.card}>
         <div className={styles.cardTitle}>Currency & rates</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
           Choose the currency Takda should use across the app and view indicative exchange rates for context.
@@ -940,9 +994,9 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Backup & export</div>
+        <div className={styles.cardTitle}>Data access, export & restore</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Export a portable backup of your data and restore it later. JSON backups include accounts, budgets, and profile settings.
+          Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, and profile settings.
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
@@ -1095,9 +1149,9 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.3)' }}>
-        <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Reset data</div>
+        <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete financial data</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Permanently delete transactions, bills, savings goals, accounts, and budgets. Your account stays active, but your financial records will be erased. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
+          Permanently delete transactions, bills, savings goals, accounts, and budgets while keeping your login active. Use this if you want to clear your financial records without closing the whole account. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
         </p>
         {resetDone && (
           <div style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontSize: 13, marginBottom: '1rem' }}>
@@ -1112,7 +1166,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.36)' }}>
         <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete account and all data</div>
         <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          This fully removes your Takda account, tracked financial data, saved profile, and feedback records. Use this only if you want to leave permanently. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
+          This fully removes your Takda account, tracked financial data, saved profile, and feedback records. Use this if you want to leave permanently or submit a full deletion request through the app. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
         </p>
         <StatusBanner message={deleteAccountMsg} />
         <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>

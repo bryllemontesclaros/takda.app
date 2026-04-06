@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   browserLocalPersistence,
   browserSessionPersistence,
@@ -185,6 +186,9 @@ export default function AuthScreen() {
                 </label>
                 <button type="button" className={styles.forgotLink} onClick={() => { setShowForgot(true); setResetEmail(form.email); setError('') }}>Forgot password?</button>
                 <button className={styles.btnPrimary} type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Log in'}</button>
+                <p className={styles.legalNotice}>
+                  By continuing, you agree to Takda&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
+                </p>
               </form>
             ) : (
               <form onSubmit={handleRegister}>
@@ -233,6 +237,9 @@ export default function AuthScreen() {
                   </div>
                 </div>
                 <button className={styles.btnPrimary} type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Create account'}</button>
+                <p className={styles.legalNotice}>
+                  By creating an account, you agree to Takda&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
+                </p>
               </form>
             )}
           </>

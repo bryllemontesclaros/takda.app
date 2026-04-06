@@ -7,6 +7,8 @@ import AuthScreen from './pages/AuthScreen'
 import AppShell from './pages/AppShell'
 import Onboarding from './pages/Onboarding'
 import LandingPage from './pages/LandingPage'
+import PrivacyPolicy from './pages/PrivacyPolicy'
+import TermsPage from './pages/TermsPage'
 import { PageLoader } from './components/Loading'
 
 const AUTH_FLASH_KEY = 'takda_auth_flash'
@@ -92,6 +94,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<AuthRoute />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsPage />} />
       <Route path="/app" element={<ProtectedRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

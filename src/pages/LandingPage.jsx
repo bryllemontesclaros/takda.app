@@ -1,5 +1,6 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { auth } from '../lib/firebase'
+import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
@@ -200,22 +201,34 @@ export default function LandingPage() {
 
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
-          <h2 className={styles.ctaTitle}>Start with a month you can actually read.</h2>
-          <p className={styles.ctaSub}>Create your account, add your balances and bills, and Takda gives you a usable first view right away.</p>
-          <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
+          <div className={styles.ctaCopy}>
+            <h2 className={styles.ctaTitle}>Start with a month you can actually read.</h2>
+            <p className={styles.ctaSub}>Create your account, add your balances and bills, and Takda gives you a usable first view right away.</p>
+          </div>
+          <div className={styles.ctaAction}>
+            <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
+          </div>
         </div>
       </section>
 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
-          <div>
+          <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>Takda</div>
             <div className={styles.footerTagline}>Mas klaro ang buwan, araw-araw.</div>
+            <div className={styles.footerMeta}>
+              Operated by {LEGAL_OPERATOR_NAME}. Support and privacy:{' '}
+              <a className={styles.footerAnchor} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a>
+            </div>
           </div>
           <div className={styles.footerLinks}>
-            <span onClick={openPrimary} style={{ cursor: 'pointer' }}>{isSignedIn ? 'Open app' : 'Get started'}</span>
+            <button type="button" className={styles.footerButton} onClick={openPrimary}>{isSignedIn ? 'Open app' : 'Get started'}</button>
             <span>·</span>
-            <span onClick={goLogin} style={{ cursor: 'pointer' }}>Log in</span>
+            <button type="button" className={styles.footerButton} onClick={goLogin}>Log in</button>
+            <span>·</span>
+            <Link className={styles.footerAnchor} to="/privacy">Privacy</Link>
+            <span>·</span>
+            <Link className={styles.footerAnchor} to="/terms">Terms</Link>
           </div>
           <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Calendar-first personal finance tracking for Filipinos.</div>
         </div>
