@@ -256,6 +256,13 @@
   color: var(--text);
 }
 
+.heroPanelMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text3);
+}
+
 .heroPill {
   padding: 8px 12px;
   border-radius: 999px;
@@ -729,16 +736,22 @@
   }
 
   .heroGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
 
   .heroCell {
-    min-height: 64px;
+    min-height: 76px;
     border-radius: 16px;
+    padding: 10px;
   }
 
   .heroCellBalance {
-    font-size: 11px;
+    font-size: 12px;
+  }
+
+  .heroCell:nth-child(n + 5) {
+    display: none;
   }
 
   .heroBalanceBar {

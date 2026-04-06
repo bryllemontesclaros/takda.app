@@ -27,14 +27,14 @@ const USE_CASES = [
 ]
 
 const HERO_CELLS = [
-  { day: '23', balance: '321,204', tone: 'healthy' },
-  { day: '24', balance: '319,812', tone: 'expense' },
-  { day: '25', balance: '319,812', tone: 'healthy' },
-  { day: '26', balance: '321,204', tone: 'healthy' },
-  { day: '27', balance: '320,869', tone: 'healthy' },
-  { day: '28', balance: '320,869', tone: 'healthy' },
-  { day: '29', balance: '320,869', tone: 'healthy' },
-  { day: '30', balance: '320,869', tone: 'selected' },
+  { day: '23', balance: '18,640', tone: 'healthy' },
+  { day: '24', balance: '17,920', tone: 'expense' },
+  { day: '25', balance: '17,920', tone: 'healthy' },
+  { day: '26', balance: '19,420', tone: 'healthy' },
+  { day: '27', balance: '18,980', tone: 'expense' },
+  { day: '28', balance: '18,980', tone: 'healthy' },
+  { day: '29', balance: '18,450', tone: 'expense' },
+  { day: '30', balance: '18,450', tone: 'selected' },
 ]
 
 export default function LandingPage() {
@@ -83,15 +83,16 @@ export default function LandingPage() {
               <span />
               <span />
             </div>
-            <div className={styles.heroPanelApp}>Takda workspace</div>
-            <div className={styles.heroPanelSync}>Synced</div>
+            <div className={styles.heroPanelApp}>Takda preview</div>
+            <div className={styles.heroPanelSync}>Sample data</div>
           </div>
           <div className={styles.heroPanelTop}>
             <div>
               <div className={styles.heroPanelEyebrow}>Daily balance calendar</div>
               <div className={styles.heroPanelTitle}>April 2026</div>
+              <div className={styles.heroPanelMeta}>Example month view with sample balances</div>
             </div>
-            <div className={styles.heroPill}>Desktop view</div>
+            <div className={styles.heroPill}>Calendar preview</div>
           </div>
           <div className={styles.heroGrid}>
             {HERO_CELLS.map(cell => (
@@ -106,10 +107,10 @@ export default function LandingPage() {
           </div>
           <div className={styles.heroBalanceBar}>
             <div>
-              <div className={styles.heroBalanceBarLabel}>Balance for Apr 30, 2026</div>
-              <div className={styles.heroBalanceBarMeta}>One calm place to read the selected day.</div>
+              <div className={styles.heroBalanceBarLabel}>Sample balance for Apr 30, 2026</div>
+              <div className={styles.heroBalanceBarMeta}>A clear read of the selected day, not your personal account data.</div>
             </div>
-            <div className={styles.heroBalanceBarValue}>₱320,869</div>
+            <div className={styles.heroBalanceBarValue}>₱18,450</div>
           </div>
         </div>
       </section>
