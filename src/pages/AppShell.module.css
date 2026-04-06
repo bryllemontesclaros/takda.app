@@ -287,7 +287,8 @@
 .fabBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(8, 12, 18, 0.18);
+  background: rgba(8, 12, 18, 0.28);
+  backdrop-filter: blur(4px);
   z-index: 280;
 }
 .fabWrap {
@@ -309,38 +310,69 @@
 .fabMenu {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: stretch;
+  gap: 10px;
+  width: 240px;
+  min-width: 228px;
+  padding: 10px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, #ffffff 12%);
+  background:
+    radial-gradient(circle at top right, rgba(34, 216, 122, 0.08), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff 4%), color-mix(in srgb, var(--surface) 92%, #ffffff 8%));
+  box-shadow: 0 20px 44px rgba(8, 12, 18, 0.2);
+  backdrop-filter: blur(12px);
 }
 .fabAction {
+  --fab-tone: var(--accent);
   display: inline-flex;
+  width: 100%;
   align-items: center;
-  gap: 10px;
-  padding: 11px 14px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 94%, #ffffff 6%);
-  box-shadow: 0 16px 34px rgba(8, 12, 18, 0.14);
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 54px;
+  padding: 11px 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--fab-tone) 18%, var(--border));
+  background: color-mix(in srgb, var(--surface2) 94%, #ffffff 6%);
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
-.fabActionIncome { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent-glow) 90%, var(--surface) 10%); }
-.fabActionExpense { border-color: var(--red); color: var(--red); background: color-mix(in srgb, var(--red-dim) 88%, var(--surface) 12%); }
-.fabActionImport { border-color: var(--blue); color: var(--blue); background: color-mix(in srgb, var(--blue-dim) 86%, var(--surface) 14%); }
-.fabActionGrocery { border-color: var(--amber); color: var(--amber); background: color-mix(in srgb, var(--amber-dim) 86%, var(--surface) 14%); }
+.fabAction:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--fab-tone) 34%, var(--border));
+  background: color-mix(in srgb, var(--fab-tone) 8%, var(--surface2));
+  box-shadow: 0 12px 22px rgba(8, 12, 18, 0.08);
+}
+.fabAction:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--fab-tone) 45%, white 55%);
+  outline-offset: 2px;
+}
+.fabActionIncome { --fab-tone: var(--accent); }
+.fabActionExpense { --fab-tone: var(--red); }
+.fabActionImport { --fab-tone: var(--blue); }
+.fabActionGrocery { --fab-tone: var(--amber); }
 .fabActionIcon {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   font-weight: 800;
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--fab-tone) 14%, var(--surface));
+  color: var(--fab-tone);
+  flex-shrink: 0;
+}
+.fabActionText {
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--text);
 }
 .fabButton {
   --fab-rotate: 0deg;
@@ -495,12 +527,12 @@
   .fabMenu {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    width: min(320px, calc(100vw - 24px));
+    width: min(344px, calc(100vw - 24px));
     align-items: stretch;
   }
   .fabAction {
     width: 100%;
-    justify-content: center;
+    min-height: 58px;
   }
   .quickAddLayer {
     padding: 0;

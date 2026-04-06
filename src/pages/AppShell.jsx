@@ -213,13 +213,13 @@ export default function AppShell({ user }) {
   }, [user])
 
   const nav = [
-    { id: 'dashboard', label: 'Dashboard', iconKey: 'dashboard', section: 'Overview' },
-    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: 'Track' },
-    { id: 'history', label: 'History', iconKey: 'history', section: null },
-    { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: 'Analyse' },
-    { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
+    { id: 'dashboard', label: 'Home', iconKey: 'dashboard', section: 'Core' },
+    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
+    { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
-    { id: 'savings', label: 'Savings Goals', iconKey: 'savings', section: null },
+    { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
+    { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
+    { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
@@ -466,19 +466,19 @@ export default function AppShell({ user }) {
           <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
             <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
               <span className={styles.fabActionIcon}>−</span>
-              <span>Expense</span>
+              <span className={styles.fabActionText}>Expense</span>
             </button>
             <button type="button" className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')} role="menuitem">
               <span className={styles.fabActionIcon}>+</span>
-              <span>Income</span>
+              <span className={styles.fabActionText}>Income</span>
             </button>
             <button type="button" className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport} role="menuitem">
               <span className={styles.fabActionIcon}>🧾</span>
-              <span>Import</span>
+              <span className={styles.fabActionText}>Import</span>
             </button>
             <button type="button" className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode} role="menuitem">
               <span className={styles.fabActionIcon}>🛒</span>
-              <span>Grocery</span>
+              <span className={styles.fabActionText}>Grocery</span>
             </button>
           </div>
         )}
