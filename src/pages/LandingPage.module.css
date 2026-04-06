@@ -418,6 +418,7 @@
 
 .useCases,
 .features,
+.access,
 .howItWorks,
 .cta {
   max-width: 1180px;
@@ -583,6 +584,101 @@
   font-weight: 700;
 }
 
+.access {
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.planCard {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 1.45rem;
+  border-radius: 28px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+  box-shadow: 0 18px 36px rgba(8, 12, 18, 0.08);
+}
+
+.planCardFeatured {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.planBadge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.planEyebrow {
+  font-size: 10px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+}
+
+.planName {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 0.98;
+  color: var(--text);
+}
+
+.planDesc {
+  max-width: 48ch;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text2);
+}
+
+.planFeatureList {
+  display: grid;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.planFeatureItem {
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.planFeatureItem::before {
+  content: "•";
+  color: var(--accent);
+  margin-right: 8px;
+}
+
+.planNote {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text3);
+}
+
 .cta {
   display: grid;
   justify-items: center;
@@ -705,6 +801,7 @@
 
   .useCaseGrid,
   .featureGrid,
+  .planGrid,
   .steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -827,6 +924,7 @@
   .heroMetrics,
   .useCaseGrid,
   .featureGrid,
+  .planGrid,
   .steps {
     grid-template-columns: 1fr;
   }

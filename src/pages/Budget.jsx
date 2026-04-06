@@ -7,7 +7,7 @@ import bStyles from './Budget.module.css'
 
 const EXPENSE_CATS = ['Food & Dining', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Personal Care', 'Education', 'Bills', 'Other']
 
-export default function Budget({ user, data, symbol, privacyMode = false, gamification }) {
+export default function Budget({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'
   const now = new Date()
   const [viewMonth, setViewMonth] = useState(now.getMonth())

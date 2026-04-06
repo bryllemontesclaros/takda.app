@@ -26,6 +26,7 @@
 .formGroup select option { background: var(--surface2); }
 .btnAdd { padding: 9px 20px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; width: 100%; min-height: 40px; }
 .btnAdd:hover { opacity: 0.85; }
+.btnAdd:disabled { opacity: 0.55; cursor: not-allowed; }
 .tableWrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px; }
 thead tr { border-bottom: 1px solid var(--border); }
@@ -50,6 +51,16 @@ tbody tr:hover td { background: var(--surface2); color: var(--text); }
 .progressFill.almost { background: var(--amber); }
 .goalMeta { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text3); flex-wrap: wrap; gap: 4px; }
 .goalSaved { font-family: var(--font-mono); color: var(--accent); }
+.notice {
+  padding: 10px 12px;
+  margin-bottom: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--border));
+  background: color-mix(in srgb, var(--amber-dim) 72%, var(--surface) 28%);
+  color: var(--amber);
+  font-size: 13px;
+  line-height: 1.55;
+}
 
 /* MOBILE RESPONSIVE */
 @media (max-width: 768px) {

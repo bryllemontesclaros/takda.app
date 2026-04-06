@@ -18,7 +18,7 @@ function createDraft(seed = {}) {
   }
 }
 
-export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
+export default function GroceryMode({ user, profile = {}, symbol, defaultDate, onClose }) {
   const s = symbol || '₱'
   const [tripName, setTripName] = useState('Grocery trip')
   const [tripDate, setTripDate] = useState(defaultDate || today())
@@ -28,6 +28,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
+  const [error, setError] = useState('')
 
   const total = useMemo(
     () => roundMoney(items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)),
@@ -65,8 +66,9 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
     if (draft?.id === id) setDraft(null)
   }
 
-  function handleScanResult(parsed) {
+  async function handleScanResult(parsed) {
     setScannerOpen(false)
+    setError('')
     setDraft(createDraft(parsed))
   }
 
@@ -74,6 +76,7 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
     if (!items.length || total <= 0) return
 
     setSaving(true)
+    setError('')
     try {
       await fsAdd(user.uid, 'expenses', {
         desc: tripName.trim() || `Grocery trip (${items.length} items)`,
@@ -155,7 +158,10 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
               className={styles.dateFieldNative}
               value={tripDate}
               aria-label="Trip date"
-              onChange={event => setTripDate(event.target.value)}
+              onChange={event => {
+                setTripDate(event.target.value)
+                setError('')
+              }}
             />
           </div>
         </label>
@@ -167,8 +173,18 @@ export default function GroceryMode({ user, symbol, defaultDate, onClose }) {
         </label>
       </div>
 
+      {error && <div className={styles.formError} role="alert">{error}</div>}
+
       <div className={styles.actionRow}>
-        <button className={styles.secondaryBtn} onClick={() => setScannerOpen(true)}>🧾 Import price tag photo</button>
+        <button
+          className={styles.secondaryBtn}
+          onClick={() => {
+            setError('')
+            setScannerOpen(true)
+          }}
+        >
+          🧾 Import price tag photo
+        </button>
         <button className={styles.secondaryBtn} onClick={openManualDraft}>+ Add item manually</button>
       </div>
 

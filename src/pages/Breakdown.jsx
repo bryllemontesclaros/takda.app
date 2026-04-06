@@ -88,7 +88,7 @@ function BarChart({ months, income, expenses, symbol, privacyMode }) {
   )
 }
 
-export default function Breakdown({ data, symbol, privacyMode = false }) {
+export default function Breakdown({ data, profile = {}, symbol, privacyMode = false }) {
   const s = symbol || '₱'
   const now = new Date()
   const [viewYear, setViewYear] = useState(now.getFullYear())

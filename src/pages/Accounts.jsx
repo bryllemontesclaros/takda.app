@@ -20,7 +20,7 @@ const COLORS = [
 
 const EMPTY_FORM = { name: '', type: 'Cash', balance: '', color: '#22d87a', notes: '' }
 
-export default function Accounts({ user, data, symbol, privacyMode = false, onTogglePrivacy = () => {} }) {
+export default function Accounts({ user, data, profile = {}, symbol, privacyMode = false, onTogglePrivacy = () => {} }) {
   const s = symbol || '₱'
   const accounts = data.accounts || []
   const [form, setForm] = useState(EMPTY_FORM)

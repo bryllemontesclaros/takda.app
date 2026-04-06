@@ -280,7 +280,7 @@ export default function AppShell({ user }) {
     setQuickAddSheet(current => ({ ...current, open: false, initialEntry: null }))
   }
 
-  function handleQuickImportResult(parsed) {
+  async function handleQuickImportResult(parsed) {
     if (!parsed) return
     const nextType = parsed.type === 'income' ? 'income' : 'expense'
     setQuickAddSheet({
@@ -293,6 +293,7 @@ export default function AppShell({ user }) {
         date: parsed.date || quickAddDefaultDate || '',
         desc: parsed.desc || '',
         cat: parsed.cat || 'Other',
+        source: parsed.source || 'receipt',
       },
     })
   }
@@ -505,6 +506,7 @@ export default function AppShell({ user }) {
             ) : quickAddSheet.mode === 'grocery' ? (
               <GroceryMode
                 user={user}
+                profile={profile}
                 symbol={symbol}
                 defaultDate={quickAddDefaultDate}
                 onClose={closeQuickAdd}
@@ -522,6 +524,7 @@ export default function AppShell({ user }) {
                 </div>
                 <QuickAdd
                   user={user}
+                  profile={profile}
                   symbol={symbol}
                   defaultType={quickAddSheet.type}
                   defaultDate={quickAddDefaultDate}

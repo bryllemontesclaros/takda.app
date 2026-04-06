@@ -42,8 +42,8 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const isSignedIn = Boolean(auth.currentUser)
   const primaryLabel = isSignedIn ? 'Open the app' : 'Create your account'
-  const navPrimaryLabel = isSignedIn ? 'Open the app' : 'Get started'
-  const ctaPrimaryLabel = isSignedIn ? 'Open the app' : 'Get started'
+  const navPrimaryLabel = primaryLabel
+  const ctaPrimaryLabel = primaryLabel
   const openPrimary = () => navigate(isSignedIn ? '/app' : '/login')
   const goLogin = () => navigate('/login')
   return (
@@ -77,7 +77,7 @@ export default function LandingPage() {
             <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
-          <div className={styles.heroNote}>Free to start. No credit card. Works on phone and desktop.</div>
+          <div className={styles.heroNote}>Full access. Works on phone and desktop.</div>
         </div>
         <div className={styles.heroPanel}>
           <div className={styles.heroPanelBar}>
@@ -201,6 +201,35 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className={styles.access}>
+        <div className={styles.sectionTop}>
+          <div className={styles.sectionIntro}>
+            <div className={styles.sectionLabel}>One version</div>
+            <h2 className={styles.sectionTitle}>Everything is part of the app.</h2>
+          </div>
+          <p className={styles.sectionLead}>
+            Calendar, imports, grocery mode, bills, budgets, goals, and reports all come with the same Takda experience.
+          </p>
+        </div>
+        <div className={styles.planGrid}>
+          <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
+            <div className={styles.planBadge}>Full access</div>
+            <div className={styles.planEyebrow}>One complete version</div>
+            <div className={styles.planName}>Everything in Takda</div>
+            <div className={styles.planDesc}>
+              Use the full Takda experience without feature walls or plan limits. The focus right now is making the product genuinely useful every day.
+            </div>
+            <div className={styles.planFeatureList}>
+              <div className={styles.planFeatureItem}>Unlimited future planning</div>
+              <div className={styles.planFeatureItem}>Unlimited accounts, budgets, and goals</div>
+              <div className={styles.planFeatureItem}>Receipt, wallet, and grocery imports</div>
+              <div className={styles.planFeatureItem}>Advanced reports and printable monthly summaries</div>
+            </div>
+            <button className={styles.btnPrimary} onClick={openPrimary}>{isSignedIn ? 'Open the app' : 'Create your account'}</button>
+          </div>
+        </div>
+      </section>
+
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
           <div className={styles.ctaCopy}>
@@ -225,7 +254,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className={styles.footerLinks}>
-            <button type="button" className={styles.footerButton} onClick={openPrimary}>{isSignedIn ? 'Open app' : 'Get started'}</button>
+            <button type="button" className={styles.footerButton} onClick={openPrimary}>{primaryLabel}</button>
             <span>·</span>
             <button type="button" className={styles.footerButton} onClick={goLogin}>Log in</button>
             <span>·</span>

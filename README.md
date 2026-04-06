@@ -6,7 +6,7 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 
 ## Current App Sections
 
-- Dashboard
+- Home
 - Calendar
 - History
 - Breakdown
@@ -35,6 +35,7 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 - Firestore-backed real-time sync across devices
 - Installable PWA with a basic service worker
 - Built-in EXP and level-based gamification tied to money activity
+- Full feature access for everyone
 
 ## Tech Stack
 
@@ -62,18 +63,14 @@ npm run dev
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 VITE_OCR_SPACE_API_KEY=your_ocr_space_api_key
-PAYMONGO_SECRET_KEY=your_paymongo_secret_key
-VITE_ENABLE_PAYMONGO_TEST_TOOLS=false
 ```
 
 `VITE_OCR_SPACE_API_KEY` is optional, but recommended for receipt and wallet screenshot import.
-`PAYMONGO_SECRET_KEY` is server-side only. Do not expose it in client code.
-`VITE_ENABLE_PAYMONGO_TEST_TOOLS=true` shows a temporary Settings card for creating one-time PayMongo test checkout links.
 
 ## Deploy Firestore Security Rules
 
@@ -89,10 +86,8 @@ firebase deploy --only firestore:rules
 2. Import the repo into Vercel
 3. Add all `VITE_FIREBASE_*` env vars in Vercel project settings
 4. Add `VITE_OCR_SPACE_API_KEY` if you want OCR import enabled in production
-5. Add `PAYMONGO_SECRET_KEY` if you want to test server-side PayMongo links
-6. Optionally add `VITE_ENABLE_PAYMONGO_TEST_TOOLS=true` for preview/test billing
-7. Deploy
-8. Add your Vercel domain to Firebase Console → Authentication → Authorized domains
+5. Deploy
+6. Add your Vercel domain to Firebase Console → Authentication → Authorized domains
 
 ## PWA — Install on Mobile
 
@@ -116,7 +111,7 @@ users/{uid}/
 
 ## Notes
 
-- The current app entry redirects `/` to `/login`.
+- The public landing page lives at `/`, auth lives at `/login`, and the signed-in app lives at `/app`.
 - A marketing landing page and some older standalone pages still exist in the repo, but the main in-app experience is driven by the sections listed above.
 - Google Sign-In is not currently enabled in the active auth screen.
 - Wallet transfer imports can be detected during OCR review, but transfers are not stored as a dedicated transaction type yet.

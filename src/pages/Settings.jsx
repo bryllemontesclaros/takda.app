@@ -16,7 +16,6 @@ import { auth } from '../lib/firebase'
 import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
-import { PAYMONGO_TEST_TOOLS_ENABLED, createPayMongoTestLink } from '../lib/paymongo'
 import { generateMonthlyReport } from '../lib/report'
 import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, today } from '../lib/utils'
 import styles from './Page.module.css'
@@ -104,6 +103,23 @@ function normalizeBackupArray(value) {
   return value
 }
 
+function sanitizeProfileBackup(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
+  const {
+    billingPlan,
+    billingStatus,
+    billingProvider,
+    billingMode,
+    billingReferenceNumber,
+    billingActivatedAt,
+    billingLinkId,
+    billingCanceledAt,
+    importUsage,
+    ...rest
+  } = value
+  return rest
+}
+
 function parseBackupPayload(raw) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
     throw new Error('Invalid backup file.')
@@ -123,7 +139,7 @@ function parseBackupPayload(raw) {
     goals: normalizeBackupArray(raw.goals),
     accounts: normalizeBackupArray(raw.accounts),
     budgets: normalizeBackupArray(raw.budgets),
-    profile: raw.profile || {},
+    profile: sanitizeProfileBackup(raw.profile || {}),
   }
 }
 
@@ -270,10 +286,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false)
   const [donationMsg, setDonationMsg] = useState({ text: '', ok: false })
   const [legalMsg, setLegalMsg] = useState({ text: '', ok: false })
-  const [payMongoForm, setPayMongoForm] = useState({ amount: '99', description: 'Takda Pro monthly (test)' })
-  const [payMongoMsg, setPayMongoMsg] = useState({ text: '', ok: false })
-  const [payMongoLoading, setPayMongoLoading] = useState(false)
-  const [payMongoLink, setPayMongoLink] = useState(null)
 
   useEffect(() => {
     if (profile && Object.keys(profile).length > 0) {
@@ -320,16 +332,21 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     setAccountForm(current => ({ ...current, [key]: value }))
   }
 
-  function setPayMongoField(key, value) {
-    setPayMongoForm(current => ({ ...current, [key]: value }))
-  }
-
   async function handleSaveProfile() {
     await fsSetProfile(user.uid, {
       currency: profileForm.currency,
       salary: deleteField(),
       paySchedule: deleteField(),
       lastPayday: deleteField(),
+      billingPlan: deleteField(),
+      billingStatus: deleteField(),
+      billingProvider: deleteField(),
+      billingMode: deleteField(),
+      billingReferenceNumber: deleteField(),
+      billingActivatedAt: deleteField(),
+      billingLinkId: deleteField(),
+      billingCanceledAt: deleteField(),
+      importUsage: deleteField(),
     })
     setProfileSaved(true)
     window.setTimeout(() => setProfileSaved(false), 3000)
@@ -515,7 +532,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       goals: data.goals,
       accounts: data.accounts,
       budgets: data.budgets,
-      profile,
+      profile: sanitizeProfileBackup(profile),
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -689,42 +706,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     window.setTimeout(() => setLegalMsg({ text: '', ok: false }), 2800)
   }
 
-  async function handleCreatePayMongoLink() {
-    const amount = Number(payMongoForm.amount)
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setPayMongoMsg({ text: 'Enter a valid peso amount first.', ok: false })
-      return
-    }
-
-    setPayMongoLoading(true)
-    setPayMongoMsg({ text: '', ok: false })
-    try {
-      const payload = await createPayMongoTestLink({
-        amount,
-        description: payMongoForm.description.trim() || 'Takda Pro test checkout',
-        remarks: `Takda test link for ${user.uid}`,
-      })
-      setPayMongoLink(payload)
-      setPayMongoMsg({ text: 'PayMongo test checkout link created.', ok: true })
-    } catch (error) {
-      setPayMongoLink(null)
-      setPayMongoMsg({ text: error.message || 'Could not create a PayMongo test link.', ok: false })
-    } finally {
-      setPayMongoLoading(false)
-    }
-  }
-
-  async function handleCopyPayMongoLink() {
-    if (!payMongoLink?.checkoutUrl) return
-    try {
-      await copyToClipboard(payMongoLink.checkoutUrl)
-      setPayMongoMsg({ text: 'PayMongo checkout link copied.', ok: true })
-    } catch {
-      setPayMongoMsg({ text: 'Could not copy the PayMongo checkout link.', ok: false })
-    }
-    window.setTimeout(() => setPayMongoMsg({ text: '', ok: false }), 2800)
-  }
-
   const totalTx = data.income.length + data.expenses.length
   const savingsTotal = data.goals.reduce((sum, goal) => sum + (goal.current || 0), 0)
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
@@ -736,7 +717,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const restoreExportedAt = restorePreview?.exportedAt && !Number.isNaN(new Date(restorePreview.exportedAt).getTime())
     ? new Date(restorePreview.exportedAt).toLocaleString()
     : restorePreview?.exportedAt
-
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -1048,10 +1028,15 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
           <button className={settStyles.btnExport} onClick={exportJSON}>{jsonExportDone ? '✓ Backup downloaded' : '↓ Backup as JSON'}</button>
-          <button className={settStyles.btnExport} onClick={() => {
-            const nowDate = new Date()
-            generateMonthlyReport(data, profile, nowDate.getFullYear(), nowDate.getMonth(), s)
-          }}>🖨 Monthly Report PDF</button>
+          <button
+            className={settStyles.btnExport}
+            onClick={() => {
+              const nowDate = new Date()
+              generateMonthlyReport(data, profile, nowDate.getFullYear(), nowDate.getMonth(), s)
+            }}
+          >
+            🖨 Monthly Report PDF
+          </button>
         </div>
 
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
@@ -1194,77 +1179,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           ))}
         </div>
       </div>
-
-      {PAYMONGO_TEST_TOOLS_ENABLED && (
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>Billing</div>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-            Billing is set up in <strong>test mode</strong> right now. You can rehearse Takda&apos;s upgrade flow with PayMongo safely before switching to live payments.
-          </p>
-          <div className={settStyles.billingOverview}>
-            <div className={settStyles.billingStat}>
-              <div className={settStyles.billingLabel}>Current plan</div>
-              <div className={settStyles.billingValue}>Free</div>
-            </div>
-            <div className={settStyles.billingStat}>
-              <div className={settStyles.billingLabel}>Provider</div>
-              <div className={settStyles.billingValue}>PayMongo</div>
-            </div>
-            <div className={settStyles.billingStat}>
-              <div className={settStyles.billingLabel}>Mode</div>
-              <div className={settStyles.billingBadge}>Test only</div>
-            </div>
-          </div>
-          <StatusBanner message={payMongoMsg} />
-
-          <div className={`${styles.formRow} ${styles.col2} ${settStyles.billingComposer}`} style={{ marginBottom: 12 }}>
-            <div className={styles.formGroup}>
-              <label>Amount (PHP)</label>
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                placeholder="99.00"
-                value={payMongoForm.amount}
-                onChange={event => setPayMongoField('amount', event.target.value)}
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Checkout description</label>
-              <input
-                placeholder="Takda Pro monthly (test)"
-                value={payMongoForm.description}
-                onChange={event => setPayMongoField('description', event.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className={settStyles.payMongoActions}>
-            <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleCreatePayMongoLink} disabled={payMongoLoading}>
-              {payMongoLoading ? 'Creating...' : 'Create checkout link'}
-            </button>
-            {payMongoLink?.checkoutUrl && (
-              <>
-                <a className={settStyles.btnExportLink} href={payMongoLink.checkoutUrl} target="_blank" rel="noreferrer">
-                  Open checkout
-                </a>
-                <button className={settStyles.btnExport} onClick={handleCopyPayMongoLink}>Copy link</button>
-              </>
-            )}
-          </div>
-          <div className={settStyles.billingHelper}>
-            This is still a one-time <strong>test</strong> checkout link. It does not unlock premium access automatically yet, and it will not charge real money while you keep using test credentials.
-          </div>
-
-          {payMongoLink?.checkoutUrl && (
-            <div className={settStyles.payMongoLinkBox}>
-              <div className={settStyles.preferenceTitle}>Latest checkout link</div>
-              <div className={settStyles.preferenceMeta}>Reference {payMongoLink.referenceNumber || payMongoLink.linkId || 'pending'}</div>
-              <div className={settStyles.payMongoUrl}>{payMongoLink.checkoutUrl}</div>
-            </div>
-          )}
-        </div>
-      )}
 
       <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.3)' }}>
         <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete financial data</div>

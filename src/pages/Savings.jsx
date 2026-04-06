@@ -4,7 +4,7 @@ import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { confirmDelete, displayValue, fmt, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
 
-export default function Savings({ user, data, symbol, privacyMode = false, gamification }) {
+export default function Savings({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'
   const [form, setForm] = useState({ name: '', target: '', current: '', date: '' })
   const [contribs, setContribs] = useState({})

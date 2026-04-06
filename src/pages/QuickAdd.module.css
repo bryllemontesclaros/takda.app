@@ -73,6 +73,15 @@
   cursor: pointer;
 }
 .formError { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
+.planNote {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--amber);
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-size: 12px;
+  line-height: 1.5;
+}
 
 .numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
 .numKey { padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text); font-size: 18px; font-weight: 500; cursor: pointer; font-family: var(--font-mono); min-height: 52px; transition: background 0.1s; }

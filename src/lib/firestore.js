@@ -1,7 +1,7 @@
 import { db } from './firebase'
 import {
   collection, addDoc, deleteDoc, updateDoc, setDoc, deleteField,
-  doc, query, orderBy, onSnapshot, getDoc, getDocs, writeBatch
+  doc, query, orderBy, onSnapshot, getDoc, getDocs, writeBatch, increment
 } from 'firebase/firestore'
 
 export function userCol(uid, col) {
@@ -29,6 +29,21 @@ export function listenCol(uid, col, callback) {
 
 export async function fsSetProfile(uid, profile) {
   return await setDoc(doc(db, 'users', uid, 'profile', 'main'), profile, { merge: true })
+}
+
+export async function fsTrackImportUsage(uid, monthKey, amount = 1) {
+  const profileRef = doc(db, 'users', uid, 'profile', 'main')
+  try {
+    await updateDoc(profileRef, {
+      [`importUsage.${monthKey}`]: increment(amount),
+    })
+  } catch {
+    await setDoc(profileRef, {
+      importUsage: {
+        [monthKey]: amount,
+      },
+    }, { merge: true })
+  }
 }
 
 export async function fsSetMonthStartBalance(uid, monthKey, amount) {

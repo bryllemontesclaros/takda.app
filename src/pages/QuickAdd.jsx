@@ -24,7 +24,7 @@ function normalizeAmountInput(value) {
   return integerPart
 }
 
-export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense', defaultDate, initialEntry = null }) {
+export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultType = 'expense', defaultDate, initialEntry = null }) {
   const s = symbol || '₱'
   const initialType = initialEntry?.type || defaultType
   const initialDraft = getDefaultTransactionDraft(initialType)
@@ -43,6 +43,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
+  const [importSource, setImportSource] = useState(initialEntry?.source || '')
   const isIncome = type === 'income'
 
   const quickCats = getQuickItems(type)
@@ -112,6 +113,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
         cat,
         recur,
         type,
+        ...(importSource ? { source: importSource } : {}),
       })
       setDone(true)
       setTimeout(() => {
@@ -122,6 +124,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
         setQuickPick(getQuickPick(type, resetDraft.cat, resetDraft.desc) || resetDraft.desc)
         setDescTouched(false)
         setRecur('')
+        setImportSource('')
         if (!defaultDate) setEntryDate(today())
         setDone(false)
         setSaving(false)
@@ -134,7 +137,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
     }
   }
 
-  function handleReceiptResult(parsed) {
+  async function handleReceiptResult(parsed) {
     const nextType = parsed.type === 'income' ? 'income' : 'expense'
     const nextCat = parsed.cat || DEFAULT_CATEGORY_BY_TYPE[nextType]
     const nextDesc = parsed.desc || ''
@@ -146,6 +149,7 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
     setCat(nextCat)
     setQuickPick(nextQuickPick)
     if (parsed.date && !defaultDate) setEntryDate(parsed.date)
+    setImportSource(parsed.source || 'receipt')
     setType(nextType)
     setShowScanner(false)
   }
@@ -188,7 +192,13 @@ export default function QuickAdd({ user, symbol, onClose, defaultType = 'expense
       </div>
 
       <div className={styles.utilityRow}>
-        <button className={styles.importBtn} onClick={() => setShowScanner(true)}>
+        <button
+          className={styles.importBtn}
+          onClick={() => {
+            setError('')
+            setShowScanner(true)
+          }}
+        >
           <span className={styles.importBtnIcon}>🧾</span>
           <span>Import receipt</span>
         </button>

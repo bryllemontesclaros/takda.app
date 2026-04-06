@@ -350,6 +350,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   async function handleSave() {
     const amount = parseFloat(form.amount)
+    const targetDate = editTx?.date || selected
     if (!Number.isFinite(amount) || amount <= 0) {
       setFormError('Add a valid amount before saving.')
       return
@@ -434,6 +435,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const balanceFocusValue = balanceFocusDate
     ? (forecastMap[balanceFocusDate]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, balanceFocusDate, balanceOverrides))
     : 0
+  const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
     selected
@@ -604,7 +606,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 <>
                   <div className={calStyles.dayBalanceHeader}>
                     <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Manual closing balance on this day' : 'Closing balance on this day'}</span>
-                    <button type="button" className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor} aria-label={`Edit closing balance for ${selected}`}>
+                    <button type="button" className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor} aria-label={`Edit closing balance for ${selected}`} disabled={selectedDateLocked}>
                       Edit
                     </button>
                   </div>
@@ -656,10 +658,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             </div>
 
             <div className={calStyles.dayPanelActions}>
-              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')}>
+              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')} disabled={selectedDateLocked}>
                 + Add income
               </button>
-              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')}>
+              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')} disabled={selectedDateLocked}>
                 − Add expense
               </button>
             </div>
@@ -668,7 +670,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               <div className={calStyles.daySection}>
                 <div className={calStyles.daySectionLabel} style={{ color: 'var(--accent)' }}>Income</div>
                 {selectedIncome.map(tx => (
-                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} />
+                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} locked={selectedDateLocked} />
                 ))}
               </div>
             )}
@@ -677,7 +679,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               <div className={calStyles.daySection}>
                 <div className={calStyles.daySectionLabel} style={{ color: 'var(--red)' }}>Expenses</div>
                 {selectedExpenses.map(tx => (
-                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} />
+                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} locked={selectedDateLocked} />
                 ))}
               </div>
             )}
@@ -884,7 +886,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   )
 }
 
-function DayTxRow({ t, s, privacyMode, onEdit, onDelete }) {
+function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false }) {
   const isIncome = t.type === 'income'
   return (
     <div className={calStyles.txRow}>
@@ -908,8 +910,8 @@ function DayTxRow({ t, s, privacyMode, onEdit, onDelete }) {
           {displayValue(privacyMode, `${isIncome ? '+' : '−'}${fmt(t.amount, s)}`, `${isIncome ? '+' : '−'}${maskMoney(s)}`)}
         </div>
         <div className={calStyles.txActions}>
-          {!t._projected && <button type="button" className={calStyles.editBtn} onClick={() => onEdit(t)} aria-label={`Edit ${t.desc || t.cat}`}>Edit</button>}
-          <button type="button" className={calStyles.delBtnSm} onClick={() => onDelete(t)} aria-label={`Delete ${t.desc || t.cat}`}>✕</button>
+          {!t._projected && <button type="button" className={calStyles.editBtn} onClick={() => onEdit(t)} aria-label={`Edit ${t.desc || t.cat}`} disabled={locked}>Edit</button>}
+          <button type="button" className={calStyles.delBtnSm} onClick={() => onDelete(t)} aria-label={`Delete ${t.desc || t.cat}`} disabled={locked}>✕</button>
         </div>
       </div>
     </div>
