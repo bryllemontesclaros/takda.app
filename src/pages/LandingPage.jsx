@@ -204,28 +204,25 @@ export default function LandingPage() {
       <section className={styles.access}>
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
-            <div className={styles.sectionLabel}>One version</div>
-            <h2 className={styles.sectionTitle}>Everything is part of the app.</h2>
+            <div className={styles.sectionLabel}>What’s included</div>
+            <h2 className={styles.sectionTitle}>One complete Takda experience.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Calendar, imports, grocery mode, bills, budgets, goals, and reports all come with the same Takda experience.
+            There’s no separate paid layer in the product right now. The full month view, imports, planning tools, and reports all work together in the same app.
           </p>
         </div>
-        <div className={styles.planGrid}>
-          <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
-            <div className={styles.planBadge}>Full access</div>
-            <div className={styles.planEyebrow}>One complete version</div>
-            <div className={styles.planName}>Everything in Takda</div>
-            <div className={styles.planDesc}>
-              Use the full Takda experience without feature walls or plan limits. The focus right now is making the product genuinely useful every day.
+        <div className={styles.accessCard}>
+          <div className={styles.accessIntro}>
+            <div className={styles.accessTitle}>Included from day one</div>
+            <div className={styles.accessDesc}>
+              Takda is being shaped as one strong everyday money tool, so the core tracking, planning, import, and reporting workflows all stay available in the same account.
             </div>
-            <div className={styles.planFeatureList}>
-              <div className={styles.planFeatureItem}>Unlimited future planning</div>
-              <div className={styles.planFeatureItem}>Unlimited accounts, budgets, and goals</div>
-              <div className={styles.planFeatureItem}>Receipt, wallet, and grocery imports</div>
-              <div className={styles.planFeatureItem}>Advanced reports and printable monthly summaries</div>
-            </div>
-            <button className={styles.btnPrimary} onClick={openPrimary}>{isSignedIn ? 'Open the app' : 'Create your account'}</button>
+          </div>
+          <div className={styles.accessFeatureGrid}>
+            <div className={styles.accessFeatureItem}>Future planning across your calendar</div>
+            <div className={styles.accessFeatureItem}>Accounts, budgets, and savings goals</div>
+            <div className={styles.accessFeatureItem}>Receipt, wallet, and grocery imports</div>
+            <div className={styles.accessFeatureItem}>Advanced reports and printable monthly summaries</div>
           </div>
         </div>
       </section>
