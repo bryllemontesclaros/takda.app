@@ -425,16 +425,27 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const selectedDayBalance = selected
     ? (forecastMap[selected]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, selected, balanceOverrides))
     : 0
+  const isCurrentMonthView = year === currentYear && month === currentMonth
   const defaultBalanceDate = useMemo(() => {
-    const fallbackDay = year === currentYear && month === currentMonth
+    const fallbackDay = isCurrentMonthView
       ? Math.min(currentDay, daysInMonth)
       : daysInMonth
     return dateStr(fallbackDay)
-  }, [currentDay, currentMonth, currentYear, daysInMonth, month, year])
+  }, [currentDay, daysInMonth, isCurrentMonthView])
   const balanceFocusDate = selected || defaultBalanceDate
   const balanceFocusValue = balanceFocusDate
     ? (forecastMap[balanceFocusDate]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, balanceFocusDate, balanceOverrides))
     : 0
+  const balanceRailLabel = selected
+    ? `Closing balance for ${formatBalanceDate(balanceFocusDate)}`
+    : isCurrentMonthView
+      ? `Today’s closing balance for ${formatBalanceDate(balanceFocusDate)}`
+      : `Month-end closing balance for ${formatBalanceDate(balanceFocusDate)}`
+  const balanceRailMeta = selected
+    ? 'Selected day closing balance.'
+    : isCurrentMonthView
+      ? 'Showing today by default. Tap any day to compare its exact closing balance.'
+      : 'Showing the last day of this viewed month by default. Tap any day to compare its exact closing balance.'
   const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
@@ -576,12 +587,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
         <div className={calStyles.balanceRail}>
           <div className={calStyles.balanceRailCopy}>
-            <div className={calStyles.balanceRailLabel}>Balance for {formatBalanceDate(balanceFocusDate)}</div>
-            <div className={calStyles.balanceRailMeta}>
-              {selected
-                ? 'Selected day closing balance.'
-                : 'Tap a day to read that exact closing balance.'}
-            </div>
+            <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
+            <div className={calStyles.balanceRailMeta}>{balanceRailMeta}</div>
           </div>
           <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
         </div>

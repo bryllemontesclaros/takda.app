@@ -72,6 +72,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
   const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
+  const accountCountLabel = `${accounts.length} account${accounts.length !== 1 ? 's' : ''} right now`
 
   useEffect(() => {
     if (showModal && editorRef.current) {
@@ -93,9 +94,9 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
         aria-pressed={privacyMode}
         title={privacyHint}
       >
-        <div className={accStyles.totalLabel}>Total balance</div>
+        <div className={accStyles.totalLabel}>Current balance</div>
         <div className={accStyles.totalVal}>{money(totalBalance)}</div>
-        <div className={accStyles.totalSub}>{accounts.length} account{accounts.length !== 1 ? 's' : ''}</div>
+        <div className={accStyles.totalSub}>{accountCountLabel}</div>
         <div className={accStyles.privacyHint}>{privacyHint}</div>
       </button>
 

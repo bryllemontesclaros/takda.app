@@ -116,6 +116,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
+  const accountCountLabel = `${data.accounts.length} account${data.accounts.length !== 1 ? 's' : ''} right now`
   const weeklyRemaining = Math.max(0, (gamification?.weeklyTarget || 0) - (gamification?.weeklyCheckins || 0))
   const checkedInToday = Boolean(gamification?.checkedInToday)
 
@@ -201,9 +202,9 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         aria-pressed={privacyMode}
         title={privacyHint}
       >
-        <div className={dStyles.heroLabel}>Total net worth</div>
+        <div className={dStyles.heroLabel}>Current balance</div>
         <div className={dStyles.heroVal}>{money(netWorth)}</div>
-        <div className={dStyles.heroSub}>{data.accounts.length} account{data.accounts.length !== 1 ? 's' : ''}</div>
+        <div className={dStyles.heroSub}>{accountCountLabel}</div>
         <div className={dStyles.privacyHint}>{privacyHint}</div>
       </button>
 
