@@ -25,6 +25,29 @@ export function getCurrentBalance(accounts = []) {
   return accounts.reduce((sum, account) => sum + getAccountSignedBalance(account), 0)
 }
 
+export function getAccountBalanceDelta(account = {}, txType, amount = 0) {
+  const normalizedAmount = Math.abs(Number(amount) || 0)
+  if (!normalizedAmount) return 0
+
+  const isCreditCard = String(account?.type || '').toLowerCase() === 'credit card'
+  if (txType === 'income') {
+    return isCreditCard ? -normalizedAmount : normalizedAmount
+  }
+  return isCreditCard ? normalizedAmount : -normalizedAmount
+}
+
+export function isLinkedTransaction(tx = {}) {
+  return Boolean(tx?.accountBalanceLinked && tx?.accountId)
+}
+
+export function shouldAffectCurrentAccountBalance(tx = {}, referenceDate = today()) {
+  if (!isLinkedTransaction(tx)) return false
+  const txDate = normalizeDate(tx?.date)
+  const anchorDate = normalizeDate(referenceDate)
+  if (!txDate || !anchorDate) return false
+  return txDate <= anchorDate
+}
+
 export function getActualLedger(income = [], expenses = []) {
   return [
     ...income.map(tx => toLedgerEntry(tx, 1)),

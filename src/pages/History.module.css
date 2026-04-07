@@ -42,6 +42,7 @@
 .txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .txMeta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
 .txCat { font-size: 11px; color: var(--text3); }
+.txAccount { font-size: 10px; background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--blue); border-radius: 20px; padding: 1px 7px; font-weight: 600; }
 .txRecur { font-size: 10px; background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-weight: 600; }
 .txRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
@@ -59,6 +60,7 @@
 .modalHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
 .modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); }
 .modalClose { background: none; border: none; color: var(--text3); font-size: 20px; cursor: pointer; min-width: 36px; min-height: 36px; }
+.accountNote { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border)); background: color-mix(in srgb, var(--blue) 12%, var(--surface)); color: var(--text2); font-size: 12px; line-height: 1.5; }
 .btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; }
 
 @media (max-width: 480px) {

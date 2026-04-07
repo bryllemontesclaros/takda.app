@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { fsAdd } from '../lib/firestore'
+import { useEffect, useMemo, useState } from 'react'
+import { fsAddTransaction } from '../lib/firestore'
 import { fmt, formatDisplayDate, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
 import styles from './GroceryMode.module.css'
@@ -18,11 +18,13 @@ function createDraft(seed = {}) {
   }
 }
 
-export default function GroceryMode({ user, profile = {}, symbol, defaultDate, onClose }) {
+export default function GroceryMode({ user, profile = {}, accounts = [], symbol, defaultDate, onClose }) {
   const s = symbol || '₱'
+  const defaultAccountId = accounts[0]?._id || ''
   const [tripName, setTripName] = useState('Grocery trip')
   const [tripDate, setTripDate] = useState(defaultDate || today())
   const [tripCategory, setTripCategory] = useState('Food & Dining')
+  const [accountId, setAccountId] = useState(defaultAccountId)
   const [items, setItems] = useState([])
   const [draft, setDraft] = useState(null)
   const [scannerOpen, setScannerOpen] = useState(false)
@@ -34,6 +36,19 @@ export default function GroceryMode({ user, profile = {}, symbol, defaultDate, o
     () => roundMoney(items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)),
     [items],
   )
+  const selectedAccount = accounts.find(account => account._id === accountId) || null
+  const tripWillAffectCurrentBalance = Boolean(accountId && tripDate && tripDate <= today())
+  const accountHint = !accounts.length
+    ? 'Add an account first if you want grocery imports to move your current balances automatically.'
+    : !accountId
+      ? 'No account selected. This grocery total will stay in the ledger only and will not change current account balances.'
+      : tripWillAffectCurrentBalance
+        ? `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`
+        : `${selectedAccount?.name || 'Selected account'} is linked, but current balances will wait until this date arrives.`
+
+  useEffect(() => {
+    if (!accountId && defaultAccountId) setAccountId(defaultAccountId)
+  }, [accountId, defaultAccountId])
 
   function openManualDraft() {
     setDraft(createDraft())
@@ -78,19 +93,21 @@ export default function GroceryMode({ user, profile = {}, symbol, defaultDate, o
     setSaving(true)
     setError('')
     try {
-      await fsAdd(user.uid, 'expenses', {
+      await fsAddTransaction(user.uid, 'expenses', {
         desc: tripName.trim() || `Grocery trip (${items.length} items)`,
         amount: total,
         date: tripDate,
         cat: tripCategory,
         recur: '',
         type: 'expense',
+        accountId,
+        accountBalanceLinked: Boolean(accountId),
         source: 'grocery-mode',
         items: items.map(item => ({
           name: item.name,
           amount: roundMoney(item.amount),
         })),
-      })
+      }, accounts)
       setDone(true)
       window.setTimeout(() => {
         onClose?.()
@@ -171,7 +188,20 @@ export default function GroceryMode({ user, profile = {}, symbol, defaultDate, o
             {GROCERY_CATEGORIES.map(option => <option key={option}>{option}</option>)}
           </select>
         </label>
+        <label className={`${styles.field} ${styles.fieldWide}`}>
+          <span>Account</span>
+          <select value={accountId} onChange={event => setAccountId(event.target.value)}>
+            <option value="">No account selected</option>
+            {accounts.map(account => (
+              <option key={account._id} value={account._id}>
+                {account.name} · {account.type}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
+
+      <div className={styles.accountNote}>{accountHint}</div>
 
       {error && <div className={styles.formError} role="alert">{error}</div>}
 

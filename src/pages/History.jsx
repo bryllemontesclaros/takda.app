@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
-import { fsDel, fsUpdate } from '../lib/firestore'
+import { fsDeleteTransaction, fsUpdateTransaction } from '../lib/firestore'
 import { confirmDelete, displayValue, fmt, getMonthKey, maskMoney, RECUR_OPTIONS, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import hStyles from './History.module.css'
@@ -19,10 +19,14 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   const [sortBy, setSortBy] = useState('date-desc')
   const [showFilters, setShowFilters] = useState(false)
   const [editTx, setEditTx] = useState(null)
-  const [editForm, setEditForm] = useState({ desc: '', amount: '', cat: '' })
+  const [editForm, setEditForm] = useState({ desc: '', amount: '', cat: '', accountId: '' })
 
   const hasActiveFilters = filterType !== 'All types' || filterCat !== 'All categories' || filterMonth
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const accountLookup = useMemo(
+    () => Object.fromEntries((data.accounts || []).map(account => [account._id, account])),
+    [data.accounts],
+  )
 
   const allTx = useMemo(() => {
     const income = data.income.map(tx => ({ ...tx, type: 'income' }))
@@ -77,12 +81,12 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   async function handleDelete(tx) {
     if (!confirmDelete(tx.desc)) return
     const collection = tx.type === 'income' ? 'income' : 'expenses'
-    await fsDel(user.uid, collection, tx._id)
+    await fsDeleteTransaction(user.uid, collection, tx, data.accounts)
   }
 
   function openEdit(tx) {
     setEditTx(tx)
-    setEditForm({ desc: tx.desc || '', amount: String(tx.amount || ''), cat: tx.cat || '' })
+    setEditForm({ desc: tx.desc || '', amount: String(tx.amount || ''), cat: tx.cat || '', accountId: tx.accountId || '' })
   }
 
   async function handleSaveEdit() {
@@ -90,11 +94,13 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
     if (error) return alert(error)
     if (!editForm.desc) return alert('Description is required.')
     const collection = editTx.type === 'income' ? 'income' : 'expenses'
-    await fsUpdate(user.uid, collection, editTx._id, {
+    await fsUpdateTransaction(user.uid, collection, editTx, {
       desc: editForm.desc,
       amount: parseFloat(editForm.amount),
       cat: editForm.cat,
-    })
+      accountId: editForm.accountId,
+      accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
+    }, data.accounts)
     setEditTx(null)
   }
 
@@ -213,6 +219,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
                     <div className={hStyles.txDesc}>{tx.desc}</div>
                     <div className={hStyles.txMeta}>
                       <span className={hStyles.txCat}>{tx.cat}</span>
+                      {tx.accountId && <span className={hStyles.txAccount}>{accountLookup[tx.accountId]?.name || 'Missing account'}</span>}
                       {tx.recur && (
                         <span className={hStyles.txRecur}>{RECUR_OPTIONS.find(option => option.value === tx.recur)?.label || tx.recur}</span>
                       )}
@@ -257,6 +264,22 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
                 </select>
               </div>
             </div>
+            <div className={styles.formGroup} style={{ marginBottom: 12 }}>
+              <label>Account</label>
+              <select value={editForm.accountId} onChange={event => setEditForm(current => ({ ...current, accountId: event.target.value }))}>
+                <option value="">No account selected</option>
+                {data.accounts.map(account => (
+                  <option key={account._id} value={account._id}>
+                    {account.name} · {account.type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {editTx && !editTx.accountBalanceLinked && editForm.accountId && (
+              <div className={hStyles.accountNote}>
+                Older unlinked entries can store an account here for reference, but they do not rewrite today&apos;s balances automatically.
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8 }}>
               <button onClick={() => setEditTx(null)} className={hStyles.btnCancel}>Cancel</button>
               <button onClick={handleSaveEdit} className={styles.btnAdd} style={{ flex: 2 }}>Save changes</button>

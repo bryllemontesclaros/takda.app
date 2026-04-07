@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
-import { fsAdd, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDel, fsSetDailyBalanceOverride, fsUpdate } from '../lib/firestore'
+import { fsAddTransaction, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDeleteTransaction, fsSetDailyBalanceOverride, fsUpdate, fsUpdateTransaction } from '../lib/firestore'
 import { getTransactionImpact } from '../lib/forecast'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
@@ -15,8 +15,8 @@ import { displayValue, fmt, maskMoney, normalizeDate, RECUR_OPTIONS, today } fro
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
 
-function getEmptyForm(type = 'income') {
-  return { ...getDefaultTransactionDraft(type) }
+function getEmptyForm(type = 'income', defaultAccountId = '') {
+  return { ...getDefaultTransactionDraft(type), accountId: defaultAccountId }
 }
 
 function getLegacyMonthStartKeyForDate(dateKey, monthStartBalances = {}) {
@@ -51,10 +51,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [year, setYear] = useState(now.getFullYear())
   const [month, setMonth] = useState(now.getMonth())
   const [selected, setSelected] = useState(null)
+  const defaultAccountId = data.accounts[0]?._id || ''
   const [showModal, setShowModal] = useState(false)
   const [modalType, setModalType] = useState('income')
   const [editTx, setEditTx] = useState(null)
-  const [form, setForm] = useState(() => getEmptyForm('income'))
+  const [form, setForm] = useState(() => getEmptyForm('income', defaultAccountId))
   const [quickPick, setQuickPick] = useState(() => getDefaultTransactionDraft('income').desc)
   const [descTouched, setDescTouched] = useState(false)
   const [formError, setFormError] = useState('')
@@ -70,6 +71,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const feedbackTimerRef = useRef(null)
 
   const todayStr = today()
+  const accountLookup = useMemo(
+    () => Object.fromEntries((data.accounts || []).map(account => [account._id, account])),
+    [data.accounts],
+  )
   const label = new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' })
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
@@ -181,7 +186,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }
 
   function openComposer(type = 'income') {
-    const nextDraft = getEmptyForm(type)
+    const nextDraft = getEmptyForm(type, defaultAccountId)
     closeDayBalanceEditor()
     setEditTx(null)
     setModalType(type)
@@ -205,13 +210,14 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   function switchComposerType(nextType) {
     if (nextType === modalType) return
-    const nextDraft = getEmptyForm(nextType)
+    const nextDraft = getEmptyForm(nextType, form.accountId || defaultAccountId)
     setModalType(nextType)
     setForm(current => ({
       ...current,
       type: nextType,
       cat: nextDraft.cat,
       desc: descTouched ? current.desc : nextDraft.desc,
+      accountId: current.accountId || defaultAccountId,
     }))
     setQuickPick(getQuickPick(nextType, nextDraft.cat, nextDraft.desc) || nextDraft.desc)
     setFormError('')
@@ -230,6 +236,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       type: nextType,
       cat: nextCat,
       recur: tx.recur || '',
+      accountId: tx.accountId || '',
     })
     setQuickPick(getQuickPick(nextType, nextCat, nextDesc))
     setDescTouched(Boolean(nextDesc))
@@ -241,7 +248,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setShowModal(false)
     setEditTx(null)
     setModalType('income')
-    setForm(getEmptyForm('income'))
+    setForm(getEmptyForm('income', defaultAccountId))
     setQuickPick(getDefaultTransactionDraft('income').desc)
     setDescTouched(false)
     setFormError('')
@@ -364,10 +371,26 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       const trimmedDesc = form.desc.trim()
       if (editTx) {
         const col = editTx.type === 'income' ? 'income' : 'expenses'
-        await fsUpdate(user.uid, col, editTx._id, { desc: trimmedDesc, amount, cat: form.cat, recur: form.recur })
+        await fsUpdateTransaction(user.uid, col, editTx, {
+          desc: trimmedDesc,
+          amount,
+          cat: form.cat,
+          recur: form.recur,
+          accountId: form.accountId,
+          accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
+        }, data.accounts)
       } else {
         const col = modalType === 'income' ? 'income' : 'expenses'
-        await fsAdd(user.uid, col, { desc: trimmedDesc, amount, date: selected, cat: form.cat, recur: form.recur, type: modalType })
+        await fsAddTransaction(user.uid, col, {
+          desc: trimmedDesc,
+          amount,
+          date: selected,
+          cat: form.cat,
+          recur: form.recur,
+          type: modalType,
+          accountId: form.accountId,
+          accountBalanceLinked: Boolean(form.accountId),
+        }, data.accounts)
       }
       showEntryFeedback(buildEntryFeedback())
       closeTransactionEditor()
@@ -380,7 +403,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   async function handleDelete(tx) {
     if (tx._projected) return alert('This entry is only a projection. Delete the original recurring transaction to remove it.')
-    await fsDel(user.uid, tx.type === 'income' ? 'income' : 'expenses', tx._id)
+    await fsDeleteTransaction(user.uid, tx.type === 'income' ? 'income' : 'expenses', tx, data.accounts)
   }
 
   async function handleGoalUpdate(goal) {
@@ -480,11 +503,34 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       msg: `${impact.msg} This only carries until ${nextManualBalanceDate}, where a manual day balance takes over.`,
     }
   }, [forecastMap, selected, form.amount, modalType, hasManualBalanceOnSelectedDay, nextManualBalanceDate])
+  const accountHint = useMemo(() => {
+    const targetDate = normalizeDate(editTx?.date || selected)
+    const selectedAccount = accountLookup[form.accountId]
+
+    if (!data.accounts.length) {
+      return 'Add an account first if you want calendar transactions to move your current balances automatically.'
+    }
+    if (!form.accountId) {
+      return 'No account selected. This entry will stay in the ledger only and will not change current account balances.'
+    }
+    if (editTx && !editTx.accountBalanceLinked) {
+      return `${selectedAccount?.name || 'Selected account'} is saved here for reference. Older unlinked entries do not rewrite today’s balances automatically.`
+    }
+    if (targetDate && targetDate <= todayStr) {
+      return `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`
+    }
+    return `${selectedAccount?.name || 'Selected account'} is linked, but current balances will wait until this date arrives.`
+  }, [accountLookup, data.accounts.length, editTx, form.accountId, selected, todayStr])
 
   useEffect(() => {
     setEditingDayBalance(false)
     setDayBalanceDraft('')
   }, [selected, year, month])
+
+  useEffect(() => {
+    if (!showModal || editTx || form.accountId || !defaultAccountId) return
+    setForm(current => ({ ...current, accountId: defaultAccountId }))
+  }, [defaultAccountId, editTx, form.accountId, showModal])
 
   useEffect(() => {
     return () => {
@@ -677,7 +723,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               <div className={calStyles.daySection}>
                 <div className={calStyles.daySectionLabel} style={{ color: 'var(--accent)' }}>Income</div>
                 {selectedIncome.map(tx => (
-                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} locked={selectedDateLocked} />
+                  <DayTxRow
+                    key={tx._id}
+                    t={tx}
+                    s={s}
+                    privacyMode={privacyMode}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                    locked={selectedDateLocked}
+                    accountLabel={tx.accountId ? (accountLookup[tx.accountId]?.name || 'Missing account') : ''}
+                  />
                 ))}
               </div>
             )}
@@ -686,7 +741,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               <div className={calStyles.daySection}>
                 <div className={calStyles.daySectionLabel} style={{ color: 'var(--red)' }}>Expenses</div>
                 {selectedExpenses.map(tx => (
-                  <DayTxRow key={tx._id} t={tx} s={s} privacyMode={privacyMode} onEdit={openEdit} onDelete={handleDelete} locked={selectedDateLocked} />
+                  <DayTxRow
+                    key={tx._id}
+                    t={tx}
+                    s={s}
+                    privacyMode={privacyMode}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                    locked={selectedDateLocked}
+                    accountLabel={tx.accountId ? (accountLookup[tx.accountId]?.name || 'Missing account') : ''}
+                  />
                 ))}
               </div>
             )}
@@ -838,7 +902,20 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 <label>Merchant or note</label>
                 <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
               </div>
+              <div className={styles.formGroup}>
+                <label>Account</label>
+                <select value={form.accountId} onChange={event => set('accountId', event.target.value)} disabled={formSaving}>
+                  <option value="">No account selected</option>
+                  {data.accounts.map(account => (
+                    <option key={account._id} value={account._id}>
+                      {account.name} · {account.type}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            <div className={calStyles.accountHint}>{accountHint}</div>
 
             {formError && <div className={calStyles.formError} role="alert">{formError}</div>}
 
@@ -893,7 +970,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   )
 }
 
-function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false }) {
+function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false, accountLabel = '' }) {
   const isIncome = t.type === 'income'
   return (
     <div className={calStyles.txRow}>
@@ -908,6 +985,7 @@ function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false }) {
           </div>
           <div className={calStyles.txMeta}>
             {t.cat}
+            {accountLabel && <span className={calStyles.accountBadge}>{accountLabel}</span>}
             {t.recur && <span className={calStyles.recurBadge}>{t.recur}</span>}
           </div>
         </div>

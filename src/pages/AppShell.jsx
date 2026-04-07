@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { sendEmailVerification, signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { fsSetProfile, listenCol, listenProfile } from '../lib/firestore'
+import { fsSetProfile, fsSyncDueLinkedTransactions, listenCol, listenProfile } from '../lib/firestore'
 import { getGamificationSnapshot } from '../lib/gamification'
 import { getInitials, getCurrencySymbol } from '../lib/utils'
 import Calendar from './Calendar'
@@ -108,6 +108,7 @@ export default function AppShell({ user }) {
   const [verifySending, setVerifySending] = useState(false)
   const previousGamificationRef = useRef(null)
   const toastTimerRef = useRef(null)
+  const syncingDueTransactionsRef = useRef(false)
 
   useEffect(() => {
     if (!user) return
@@ -123,6 +124,24 @@ export default function AppShell({ user }) {
     ]
     return () => unsubs.forEach(u => u())
   }, [user])
+
+  useEffect(() => {
+    if (!user?.uid || !data.accounts.length) return
+
+    const dueTransactions = [
+      ...data.income.map(tx => ({ ...tx, type: 'income' })),
+      ...data.expenses.map(tx => ({ ...tx, type: 'expense' })),
+    ].filter(tx => tx.accountBalanceLinked && tx.accountId && !tx.accountBalanceApplied)
+
+    if (!dueTransactions.length || syncingDueTransactionsRef.current) return
+
+    syncingDueTransactionsRef.current = true
+    fsSyncDueLinkedTransactions(user.uid, dueTransactions, data.accounts)
+      .catch(() => {})
+      .finally(() => {
+        syncingDueTransactionsRef.current = false
+      })
+  }, [user, data.accounts, data.expenses, data.income])
 
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
   const privacyMode = Boolean(profile.privacyMode)
@@ -507,6 +526,7 @@ export default function AppShell({ user }) {
               <GroceryMode
                 user={user}
                 profile={profile}
+                accounts={data.accounts}
                 symbol={symbol}
                 defaultDate={quickAddDefaultDate}
                 onClose={closeQuickAdd}
@@ -525,6 +545,7 @@ export default function AppShell({ user }) {
                 <QuickAdd
                   user={user}
                   profile={profile}
+                  accounts={data.accounts}
                   symbol={symbol}
                   defaultType={quickAddSheet.type}
                   defaultDate={quickAddDefaultDate}

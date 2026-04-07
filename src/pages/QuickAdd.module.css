@@ -73,6 +73,15 @@
   cursor: pointer;
 }
 .formError { padding: 10px 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
+.accountNote {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border));
+  background: color-mix(in srgb, var(--blue) 12%, var(--surface2));
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+}
 .planNote {
   padding: 10px 12px;
   border-radius: var(--radius-sm);

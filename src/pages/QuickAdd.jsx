@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { fsAdd } from '../lib/firestore'
+import { useEffect, useState } from 'react'
+import { fsAddTransaction } from '../lib/firestore'
 import {
   DEFAULT_CATEGORY_BY_TYPE,
   getDefaultTransactionDraft,
@@ -24,12 +24,13 @@ function normalizeAmountInput(value) {
   return integerPart
 }
 
-export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultType = 'expense', defaultDate, initialEntry = null }) {
+export default function QuickAdd({ user, profile = {}, accounts = [], symbol, onClose, defaultType = 'expense', defaultDate, initialEntry = null }) {
   const s = symbol || '₱'
   const initialType = initialEntry?.type || defaultType
   const initialDraft = getDefaultTransactionDraft(initialType)
   const initialCat = initialEntry?.cat || initialDraft.cat
   const initialDesc = initialEntry ? (initialEntry.desc || getSuggestedDescription(initialType, initialCat)) : initialDraft.desc
+  const defaultAccountId = accounts[0]?._id || ''
   const [type, setType] = useState(initialType)
   const [amount, setAmount] = useState(initialEntry?.amount ? String(initialEntry.amount) : '')
   const [desc, setDesc] = useState(initialDesc)
@@ -40,14 +41,28 @@ export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultT
   const [descTouched, setDescTouched] = useState(Boolean(initialEntry?.desc))
   const [entryDate, setEntryDate] = useState(initialEntry?.date || defaultDate || today())
   const [recur, setRecur] = useState(initialEntry?.recur || '')
+  const [accountId, setAccountId] = useState(initialEntry?.accountId || defaultAccountId)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
   const [importSource, setImportSource] = useState(initialEntry?.source || '')
   const isIncome = type === 'income'
+  const selectedAccount = accounts.find(account => account._id === accountId) || null
+  const entryWillAffectCurrentBalance = Boolean(accountId && entryDate && entryDate <= today())
+  const accountHint = !accounts.length
+    ? 'Add an account first if you want transactions to move your current balances automatically.'
+    : !accountId
+      ? 'No account selected. This entry will stay in the ledger only and will not change current account balances.'
+      : entryWillAffectCurrentBalance
+        ? `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`
+        : `${selectedAccount?.name || 'Selected account'} is linked, but current balances will wait until this date arrives.`
 
   const quickCats = getQuickItems(type)
   const categories = getTransactionCategories(type)
+
+  useEffect(() => {
+    if (!accountId && defaultAccountId) setAccountId(defaultAccountId)
+  }, [accountId, defaultAccountId])
 
   function applyCategory(nextCat, nextQuickPick = '') {
     const resolvedQuickPick = nextQuickPick || getQuickPick(type, nextCat, '')
@@ -106,15 +121,17 @@ export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultT
     try {
       const col = type === 'income' ? 'income' : 'expenses'
       const trimmedDesc = desc.trim()
-      await fsAdd(user.uid, col, {
+      await fsAddTransaction(user.uid, col, {
         desc: trimmedDesc,
         amount: parseFloat(amount),
         date: entryDate,
         cat,
         recur,
         type,
+        accountId,
+        accountBalanceLinked: Boolean(accountId),
         ...(importSource ? { source: importSource } : {}),
-      })
+      }, accounts)
       setDone(true)
       setTimeout(() => {
         const resetDraft = getDefaultTransactionDraft(type)
@@ -124,6 +141,7 @@ export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultT
         setQuickPick(getQuickPick(type, resetDraft.cat, resetDraft.desc) || resetDraft.desc)
         setDescTouched(false)
         setRecur('')
+        setAccountId(defaultAccountId)
         setImportSource('')
         if (!defaultDate) setEntryDate(today())
         setDone(false)
@@ -276,7 +294,27 @@ export default function QuickAdd({ user, profile = {}, symbol, onClose, defaultT
             {RECUR_OPTIONS.map(option => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
           </select>
         </label>
+        <label className={styles.metaField}>
+          <span className={styles.fieldLabel}>Account</span>
+          <select
+            className={styles.fieldControl}
+            value={accountId}
+            onChange={event => {
+              setAccountId(event.target.value)
+              setError('')
+            }}
+          >
+            <option value="">No account selected</option>
+            {accounts.map(account => (
+              <option key={account._id} value={account._id}>
+                {account.name} · {account.type}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
+
+      <div className={styles.accountNote}>{accountHint}</div>
 
       {error && <div className={styles.formError}>{error}</div>}
 

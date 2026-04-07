@@ -3,6 +3,8 @@ import {
   collection, addDoc, deleteDoc, updateDoc, setDoc, deleteField,
   doc, query, orderBy, onSnapshot, getDoc, getDocs, writeBatch, increment
 } from 'firebase/firestore'
+import { getAccountBalanceDelta, shouldAffectCurrentAccountBalance } from './finance'
+import { normalizeDate, today } from './utils'
 
 export function userCol(uid, col) {
   return collection(db, 'users', uid, col)
@@ -18,6 +20,161 @@ export async function fsDel(uid, col, id) {
 
 export async function fsUpdate(uid, col, id, data) {
   return await updateDoc(doc(db, 'users', uid, col, id), data)
+}
+
+function getAccountRef(uid, accountId) {
+  return doc(db, 'users', uid, 'accounts', accountId)
+}
+
+function buildAccountLookup(accounts = []) {
+  return new Map(accounts.map(account => [account._id, account]))
+}
+
+function queueAccountAdjustment(adjustments, accountId, delta) {
+  if (!accountId || !Number.isFinite(delta) || delta === 0) return
+  adjustments.set(accountId, (adjustments.get(accountId) || 0) + delta)
+}
+
+function getTransactionState(base = {}, overrides = {}) {
+  const hasOverride = key => Object.prototype.hasOwnProperty.call(overrides, key)
+  const date = normalizeDate(hasOverride('date') ? overrides.date : base.date)
+  const amount = Number(hasOverride('amount') ? overrides.amount : base.amount) || 0
+  const type = hasOverride('type') ? overrides.type : base.type
+  const accountId = hasOverride('accountId') ? (overrides.accountId || '') : (base.accountId || '')
+  const requestedLink = hasOverride('accountBalanceLinked')
+    ? Boolean(overrides.accountBalanceLinked)
+    : Boolean(base.accountBalanceLinked)
+  const accountBalanceLinked = Boolean(requestedLink && accountId)
+  const accountBalanceApplied = shouldAffectCurrentAccountBalance({
+    date,
+    accountId,
+    accountBalanceLinked,
+  })
+
+  return {
+    date,
+    amount,
+    type,
+    accountId,
+    accountBalanceLinked,
+    accountBalanceApplied,
+  }
+}
+
+function applyAccountAdjustments(batch, uid, adjustments, accountLookup) {
+  adjustments.forEach((delta, accountId) => {
+    if (!delta || !accountLookup.has(accountId)) return
+    batch.update(getAccountRef(uid, accountId), { balance: increment(delta) })
+  })
+}
+
+export async function fsAddTransaction(uid, col, data, accounts = []) {
+  const accountLookup = buildAccountLookup(accounts)
+  const tx = getTransactionState(data, {
+    accountBalanceLinked: Boolean(data?.accountBalanceLinked ?? data?.accountId),
+  })
+  const transactionRef = doc(userCol(uid, col))
+  const payload = {
+    ...data,
+    date: tx.date,
+    amount: tx.amount,
+    accountId: tx.accountId,
+    accountBalanceLinked: tx.accountBalanceLinked,
+    accountBalanceApplied: tx.accountBalanceApplied,
+    createdAt: Date.now(),
+  }
+  const adjustments = new Map()
+  const batch = writeBatch(db)
+
+  if (tx.accountBalanceApplied && tx.accountId) {
+    const account = accountLookup.get(tx.accountId)
+    if (account) queueAccountAdjustment(adjustments, tx.accountId, getAccountBalanceDelta(account, tx.type, tx.amount))
+  }
+
+  batch.set(transactionRef, payload)
+  applyAccountAdjustments(batch, uid, adjustments, accountLookup)
+  await batch.commit()
+  return transactionRef
+}
+
+export async function fsUpdateTransaction(uid, col, currentTx, data, accounts = []) {
+  const accountLookup = buildAccountLookup(accounts)
+  const previous = getTransactionState(currentTx)
+  const next = getTransactionState(currentTx, data)
+  const adjustments = new Map()
+  const batch = writeBatch(db)
+
+  if (previous.accountBalanceApplied && previous.accountId) {
+    const previousAccount = accountLookup.get(previous.accountId)
+    if (previousAccount) {
+      queueAccountAdjustment(adjustments, previous.accountId, -getAccountBalanceDelta(previousAccount, previous.type, previous.amount))
+    }
+  }
+
+  if (next.accountBalanceApplied && next.accountId) {
+    const nextAccount = accountLookup.get(next.accountId)
+    if (nextAccount) {
+      queueAccountAdjustment(adjustments, next.accountId, getAccountBalanceDelta(nextAccount, next.type, next.amount))
+    }
+  }
+
+  batch.update(doc(db, 'users', uid, col, currentTx._id), {
+    ...data,
+    date: next.date,
+    amount: next.amount,
+    accountId: next.accountId,
+    accountBalanceLinked: next.accountBalanceLinked,
+    accountBalanceApplied: next.accountBalanceApplied,
+  })
+  applyAccountAdjustments(batch, uid, adjustments, accountLookup)
+  await batch.commit()
+}
+
+export async function fsDeleteTransaction(uid, col, tx, accounts = []) {
+  const accountLookup = buildAccountLookup(accounts)
+  const current = getTransactionState(tx)
+  const adjustments = new Map()
+  const batch = writeBatch(db)
+
+  if (current.accountBalanceApplied && current.accountId) {
+    const account = accountLookup.get(current.accountId)
+    if (account) {
+      queueAccountAdjustment(adjustments, current.accountId, -getAccountBalanceDelta(account, current.type, current.amount))
+    }
+  }
+
+  batch.delete(doc(db, 'users', uid, col, tx._id))
+  applyAccountAdjustments(batch, uid, adjustments, accountLookup)
+  await batch.commit()
+}
+
+export async function fsSyncDueLinkedTransactions(uid, transactions = [], accounts = []) {
+  const accountLookup = buildAccountLookup(accounts)
+  const dueTransactions = transactions.filter(tx => (
+    tx?._id
+    && tx?.accountBalanceLinked
+    && tx?.accountId
+    && !tx?.accountBalanceApplied
+    && shouldAffectCurrentAccountBalance(tx, today())
+  ))
+
+  if (!dueTransactions.length) return 0
+
+  const adjustments = new Map()
+  const batch = writeBatch(db)
+
+  dueTransactions.forEach(tx => {
+    const col = tx.type === 'income' ? 'income' : 'expenses'
+    batch.update(doc(db, 'users', uid, col, tx._id), { accountBalanceApplied: true })
+    const account = accountLookup.get(tx.accountId)
+    if (account) {
+      queueAccountAdjustment(adjustments, tx.accountId, getAccountBalanceDelta(account, tx.type, tx.amount))
+    }
+  })
+
+  applyAccountAdjustments(batch, uid, adjustments, accountLookup)
+  await batch.commit()
+  return dueTransactions.length
 }
 
 export function listenCol(uid, col, callback) {

@@ -1,16 +1,22 @@
-import { useState } from 'react'
-import { fsAdd, fsDel } from '../lib/firestore'
+import { useEffect, useState } from 'react'
+import { fsAddTransaction, fsDeleteTransaction } from '../lib/firestore'
 import { fmt, today, RECUR_OPTIONS, confirmDelete, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 
 export default function Income({ user, data, symbol }) {
   const s = symbol || '₱'
-  const [form, setForm] = useState({ desc: '', amount: '', date: today(), cat: 'Other', recur: '' })
+  const [form, setForm] = useState({ desc: '', amount: '', date: today(), cat: 'Other', recur: '', accountId: data.accounts?.[0]?._id || '' })
   function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
+
+  useEffect(() => {
+    if (!form.accountId && data.accounts?.[0]?._id) {
+      setForm(current => ({ ...current, accountId: data.accounts[0]._id }))
+    }
+  }, [data.accounts, form.accountId])
 
   async function handleAdd() {
     if (!form.desc || !form.amount || !form.date) return alert('Add a description, amount, and date.')
-    const err = validateAmount(form.amount); if (err) return alert(err); await fsAdd(user.uid, 'income', { ...form, amount: parseFloat(form.amount), type: 'income' })
+    const err = validateAmount(form.amount); if (err) return alert(err); await fsAddTransaction(user.uid, 'income', { ...form, amount: parseFloat(form.amount), type: 'income', accountBalanceLinked: Boolean(form.accountId) }, data.accounts)
     setForm(f => ({ ...f, desc: '', amount: '' }))
   }
 
@@ -31,6 +37,12 @@ export default function Income({ user, data, symbol }) {
           <div className={styles.formGroup}><label>Category</label>
             <select value={form.cat} onChange={e => set('cat', e.target.value)}>
               {['Salary','Freelance','Business','Investment','13th Month','Bonus','Other'].map(o => <option key={o}>{o}</option>)}
+            </select>
+          </div>
+          <div className={styles.formGroup}><label>Account</label>
+            <select value={form.accountId} onChange={e => set('accountId', e.target.value)}>
+              <option value="">No account selected</option>
+              {(data.accounts || []).map(account => <option key={account._id} value={account._id}>{account.name} · {account.type}</option>)}
             </select>
           </div>
           <div className={styles.formGroup}><label>Recurrence</label>
@@ -58,7 +70,7 @@ export default function Income({ user, data, symbol }) {
                     <td>{r.date}</td>
                     <td>{r.recur ? <span className={`${styles.badge} ${styles.badgeRecurring}`}>{RECUR_OPTIONS.find(o => o.value === r.recur)?.label || r.recur}</span> : '—'}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--accent)' }}>{fmt(r.amount, s)}</td>
-                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.desc) && fsDel(user.uid, 'income', r._id)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.desc) && fsDeleteTransaction(user.uid, 'income', r, data.accounts)}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

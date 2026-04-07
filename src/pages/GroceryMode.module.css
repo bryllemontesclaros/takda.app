@@ -132,12 +132,18 @@
   color: var(--text2);
   overflow-wrap: anywhere;
 }
+.accountNote,
 .planNote,
 .formError {
   padding: 10px 12px;
   border-radius: var(--radius-sm);
   font-size: 12px;
   line-height: 1.55;
+}
+.accountNote {
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border));
+  background: color-mix(in srgb, var(--blue) 12%, var(--surface));
+  color: var(--text2);
 }
 .planNote {
   border: 1px solid color-mix(in srgb, var(--amber) 40%, var(--border));

@@ -300,6 +300,7 @@
 .txIcon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
 .txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
 .txMeta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.accountBadge { background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--blue); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
 .recurBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
 .projBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
 .txRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
@@ -346,6 +347,7 @@
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
 .modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.accountHint { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border)); background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--text2); font-size: 12px; line-height: 1.5; }
 .formError { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
 .recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; max-width: 100%; white-space: normal; line-height: 1.25; text-align: center; }
