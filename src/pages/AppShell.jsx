@@ -392,6 +392,14 @@ export default function AppShell({ user }) {
     setQuickAddSheet(current => ({ ...current, open: false, initialEntry: null }))
   }
 
+  function handleQuickAddTypeChange(nextType) {
+    setQuickAddSheet(current => (
+      current.mode !== 'manual' || !current.open || current.type === nextType
+        ? current
+        : { ...current, type: nextType }
+    ))
+  }
+
   async function handleQuickImportResult(parsed) {
     if (!parsed) return
     const nextType = parsed.type === 'income' ? 'income' : 'expense'
@@ -661,6 +669,7 @@ export default function AppShell({ user }) {
                   defaultType={quickAddSheet.type}
                   defaultDate={quickAddDefaultDate}
                   initialEntry={quickAddSheet.initialEntry}
+                  onTypeChange={handleQuickAddTypeChange}
                   onClose={closeQuickAdd}
                 />
               </>

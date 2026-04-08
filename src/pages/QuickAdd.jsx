@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fsAddTransaction } from '../lib/firestore'
 import {
   findPresetByLabel,
@@ -28,7 +28,7 @@ function normalizeAmountInput(value) {
   return integerPart
 }
 
-export default function QuickAdd({ user, profile = {}, accounts = [], symbol, onClose, defaultType = 'expense', defaultDate, initialEntry = null }) {
+export default function QuickAdd({ user, profile = {}, accounts = [], symbol, onClose, onTypeChange, defaultType = 'expense', defaultDate, initialEntry = null }) {
   const s = symbol || '₱'
   const initialType = initialEntry?.type || defaultType
   const initialDraft = getDefaultTransactionDraft(initialType)
@@ -54,6 +54,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   const [entryDate, setEntryDate] = useState(initialEntry?.date || defaultDate || today())
   const [recur, setRecur] = useState(initialEntry?.recur || '')
   const [accountId, setAccountId] = useState(initialEntry?.accountId || defaultAccountId)
+  const [showPresetBrowser, setShowPresetBrowser] = useState(Boolean(initialPresetKey))
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
@@ -74,15 +75,27 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   const categories = getTransactionCategories(type)
   const subcategories = getTransactionSubcategories(type, cat)
   const selectedPreset = getPresetByKey(type, presetKey)
+  const visibleQuickPresets = useMemo(() => {
+    if (showPresetBrowser) return quickPresets
+    const limited = quickPresets.slice(0, 4)
+    if (!presetKey || limited.some(item => item.key === presetKey)) return limited
+    const selected = quickPresets.find(item => item.key === presetKey)
+    return selected ? [...limited.slice(0, 3), selected] : limited
+  }, [presetKey, quickPresets, showPresetBrowser])
 
   useEffect(() => {
     if (!accountId && defaultAccountId) setAccountId(defaultAccountId)
   }, [accountId, defaultAccountId])
 
+  useEffect(() => {
+    onTypeChange?.(type)
+  }, [onTypeChange, type])
+
   function clearPresetSelection(nextType = type, nextCat = 'Other', nextSubcat = 'Miscellaneous') {
     const resolvedCat = sanitizeTransactionCategory(nextType, nextCat)
     const resolvedSubcat = sanitizeTransactionSubcategory(nextType, resolvedCat, nextSubcat)
     setPresetKey('')
+    setShowPresetBrowser(false)
     setCat(resolvedCat)
     setSubcat(resolvedSubcat)
     if (!descTouched) setDesc(getSuggestedDescription(nextType, resolvedCat, resolvedSubcat))
@@ -95,6 +108,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
       clearPresetSelection(type, 'Other', 'Miscellaneous')
       return
     }
+    setShowPresetBrowser(false)
     setPresetKey(preset.key)
     setCat(preset.cat)
     setSubcat(preset.subcat)
@@ -128,6 +142,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
     setCat(nextDraft.cat)
     setSubcat(nextDraft.subcat)
     setPresetKey('')
+    setShowPresetBrowser(false)
     setDesc(nextDraft.desc)
     setDescTouched(false)
     setError('')
@@ -215,6 +230,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
     setCat(nextCat)
     setSubcat(nextSubcat)
     setPresetKey(nextPreset?.key || '')
+    setShowPresetBrowser(Boolean(nextPreset?.key))
     if (parsed.date && !defaultDate) setEntryDate(parsed.date)
     setImportSource(parsed.source || 'receipt')
     setType(nextType)
@@ -293,13 +309,21 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           }}
         >
           <span className={styles.importBtnIcon}>🧾</span>
-          <span>Import receipt</span>
+          <span>Import screenshot or receipt</span>
+        </button>
+        <button
+          type="button"
+          className={`${styles.morePresetsBtn} ${showPresetBrowser ? styles.morePresetsBtnActive : ''}`}
+          onClick={() => setShowPresetBrowser(current => !current)}
+          aria-expanded={showPresetBrowser}
+        >
+          {showPresetBrowser ? 'Hide presets' : 'More presets'}
         </button>
       </div>
 
       <div className={styles.sectionLabel}>{isIncome ? 'What did you receive?' : 'What did you pay for?'}</div>
       <div className={styles.quickCats}>
-        {quickPresets.map(item => (
+        {visibleQuickPresets.map(item => (
           <button
             key={item.key}
             className={`${styles.quickCat} ${presetKey === item.key ? styles.quickCatActive : ''}`}
@@ -315,34 +339,36 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           </button>
         ))}
       </div>
-      <label className={styles.metaField}>
-        <span className={styles.fieldLabel}>Browse presets</span>
-        <select
-          className={styles.fieldControl}
-          value={presetKey || 'other-custom'}
-          onChange={event => {
-            if (event.target.value === 'other-custom') clearPresetSelection(type, 'Other', 'Miscellaneous')
-            else applyPresetSelection(event.target.value)
-          }}
-        >
-          {presetGroups.map(group => (
-            <optgroup key={group.label} label={group.label}>
-              {group.items.map(option => (
-                <option key={option.key} value={option.key}>
-                  {option.label}
-                </option>
-              ))}
-            </optgroup>
-          ))}
-          <option value="other-custom">Other / custom</option>
-        </select>
-      </label>
-      <div className={styles.accountNote}>
+      {showPresetBrowser && (
+        <label className={styles.metaField}>
+          <span className={styles.fieldLabel}>Browse presets</span>
+          <select
+            className={styles.fieldControl}
+            value={presetKey || 'other-custom'}
+            onChange={event => {
+              if (event.target.value === 'other-custom') clearPresetSelection(type, 'Other', 'Miscellaneous')
+              else applyPresetSelection(event.target.value)
+            }}
+          >
+            {presetGroups.map(group => (
+              <optgroup key={group.label} label={group.label}>
+                {group.items.map(option => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <option value="other-custom">Other / custom</option>
+          </select>
+        </label>
+      )}
+      <div className={styles.presetHint}>
         {selectedPreset
-          ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}. You can still edit the details below.`
+          ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}.`
           : isIncome
-            ? 'No preset selected. Pick a familiar income source, or enter a custom income manually.'
-            : 'No preset selected. Pick a familiar biller or merchant, or enter a custom expense manually.'}
+            ? 'Choose a familiar income source, or keep it custom.'
+            : 'Choose a familiar biller or merchant, or keep it custom.'}
       </div>
 
       <div className={styles.sectionLabel}>Details</div>
