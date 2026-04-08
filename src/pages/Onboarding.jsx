@@ -242,15 +242,6 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.sideSub}>
               A few real numbers here make your calendar, balances, and forecast useful right away.
             </div>
-            <div className={styles.brandMascotCard}>
-              <img className={styles.brandMascotArt} src="/mascot-takda.svg" alt="Takda mascot calendar guide" />
-              <div className={styles.brandMascotCopy}>
-                <div className={styles.brandMascotTitle}>A calmer start</div>
-                <div className={styles.brandMascotText}>
-                  We only need enough detail to give your first month a trustworthy baseline.
-                </div>
-              </div>
-            </div>
           </div>
 
           <div className={styles.progressCard}>
@@ -333,16 +324,6 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepTitle}>Let’s set up your real starting point, {name}.</div>
               <div className={styles.stepSub}>
                 We’ll use your balances and recurring bills to give Takda a useful first month instead of an empty profile.
-              </div>
-
-              <div className={styles.welcomeGuide}>
-                <img className={styles.welcomeGuideArt} src="/mascot-takda.svg" alt="Takda mascot welcoming new users to setup" />
-                <div className={styles.welcomeGuideCopy}>
-                  <div className={styles.welcomeGuideTitle}>Start with a usable month, not a blank app.</div>
-                  <div className={styles.welcomeGuideText}>
-                    Add what you already know today, and Takda will turn it into a first forecast you can actually read.
-                  </div>
-                </div>
               </div>
 
               <div className={styles.welcomeStats}>
