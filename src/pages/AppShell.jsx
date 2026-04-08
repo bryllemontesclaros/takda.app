@@ -15,6 +15,12 @@ import History from './History'
 import QuickAdd from './QuickAdd'
 import GroceryMode from './GroceryMode'
 import ReceiptScanner from '../components/ReceiptScanner'
+import {
+  findPresetByLabel,
+  getDefaultTransactionDraft,
+  sanitizeTransactionCategory,
+  sanitizeTransactionSubcategory,
+} from '../lib/transactionOptions'
 import { useTheme } from '../lib/theme.jsx'
 import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
@@ -389,6 +395,11 @@ export default function AppShell({ user }) {
   async function handleQuickImportResult(parsed) {
     if (!parsed) return
     const nextType = parsed.type === 'income' ? 'income' : 'expense'
+    const nextDraft = getDefaultTransactionDraft(nextType)
+    const nextCat = sanitizeTransactionCategory(nextType, parsed.cat || nextDraft.cat)
+    const matchedPreset = findPresetByLabel(nextType, parsed.desc || '')
+    const nextPreset = matchedPreset && !matchedPreset.isCustom && matchedPreset.cat === nextCat ? matchedPreset : null
+    const nextSubcat = sanitizeTransactionSubcategory(nextType, nextCat, parsed.subcat || nextPreset?.subcat || nextDraft.subcat)
     setQuickAddSheet({
       open: true,
       mode: 'manual',
@@ -398,7 +409,9 @@ export default function AppShell({ user }) {
         amount: parsed.amount ? String(parsed.amount) : '',
         date: parsed.date || quickAddDefaultDate || '',
         desc: parsed.desc || '',
-        cat: parsed.cat || 'Other',
+        cat: nextCat,
+        subcat: nextSubcat,
+        presetKey: nextPreset?.key || '',
         source: parsed.source || 'receipt',
       },
     })

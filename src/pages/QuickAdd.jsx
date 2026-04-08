@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react'
 import { fsAddTransaction } from '../lib/firestore'
 import {
-  DEFAULT_CATEGORY_BY_TYPE,
+  findPresetByLabel,
   getDefaultTransactionDraft,
+  getPresetByKey,
+  getPresetGroups,
   getQuickItems,
-  getQuickPick,
   getSuggestedDescription,
   getTransactionCategories,
+  getTransactionSubcategories,
+  sanitizeTransactionCategory,
+  sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
 import { formatDisplayDate, RECUR_OPTIONS, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
@@ -28,16 +32,24 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   const s = symbol || '₱'
   const initialType = initialEntry?.type || defaultType
   const initialDraft = getDefaultTransactionDraft(initialType)
-  const initialCat = initialEntry?.cat || initialDraft.cat
-  const initialDesc = initialEntry ? (initialEntry.desc || getSuggestedDescription(initialType, initialCat)) : initialDraft.desc
+  const initialCat = sanitizeTransactionCategory(initialType, initialEntry?.cat || initialDraft.cat)
+  const initialSubcat = sanitizeTransactionSubcategory(initialType, initialCat, initialEntry?.subcat || initialDraft.subcat)
+  const initialMatchedPreset =
+    getPresetByKey(initialType, initialEntry?.presetKey || '')
+    || findPresetByLabel(initialType, initialEntry?.desc || '')
+  const initialPresetKey = initialMatchedPreset && !initialMatchedPreset.isCustom && initialMatchedPreset.cat === initialCat && initialMatchedPreset.subcat === initialSubcat
+    ? initialMatchedPreset.key
+    : ''
+  const initialDesc = initialEntry
+    ? (initialEntry.desc || getSuggestedDescription(initialType, initialCat, initialSubcat, initialPresetKey))
+    : initialDraft.desc
   const defaultAccountId = accounts[0]?._id || ''
   const [type, setType] = useState(initialType)
   const [amount, setAmount] = useState(initialEntry?.amount ? String(initialEntry.amount) : '')
   const [desc, setDesc] = useState(initialDesc)
   const [cat, setCat] = useState(initialCat)
-  const [quickPick, setQuickPick] = useState(
-    initialEntry ? getQuickPick(initialType, initialCat, initialDesc) : getQuickPick(initialType, initialCat, initialDraft.desc) || initialDraft.desc
-  )
+  const [subcat, setSubcat] = useState(initialSubcat)
+  const [presetKey, setPresetKey] = useState(initialPresetKey)
   const [descTouched, setDescTouched] = useState(Boolean(initialEntry?.desc))
   const [entryDate, setEntryDate] = useState(initialEntry?.date || defaultDate || today())
   const [recur, setRecur] = useState(initialEntry?.recur || '')
@@ -57,23 +69,56 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
         ? `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`
         : `${selectedAccount?.name || 'Selected account'} is linked, but current balances will wait until this date arrives.`
 
-  const quickCats = getQuickItems(type)
+  const quickPresets = getQuickItems(type)
+  const presetGroups = getPresetGroups(type)
   const categories = getTransactionCategories(type)
+  const subcategories = getTransactionSubcategories(type, cat)
+  const selectedPreset = getPresetByKey(type, presetKey)
 
   useEffect(() => {
     if (!accountId && defaultAccountId) setAccountId(defaultAccountId)
   }, [accountId, defaultAccountId])
 
-  function applyCategory(nextCat, nextQuickPick = '') {
-    const resolvedQuickPick = nextQuickPick || getQuickPick(type, nextCat, '')
-    setCat(nextCat)
-    setQuickPick(resolvedQuickPick)
-    if (!descTouched) setDesc(resolvedQuickPick || getSuggestedDescription(type, nextCat))
+  function clearPresetSelection(nextType = type, nextCat = 'Other', nextSubcat = 'Miscellaneous') {
+    const resolvedCat = sanitizeTransactionCategory(nextType, nextCat)
+    const resolvedSubcat = sanitizeTransactionSubcategory(nextType, resolvedCat, nextSubcat)
+    setPresetKey('')
+    setCat(resolvedCat)
+    setSubcat(resolvedSubcat)
+    if (!descTouched) setDesc(getSuggestedDescription(nextType, resolvedCat, resolvedSubcat))
     setError('')
   }
 
-  function selectCat(item) {
-    applyCategory(item.cat, item.label)
+  function applyPresetSelection(nextPresetKey) {
+    const preset = getPresetByKey(type, nextPresetKey)
+    if (!preset || preset.isCustom) {
+      clearPresetSelection(type, 'Other', 'Miscellaneous')
+      return
+    }
+    setPresetKey(preset.key)
+    setCat(preset.cat)
+    setSubcat(preset.subcat)
+    setDesc(preset.desc || preset.label)
+    setDescTouched(false)
+    setError('')
+  }
+
+  function handleCategoryChange(event) {
+    const nextCat = sanitizeTransactionCategory(type, event.target.value)
+    const nextSubcat = getTransactionSubcategories(type, nextCat)[0]
+    setPresetKey('')
+    setCat(nextCat)
+    setSubcat(nextSubcat)
+    if (!descTouched) setDesc(getSuggestedDescription(type, nextCat, nextSubcat))
+    setError('')
+  }
+
+  function handleSubcategoryChange(event) {
+    const nextSubcat = sanitizeTransactionSubcategory(type, cat, event.target.value)
+    setPresetKey('')
+    setSubcat(nextSubcat)
+    if (!descTouched) setDesc(getSuggestedDescription(type, cat, nextSubcat))
+    setError('')
   }
 
   function switchType(nextType) {
@@ -81,18 +126,16 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
     const nextDraft = getDefaultTransactionDraft(nextType)
     setType(nextType)
     setCat(nextDraft.cat)
-    setQuickPick(getQuickPick(nextType, nextDraft.cat, nextDraft.desc) || nextDraft.desc)
-    if (!descTouched) setDesc(nextDraft.desc)
+    setSubcat(nextDraft.subcat)
+    setPresetKey('')
+    setDesc(nextDraft.desc)
+    setDescTouched(false)
     setError('')
   }
 
   function handleAmountChange(event) {
     setAmount(normalizeAmountInput(event.target.value))
     setError('')
-  }
-
-  function handleCategoryChange(event) {
-    applyCategory(event.target.value)
   }
 
   const [showScanner, setShowScanner] = useState(false)
@@ -126,6 +169,8 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
         amount: parseFloat(amount),
         date: entryDate,
         cat,
+        subcat,
+        presetKey,
         recur,
         type,
         accountId,
@@ -138,7 +183,8 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
         setAmount('')
         setDesc(resetDraft.desc)
         setCat(resetDraft.cat)
-        setQuickPick(getQuickPick(type, resetDraft.cat, resetDraft.desc) || resetDraft.desc)
+        setSubcat(resetDraft.subcat)
+        setPresetKey('')
         setDescTouched(false)
         setRecur('')
         setAccountId(defaultAccountId)
@@ -157,15 +203,18 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
 
   async function handleReceiptResult(parsed) {
     const nextType = parsed.type === 'income' ? 'income' : 'expense'
-    const nextCat = parsed.cat || DEFAULT_CATEGORY_BY_TYPE[nextType]
-    const nextDesc = parsed.desc || ''
     const nextDraft = getDefaultTransactionDraft(nextType)
-    const nextQuickPick = getQuickPick(nextType, nextCat, nextDesc) || (nextDesc ? '' : nextDraft.desc)
+    const nextCat = sanitizeTransactionCategory(nextType, parsed.cat || nextDraft.cat)
+    const matchedPreset = findPresetByLabel(nextType, parsed.desc || '')
+    const nextPreset = matchedPreset && !matchedPreset.isCustom && matchedPreset.cat === nextCat ? matchedPreset : null
+    const nextSubcat = sanitizeTransactionSubcategory(nextType, nextCat, parsed.subcat || nextPreset?.subcat || nextDraft.subcat)
+    const nextDesc = parsed.desc || ''
     if (parsed.amount) setAmount(String(parsed.amount))
-    setDesc(nextDesc || nextQuickPick)
+    setDesc(nextDesc || getSuggestedDescription(nextType, nextCat, nextSubcat, nextPreset?.key || ''))
     setDescTouched(Boolean(nextDesc))
     setCat(nextCat)
-    setQuickPick(nextQuickPick)
+    setSubcat(nextSubcat)
+    setPresetKey(nextPreset?.key || '')
     if (parsed.date && !defaultDate) setEntryDate(parsed.date)
     setImportSource(parsed.source || 'receipt')
     setType(nextType)
@@ -174,7 +223,33 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   const color = isIncome ? 'var(--accent)' : 'var(--red)'
   const bgColor = isIncome ? 'var(--accent-glow)' : 'var(--red-dim)'
 
-  if (showScanner) return <ReceiptScanner defaultMode="receipt" onResult={handleReceiptResult} onClose={() => setShowScanner(false)} />
+  if (showScanner) {
+    return (
+      <div className={styles.wrap}>
+        <div className={styles.importStepHeader}>
+          <button
+            type="button"
+            className={styles.importBackBtn}
+            onClick={() => setShowScanner(false)}
+          >
+            ← Back to form
+          </button>
+          <div>
+            <div className={styles.sectionLabel}>Import transaction</div>
+            <div className={styles.importStepCopy}>
+              Import from a screenshot or receipt photo, then review the details before saving.
+            </div>
+          </div>
+        </div>
+        <ReceiptScanner
+          embedded
+          defaultMode="receipt"
+          onResult={handleReceiptResult}
+          onClose={() => setShowScanner(false)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className={styles.wrap}>
@@ -222,15 +297,18 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
         </button>
       </div>
 
-      <div className={styles.sectionLabel}>Category</div>
+      <div className={styles.sectionLabel}>{isIncome ? 'What did you receive?' : 'What did you pay for?'}</div>
       <div className={styles.quickCats}>
-        {quickCats.map(item => (
+        {quickPresets.map(item => (
           <button
-            key={item.label}
-            className={`${styles.quickCat} ${quickPick === item.label ? styles.quickCatActive : ''}`}
-            style={quickPick === item.label ? { borderColor: color, background: bgColor, color } : {}}
-            onClick={() => selectCat(item)}
-            aria-pressed={quickPick === item.label}
+            key={item.key}
+            className={`${styles.quickCat} ${presetKey === item.key ? styles.quickCatActive : ''}`}
+            style={presetKey === item.key ? { borderColor: color, background: bgColor, color } : {}}
+            onClick={() => {
+              if (item.isCustom) clearPresetSelection(type, 'Other', 'Miscellaneous')
+              else applyPresetSelection(item.key)
+            }}
+            aria-pressed={presetKey === item.key}
           >
             <span>{item.icon}</span>
             <span>{item.label}</span>
@@ -238,21 +316,40 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
         ))}
       </div>
       <label className={styles.metaField}>
-        <span className={styles.fieldLabel}>All categories</span>
+        <span className={styles.fieldLabel}>Browse presets</span>
         <select
           className={styles.fieldControl}
-          value={cat}
-          onChange={handleCategoryChange}
+          value={presetKey || 'other-custom'}
+          onChange={event => {
+            if (event.target.value === 'other-custom') clearPresetSelection(type, 'Other', 'Miscellaneous')
+            else applyPresetSelection(event.target.value)
+          }}
         >
-          {categories.map(option => <option key={option} value={option}>{option}</option>)}
+          {presetGroups.map(group => (
+            <optgroup key={group.label} label={group.label}>
+              {group.items.map(option => (
+                <option key={option.key} value={option.key}>
+                  {option.label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+          <option value="other-custom">Other / custom</option>
         </select>
       </label>
+      <div className={styles.accountNote}>
+        {selectedPreset
+          ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}. You can still edit the details below.`
+          : isIncome
+            ? 'No preset selected. Pick a familiar income source, or enter a custom income manually.'
+            : 'No preset selected. Pick a familiar biller or merchant, or enter a custom expense manually.'}
+      </div>
 
       <div className={styles.sectionLabel}>Details</div>
       <div className={styles.descRow}>
         <input
           className={styles.descInput}
-          placeholder="Merchant or note (optional)"
+          placeholder={isIncome ? 'Payer or note (optional)' : 'Merchant, biller, or note (optional)'}
           value={desc}
           onChange={e => {
             setDesc(e.target.value)
@@ -263,6 +360,26 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
       </div>
 
       <div className={styles.metaGrid}>
+        <label className={styles.metaField}>
+          <span className={styles.fieldLabel}>Category</span>
+          <select
+            className={styles.fieldControl}
+            value={cat}
+            onChange={handleCategoryChange}
+          >
+            {categories.map(option => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
+        <label className={styles.metaField}>
+          <span className={styles.fieldLabel}>Subcategory</span>
+          <select
+            className={styles.fieldControl}
+            value={subcat}
+            onChange={handleSubcategoryChange}
+          >
+            {subcategories.map(option => <option key={option} value={option}>{option}</option>)}
+          </select>
+        </label>
         <label className={styles.metaField}>
           <span className={styles.fieldLabel}>Date</span>
           <div className={styles.dateFieldWrap}>

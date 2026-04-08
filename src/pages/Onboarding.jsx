@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { getCurrentBalance } from '../lib/finance'
 import { fsCompleteOnboarding } from '../lib/firestore'
+import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getTransactionSubcategories } from '../lib/transactionOptions'
 import { CURRENCIES, RECUR_OPTIONS, fmt, normalizeDate } from '../lib/utils'
 import styles from './Onboarding.module.css'
 
@@ -14,7 +15,6 @@ const STEP_DETAILS = [
 ]
 const ACCOUNT_TYPES = ['Cash', 'Bank', 'E-wallet', 'Credit Card', 'Investment', 'Other']
 const ACCOUNT_COLORS = ['#22d87a', '#6eb5ff', '#ffb347', '#ff5370', '#b48eff', '#2dd4bf', '#f472b6', '#9090b0']
-const BILL_CATEGORIES = ['Rent', 'Electric', 'Water', 'Internet', 'Phone', 'Insurance', 'Subscription', 'Other']
 const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
 
 function createId(prefix = 'row') {
@@ -34,7 +34,16 @@ function createAccountRow() {
 }
 
 function createBillRow() {
-  return { id: createId('bill'), name: '', amount: '', due: '', cat: 'Rent', freq: 'monthly' }
+  return {
+    id: createId('bill'),
+    name: '',
+    amount: '',
+    due: '',
+    cat: 'Bills',
+    subcat: getTransactionSubcategories('expense', 'Bills')[0],
+    presetKey: '',
+    freq: 'monthly',
+  }
 }
 
 function hasText(value) {
@@ -115,6 +124,50 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     }))
   }
 
+  function updateBillName(id, value) {
+    const matchedPreset = findBillPresetByLabel(value)
+    setForm(current => ({
+      ...current,
+      bills: current.bills.map(row => {
+        if (row.id !== id) return row
+        if (!matchedPreset || matchedPreset.isCustom) {
+          return { ...row, name: value, presetKey: '' }
+        }
+        return {
+          ...row,
+          name: value,
+          cat: 'Bills',
+          subcat: matchedPreset.subcat,
+          presetKey: matchedPreset.key,
+        }
+      }),
+    }))
+  }
+
+  function applyBillPreset(id, preset) {
+    setForm(current => ({
+      ...current,
+      bills: current.bills.map(row => {
+        if (row.id !== id) return row
+        if (!preset || preset.isCustom) return { ...row, presetKey: '', cat: 'Bills' }
+        return {
+          ...row,
+          name: preset.desc || preset.label,
+          cat: 'Bills',
+          subcat: preset.subcat,
+          presetKey: preset.key,
+        }
+      }),
+    }))
+  }
+
+  function updateBillSubcategory(id, value) {
+    setForm(current => ({
+      ...current,
+      bills: current.bills.map(row => row.id === id ? { ...row, cat: 'Bills', subcat: value, presetKey: '' } : row),
+    }))
+  }
+
   function addBillRow() {
     setForm(current => ({ ...current, bills: [...current.bills, createBillRow()] }))
   }
@@ -126,6 +179,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   const name = user.displayName?.split(' ')[0] || 'there'
   const curr = CURRENCIES.find(currency => currency.code === form.currency)
   const symbol = curr?.symbol || '₱'
+  const billPresetGroups = useMemo(() => getBillPresetGroups(), [])
+  const billSubcategories = useMemo(() => getTransactionSubcategories('expense', 'Bills'), [])
 
   const preparedAccounts = useMemo(() => form.accounts
     .filter(hasAccountContent)
@@ -143,7 +198,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
       name: row.name.trim(),
       amount: roundMoney(row.amount),
       due: Number(row.due),
-      cat: row.cat || 'Other',
+      cat: 'Bills',
+      subcat: row.subcat || getTransactionSubcategories('expense', 'Bills')[0],
+      presetKey: row.presetKey || '',
       freq: row.freq || 'monthly',
       paid: false,
       type: 'bill',
@@ -153,7 +210,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     desc: bill.name,
     amount: bill.amount,
     date: getLatestDueAnchorDate(bill.due),
-    cat: 'Bills',
+    cat: bill.cat || 'Bills',
+    subcat: bill.subcat || '',
+    presetKey: bill.presetKey || '',
     recur: bill.freq,
     type: 'expense',
     seedSource: 'onboarding',
@@ -458,31 +517,54 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                     </div>
                     <div className={styles.formGrid}>
                       <div className={styles.inputGroup}>
-                        <label>Bill name</label>
-                        <input placeholder="e.g. Rent" value={bill.name} onChange={event => updateBillRow(bill.id, 'name', event.target.value)} />
+                        <label>Preset</label>
+                        <select
+                          value={bill.presetKey || 'other-custom'}
+                          onChange={event => {
+                            const preset = getBillPresetByKey(event.target.value)
+                            if (!preset || preset.isCustom) {
+                              applyBillPreset(bill.id, null)
+                              return
+                            }
+                            applyBillPreset(bill.id, preset)
+                          }}
+                        >
+                          <option value="other-custom">Custom bill</option>
+                          {billPresetGroups.map(group => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                            </optgroup>
+                          ))}
+                        </select>
                       </div>
                       <div className={styles.inputGroup}>
-                        <label>Category</label>
-                        <select value={bill.cat} onChange={event => updateBillRow(bill.id, 'cat', event.target.value)}>
-                          {BILL_CATEGORIES.map(category => <option key={category}>{category}</option>)}
-                        </select>
+                        <label>Bill name</label>
+                        <input placeholder="e.g. Meralco" value={bill.name} onChange={event => updateBillName(bill.id, event.target.value)} />
                       </div>
                     </div>
                     <div className={styles.formGrid}>
                       <div className={styles.inputGroup}>
+                        <label>Bill type</label>
+                        <select value={bill.subcat} onChange={event => updateBillSubcategory(bill.id, event.target.value)}>
+                          {billSubcategories.map(category => <option key={category}>{category}</option>)}
+                        </select>
+                      </div>
+                      <div className={styles.inputGroup}>
                         <label>Amount ({symbol})</label>
                         <input type="number" min="0" placeholder="0.00" value={bill.amount} onChange={event => updateBillRow(bill.id, 'amount', event.target.value)} />
                       </div>
+                    </div>
+                    <div className={styles.formGrid}>
                       <div className={styles.inputGroup}>
                         <label>Due day</label>
                         <input type="number" min={1} max={31} placeholder="1-31" value={bill.due} onChange={event => updateBillRow(bill.id, 'due', event.target.value)} />
                       </div>
-                    </div>
-                    <div className={styles.inputGroup}>
-                      <label>Frequency</label>
-                      <select value={bill.freq} onChange={event => updateBillRow(bill.id, 'freq', event.target.value)}>
-                        {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-                      </select>
+                      <div className={styles.inputGroup}>
+                        <label>Frequency</label>
+                        <select value={bill.freq} onChange={event => updateBillRow(bill.id, 'freq', event.target.value)}>
+                          {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -334,7 +334,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.desc}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>{tx.cat} · {tx.date}</div>
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')} · {tx.date}</div>
             </div>
             <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: TYPE_COLOR[tx.txType], flexShrink: 0 }}>
               {displayValue(privacyMode, `${TYPE_SIGN[tx.txType]}${fmt(tx.amount, s)}`, `${TYPE_SIGN[tx.txType]}${maskMoney(s)}`)}

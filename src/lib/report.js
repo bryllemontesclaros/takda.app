@@ -67,7 +67,7 @@ export function generateMonthlyReport(data, profile, year, month, symbol) {
 <table>
   <thead><tr><th>Description</th><th>Category</th><th>Date</th><th class="amt">Amount</th></tr></thead>
   <tbody>
-    ${income.map(t => `<tr><td>${t.desc || ''}</td><td>${t.cat || ''}</td><td>${t.date || ''}</td><td class="amt green">${fmt(t.amount)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#aaa;text-align:center">No income this month</td></tr>'}
+    ${income.map(t => `<tr><td>${t.desc || ''}</td><td>${[t.cat, t.subcat].filter(Boolean).join(' · ')}</td><td>${t.date || ''}</td><td class="amt green">${fmt(t.amount)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#aaa;text-align:center">No income this month</td></tr>'}
     <tr style="background:#f0fff4"><td colspan="3" style="font-weight:700">Total</td><td class="amt green" style="font-weight:700">${fmt(totalIncome)}</td></tr>
   </tbody>
 </table>
@@ -76,7 +76,7 @@ export function generateMonthlyReport(data, profile, year, month, symbol) {
 <table>
   <thead><tr><th>Description</th><th>Category</th><th>Date</th><th class="amt">Amount</th></tr></thead>
   <tbody>
-    ${expenses.map(t => `<tr><td>${t.desc || ''}</td><td>${t.cat || ''}</td><td>${t.date || ''}</td><td class="amt red">${fmt(t.amount)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#aaa;text-align:center">No expenses this month</td></tr>'}
+    ${expenses.map(t => `<tr><td>${t.desc || ''}</td><td>${[t.cat, t.subcat].filter(Boolean).join(' · ')}</td><td>${t.date || ''}</td><td class="amt red">${fmt(t.amount)}</td></tr>`).join('') || '<tr><td colspan="4" style="color:#aaa;text-align:center">No expenses this month</td></tr>'}
     <tr style="background:#fff5f5"><td colspan="3" style="font-weight:700">Total</td><td class="amt red" style="font-weight:700">${fmt(totalExpense)}</td></tr>
   </tbody>
 </table>
@@ -93,7 +93,7 @@ export function generateMonthlyReport(data, profile, year, month, symbol) {
 <table>
   <thead><tr><th>Name</th><th>Category</th><th>Due Day</th><th>Frequency</th><th class="amt">Amount</th><th>Status</th></tr></thead>
   <tbody>
-    ${bills.map(b => `<tr><td>${b.name || ''}</td><td>${b.cat || ''}</td><td>Day ${b.due}</td><td>${b.freq || ''}</td><td class="amt amber">${fmt(b.amount)}</td><td>${b.paid ? '✓ Paid' : 'Unpaid'}</td></tr>`).join('') || '<tr><td colspan="6" style="color:#aaa;text-align:center">No bills</td></tr>'}
+    ${bills.map(b => `<tr><td>${b.name || ''}</td><td>${b.subcat || b.cat || ''}</td><td>Day ${b.due}</td><td>${b.freq || ''}</td><td class="amt amber">${fmt(b.amount)}</td><td>${b.paid ? '✓ Paid' : 'Unpaid'}</td></tr>`).join('') || '<tr><td colspan="6" style="color:#aaa;text-align:center">No bills</td></tr>'}
     <tr style="background:#fffbeb"><td colspan="4" style="font-weight:700">Total monthly bills</td><td class="amt amber" style="font-weight:700">${fmt(totalBills)}</td><td></td></tr>
   </tbody>
 </table>

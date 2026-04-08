@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
+import { getTransactionCategories } from '../lib/transactionOptions'
 import { displayValue, fmt, isSameMonth, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
 import bStyles from './Budget.module.css'
 
-const EXPENSE_CATS = ['Food & Dining', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Personal Care', 'Education', 'Bills', 'Other']
+const EXPENSE_CATS = getTransactionCategories('expense')
 
 export default function Budget({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'

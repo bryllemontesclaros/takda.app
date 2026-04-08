@@ -1,19 +1,93 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { fmt, RECUR_OPTIONS, confirmDelete, validateAmount } from '../lib/utils'
+import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getBillQuickItems, getTransactionSubcategories } from '../lib/transactionOptions'
+import { fmt, RECUR_OPTIONS, confirmDelete } from '../lib/utils'
 import styles from './Page.module.css'
 
-const BILL_FREQS = RECUR_OPTIONS.filter(o => o.value !== '' && o.value !== 'daily')
+const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
+
+function createBillForm() {
+  return {
+    name: '',
+    amount: '',
+    due: '',
+    cat: 'Bills',
+    subcat: getTransactionSubcategories('expense', 'Bills')[0],
+    presetKey: '',
+    freq: 'monthly',
+  }
+}
 
 export default function Bills({ user, data, symbol }) {
   const s = symbol || '₱'
-  const [form, setForm] = useState({ name: '', amount: '', due: '', cat: 'Electric', freq: 'monthly' })
-  function set(k, v) { setForm(f => ({ ...f, [k]: v })) }
+  const [form, setForm] = useState(createBillForm())
+
+  const quickPresets = useMemo(() => getBillQuickItems(), [])
+  const presetGroups = useMemo(() => getBillPresetGroups(), [])
+  const subcategories = useMemo(() => getTransactionSubcategories('expense', 'Bills'), [])
+  const selectedPreset = useMemo(() => getBillPresetByKey(form.presetKey), [form.presetKey])
+
+  function set(key, value) {
+    setForm(current => ({ ...current, [key]: value }))
+  }
+
+  function applyPreset(preset) {
+    if (!preset || preset.isCustom) {
+      setForm(current => ({ ...current, presetKey: '', cat: 'Bills' }))
+      return
+    }
+    setForm(current => ({
+      ...current,
+      name: preset.desc || preset.label,
+      cat: 'Bills',
+      subcat: preset.subcat,
+      presetKey: preset.key,
+    }))
+  }
+
+  function handleSubcategoryChange(value) {
+    setForm(current => ({
+      ...current,
+      cat: 'Bills',
+      subcat: value,
+      presetKey: '',
+    }))
+  }
+
+  function handleNameChange(value) {
+    const matchedPreset = findBillPresetByLabel(value)
+    setForm(current => {
+      if (!matchedPreset || matchedPreset.isCustom) {
+        return { ...current, name: value, presetKey: '' }
+      }
+      return {
+        ...current,
+        name: value,
+        cat: 'Bills',
+        subcat: matchedPreset.subcat,
+        presetKey: matchedPreset.key,
+      }
+    })
+  }
 
   async function handleAdd() {
-    if (!form.name || !form.amount || !form.due) return alert('Add a bill name, amount, and due day.')
-    await fsAdd(user.uid, 'bills', { ...form, amount: parseFloat(form.amount), due: parseInt(form.due), paid: false, type: 'bill' })
-    setForm(f => ({ ...f, name: '', amount: '', due: '' }))
+    if (!form.name.trim() || !form.amount || !form.due) {
+      return alert('Add a bill name, amount, and due day.')
+    }
+
+    await fsAdd(user.uid, 'bills', {
+      name: form.name.trim(),
+      amount: parseFloat(form.amount),
+      due: parseInt(form.due, 10),
+      cat: 'Bills',
+      subcat: form.subcat,
+      presetKey: form.presetKey || '',
+      freq: form.freq,
+      paid: false,
+      type: 'bill',
+    })
+
+    setForm(createBillForm())
   }
 
   async function togglePaid(bill) {
@@ -30,50 +104,119 @@ export default function Bills({ user, data, symbol }) {
         <div className={styles.title}>Bills</div>
         <div className={styles.sub}>Track recurring bills and due dates.</div>
       </div>
+
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add bill</div>
-        <div className={`${styles.formRow} ${styles.col3}`}>
-          <div className={styles.formGroup}><label>Bill name</label><input placeholder="e.g. Meralco" value={form.name} onChange={e => set('name', e.target.value)} /></div>
-          <div className={styles.formGroup}><label>Amount ({s})</label><input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} /></div>
-          <div className={styles.formGroup}><label>Due day (1–31)</label><input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} /></div>
+
+        <div className={styles.formGroup}>
+          <label>What bill is this for?</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 10 }}>
+            {quickPresets.map(item => (
+              <button
+                key={item.key}
+                type="button"
+                className={styles.chip}
+                onClick={() => item.isCustom ? applyPreset(null) : applyPreset(item)}
+                style={form.presetKey === item.key ? { borderColor: 'var(--amber)', background: 'var(--amber-glow)', color: 'var(--amber)' } : {}}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <select
+            value={form.presetKey || 'other-custom'}
+            onChange={event => {
+              const preset = getBillPresetByKey(event.target.value)
+              if (!preset || preset.isCustom) {
+                applyPreset(null)
+                return
+              }
+              applyPreset(preset)
+            }}
+          >
+            <option value="other-custom">Custom bill</option>
+            {presetGroups.map(group => (
+              <optgroup key={group.label} label={group.label}>
+                {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+          <div className={styles.helper}>
+            {selectedPreset && !selectedPreset.isCustom
+              ? `${selectedPreset.label} auto-fills Bills → ${selectedPreset.subcat}.`
+              : 'Choose a familiar biller like Meralco or Netflix, or keep it custom.'}
+          </div>
         </div>
+
+        <div className={`${styles.formRow} ${styles.col2}`}>
+          <div className={styles.formGroup}>
+            <label>Bill name</label>
+            <input placeholder="e.g. Meralco" value={form.name} onChange={e => handleNameChange(e.target.value)} />
+          </div>
+          <div className={styles.formGroup}>
+            <label>Bill type</label>
+            <select value={form.subcat} onChange={e => handleSubcategoryChange(e.target.value)}>
+              {subcategories.map(option => <option key={option}>{option}</option>)}
+            </select>
+          </div>
+        </div>
+
         <div className={`${styles.formRow} ${styles.col3}`}>
-          <div className={styles.formGroup}><label>Category</label>
-            <select value={form.cat} onChange={e => set('cat', e.target.value)}>
-              {['Electric','Water','Internet','Rent','Phone','Insurance','Subscription','Other'].map(o => <option key={o}>{o}</option>)}
-            </select>
+          <div className={styles.formGroup}>
+            <label>Amount ({s})</label>
+            <input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} />
           </div>
-          <div className={styles.formGroup}><label>Frequency</label>
+          <div className={styles.formGroup}>
+            <label>Due day (1–31)</label>
+            <input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} />
+          </div>
+          <div className={styles.formGroup}>
+            <label>Frequency</label>
             <select value={form.freq} onChange={e => set('freq', e.target.value)}>
-              {BILL_FREQS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
             </select>
           </div>
-          <div className={styles.formGroup} style={{ justifyContent: 'flex-end' }}>
-            <button className={styles.btnAdd} onClick={handleAdd}>Add bill</button>
-          </div>
+        </div>
+
+        <div className={styles.formRow}>
+          <button className={styles.btnAdd} onClick={handleAdd}>Add bill</button>
         </div>
       </div>
+
       <div className={styles.card}>
         <div className={styles.cardTitle}>Bills</div>
         <div className={styles.tableWrap}>
           <table>
-            <thead><tr><th>Name</th><th>Category</th><th>Due Day</th><th>Frequency</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Due Day</th>
+                <th>Frequency</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
             <tbody>
               {!data.bills.length
                 ? <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above.</td></tr>
-                : data.bills.map(r => (
-                  <tr key={r._id}>
-                    <td style={{ color: 'var(--text)' }}>{r.name}</td>
-                    <td><span className={`${styles.badge} ${styles.badgeBill}`}>{r.cat}</span></td>
-                    <td>Day {r.due}</td>
-                    <td>{BILL_FREQS.find(o => o.value === r.freq)?.label || r.freq}</td>
-                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(r.amount, s)}</td>
+                : data.bills.map(row => (
+                  <tr key={row._id}>
+                    <td style={{ color: 'var(--text)' }}>{row.name}</td>
+                    <td><span className={`${styles.badge} ${styles.badgeBill}`}>{row.subcat || row.cat}</span></td>
+                    <td>Day {row.due}</td>
+                    <td>{BILL_FREQS.find(option => option.value === row.freq)?.label || row.freq}</td>
+                    <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(row.amount, s)}</td>
                     <td>
-                      <button onClick={() => togglePaid(r)} style={{ background: r.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: r.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
-                        {r.paid ? 'Paid' : 'Unpaid'}
+                      <button
+                        onClick={() => togglePaid(row)}
+                        style={{ background: row.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: row.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {row.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
-                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.name) && fsDel(user.uid, 'bills', r._id)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={() => confirmDelete(row.name) && fsDel(user.uid, 'bills', row._id)}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

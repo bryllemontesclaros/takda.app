@@ -60,6 +60,31 @@
   margin: 0;
 }
 .formGroup select option { background: var(--surface2); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  min-height: 34px;
+}
+.chip:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+.helper {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text3);
+}
 .btnAdd { padding: 9px 20px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; width: 100%; min-height: 40px; }
 .btnAdd:hover { opacity: 0.85; }
 .btnAdd:disabled { opacity: 0.55; cursor: not-allowed; }

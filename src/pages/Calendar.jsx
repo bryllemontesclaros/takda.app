@@ -4,12 +4,16 @@ import { fsAddTransaction, fsClearDailyBalanceOverride, fsClearMonthStartBalance
 import { getTransactionImpact } from '../lib/forecast'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
-  DEFAULT_CATEGORY_BY_TYPE,
+  findPresetByLabel,
   getDefaultTransactionDraft,
+  getPresetByKey,
+  getPresetGroups,
   getQuickItems,
-  getQuickPick,
   getSuggestedDescription,
   getTransactionCategories,
+  getTransactionSubcategories,
+  sanitizeTransactionCategory,
+  sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
 import { displayValue, fmt, maskMoney, normalizeDate, RECUR_OPTIONS, today } from '../lib/utils'
 import styles from './Page.module.css'
@@ -56,7 +60,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [modalType, setModalType] = useState('income')
   const [editTx, setEditTx] = useState(null)
   const [form, setForm] = useState(() => getEmptyForm('income', defaultAccountId))
-  const [quickPick, setQuickPick] = useState(() => getDefaultTransactionDraft('income').desc)
   const [descTouched, setDescTouched] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSaving, setFormSaving] = useState(false)
@@ -109,7 +112,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   const isIncome = modalType === 'income'
   const cats = getTransactionCategories(modalType)
-  const quickCats = getQuickItems(modalType)
+  const quickPresets = getQuickItems(modalType)
+  const presetGroups = getPresetGroups(modalType)
+  const subcats = getTransactionSubcategories(modalType, form.cat)
+  const selectedPreset = getPresetByKey(modalType, form.presetKey)
   const maskFormattedBalance = value => String(value || '').replace(/\d/g, '•')
   const money = value => {
     const formatted = fmt(value, s)
@@ -203,20 +209,62 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setEditTx(null)
     setModalType(type)
     setForm(nextDraft)
-    setQuickPick(getQuickPick(type, nextDraft.cat, nextDraft.desc) || nextDraft.desc)
     setDescTouched(false)
     setFormError('')
     setShowModal(true)
   }
 
-  function applyComposerCategory(nextCat, nextQuickPick = '') {
-    const resolvedQuickPick = nextQuickPick || getQuickPick(modalType, nextCat, '')
+  function clearComposerPreset(nextType = modalType, nextCat = 'Other', nextSubcat = 'Miscellaneous') {
+    const resolvedCat = sanitizeTransactionCategory(nextType, nextCat)
+    const resolvedSubcat = sanitizeTransactionSubcategory(nextType, resolvedCat, nextSubcat)
     setForm(current => ({
       ...current,
-      cat: nextCat,
-      desc: descTouched ? current.desc : (resolvedQuickPick || getSuggestedDescription(modalType, nextCat)),
+      cat: resolvedCat,
+      subcat: resolvedSubcat,
+      presetKey: '',
+      desc: descTouched ? current.desc : getSuggestedDescription(nextType, resolvedCat, resolvedSubcat),
     }))
-    setQuickPick(resolvedQuickPick)
+    setFormError('')
+  }
+
+  function applyComposerPreset(nextPresetKey) {
+    const preset = getPresetByKey(modalType, nextPresetKey)
+    if (!preset || preset.isCustom) {
+      clearComposerPreset(modalType, 'Other', 'Miscellaneous')
+      return
+    }
+    setForm(current => ({
+      ...current,
+      cat: preset.cat,
+      subcat: preset.subcat,
+      presetKey: preset.key,
+      desc: preset.desc || preset.label,
+    }))
+    setDescTouched(false)
+    setFormError('')
+  }
+
+  function applyComposerCategory(nextCat) {
+    const resolvedCat = sanitizeTransactionCategory(modalType, nextCat)
+    const resolvedSubcat = getTransactionSubcategories(modalType, resolvedCat)[0]
+    setForm(current => ({
+      ...current,
+      cat: resolvedCat,
+      subcat: resolvedSubcat,
+      presetKey: '',
+      desc: descTouched ? current.desc : getSuggestedDescription(modalType, resolvedCat, resolvedSubcat),
+    }))
+    setFormError('')
+  }
+
+  function applyComposerSubcategory(nextSubcat) {
+    const resolvedSubcat = sanitizeTransactionSubcategory(modalType, form.cat, nextSubcat)
+    setForm(current => ({
+      ...current,
+      subcat: resolvedSubcat,
+      presetKey: '',
+      desc: descTouched ? current.desc : getSuggestedDescription(modalType, current.cat, resolvedSubcat),
+    }))
     setFormError('')
   }
 
@@ -224,20 +272,21 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (nextType === modalType) return
     const nextDraft = getEmptyForm(nextType, form.accountId || defaultAccountId)
     setModalType(nextType)
-    setForm(current => ({
-      ...current,
-      type: nextType,
-      cat: nextDraft.cat,
-      desc: descTouched ? current.desc : nextDraft.desc,
-      accountId: current.accountId || defaultAccountId,
-    }))
-    setQuickPick(getQuickPick(nextType, nextDraft.cat, nextDraft.desc) || nextDraft.desc)
+    setForm({
+      ...nextDraft,
+      accountId: form.accountId || defaultAccountId,
+    })
+    setDescTouched(false)
     setFormError('')
   }
 
   function openEdit(tx) {
     const nextType = tx.type || 'income'
-    const nextCat = tx.cat || DEFAULT_CATEGORY_BY_TYPE[nextType]
+    const nextCat = sanitizeTransactionCategory(nextType, tx.cat)
+    const nextMatchedPreset =
+      getPresetByKey(nextType, tx.presetKey || '')
+      || findPresetByLabel(nextType, tx.desc || '')
+    const nextSubcat = sanitizeTransactionSubcategory(nextType, nextCat, tx.subcat || nextMatchedPreset?.subcat)
     const nextDesc = tx.desc || ''
     closeDayBalanceEditor()
     setEditTx(tx)
@@ -247,10 +296,13 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       amount: String(tx.amount || ''),
       type: nextType,
       cat: nextCat,
+      subcat: nextSubcat,
+      presetKey: nextMatchedPreset && !nextMatchedPreset.isCustom && nextMatchedPreset.cat === nextCat && nextMatchedPreset.subcat === nextSubcat
+        ? nextMatchedPreset.key
+        : '',
       recur: tx.recur || '',
       accountId: tx.accountId || '',
     })
-    setQuickPick(getQuickPick(nextType, nextCat, nextDesc))
     setDescTouched(Boolean(nextDesc))
     setFormError('')
     setShowModal(true)
@@ -261,7 +313,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setEditTx(null)
     setModalType('income')
     setForm(getEmptyForm('income', defaultAccountId))
-    setQuickPick(getDefaultTransactionDraft('income').desc)
     setDescTouched(false)
     setFormError('')
     setFormSaving(false)
@@ -387,6 +438,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           desc: trimmedDesc,
           amount,
           cat: form.cat,
+          subcat: form.subcat,
+          presetKey: form.presetKey || '',
           recur: form.recur,
           accountId: form.accountId,
           accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
@@ -398,6 +451,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           amount,
           date: selected,
           cat: form.cat,
+          subcat: form.subcat,
+          presetKey: form.presetKey || '',
           recur: form.recur,
           type: modalType,
           accountId: form.accountId,
@@ -937,20 +992,23 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               />
             </div>
 
-            <div className={calStyles.modalSectionLabel}>Category</div>
+            <div className={calStyles.modalSectionLabel}>{isIncome ? 'What did you receive?' : 'What did you pay for?'}</div>
             <div className={calStyles.quickCats}>
-              {quickCats.map(item => (
+              {quickPresets.map(item => (
                 <button
-                  key={item.label}
-                  className={`${calStyles.quickCat} ${quickPick === item.label ? calStyles.quickCatActive : ''}`}
-                  style={quickPick === item.label ? {
+                  key={item.key}
+                  className={`${calStyles.quickCat} ${form.presetKey === item.key ? calStyles.quickCatActive : ''}`}
+                  style={form.presetKey === item.key ? {
                     borderColor: isIncome ? 'var(--accent)' : 'var(--red)',
                     background: isIncome ? 'var(--accent-glow)' : 'var(--red-dim)',
                     color: isIncome ? 'var(--accent)' : 'var(--red)',
                   } : {}}
                   disabled={formSaving}
-                  onClick={() => applyComposerCategory(item.cat, item.label)}
-                  aria-pressed={quickPick === item.label}
+                  onClick={() => {
+                    if (item.isCustom) clearComposerPreset(modalType, 'Other', 'Miscellaneous')
+                    else applyComposerPreset(item.key)
+                  }}
+                  aria-pressed={form.presetKey === item.key}
                 >
                   <span>{item.icon}</span>
                   <span>{item.label}</span>
@@ -960,14 +1018,38 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
             <div className={calStyles.modalFields}>
               <div className={styles.formGroup}>
-                <label>All categories</label>
+                <label>Browse presets</label>
+                <select
+                  value={form.presetKey || 'other-custom'}
+                  onChange={event => {
+                    if (event.target.value === 'other-custom') clearComposerPreset(modalType, 'Other', 'Miscellaneous')
+                    else applyComposerPreset(event.target.value)
+                  }}
+                  disabled={formSaving}
+                >
+                  {presetGroups.map(group => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.items.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+                    </optgroup>
+                  ))}
+                  <option value="other-custom">Other / custom</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>{selectedPreset ? 'Description' : (isIncome ? 'Payer or note' : 'Merchant, biller, or note')}</label>
+                <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Category</label>
                 <select value={form.cat} onChange={event => applyComposerCategory(event.target.value)} disabled={formSaving}>
                   {cats.map(option => <option key={option}>{option}</option>)}
                 </select>
               </div>
               <div className={styles.formGroup}>
-                <label>Merchant or note</label>
-                <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
+                <label>Subcategory</label>
+                <select value={form.subcat} onChange={event => applyComposerSubcategory(event.target.value)} disabled={formSaving}>
+                  {subcats.map(option => <option key={option}>{option}</option>)}
+                </select>
               </div>
               <div className={styles.formGroup}>
                 <label>Account</label>
@@ -980,6 +1062,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className={calStyles.accountHint}>
+              {selectedPreset
+                ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}. You can still edit the category details below.`
+                : 'No preset selected. Choose a familiar biller or merchant, or keep this as a custom entry.'}
             </div>
 
             <div className={calStyles.accountHint}>{accountHint}</div>
@@ -1039,6 +1127,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
 function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false, accountLabel = '' }) {
   const isIncome = t.type === 'income'
+  const classification = [t.cat, t.subcat].filter(Boolean).join(' · ')
   return (
     <div className={calStyles.txRow}>
       <div className={calStyles.txLeft}>
@@ -1051,7 +1140,7 @@ function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false, account
             {t._projected && <span className={calStyles.projBadge}>recurring</span>}
           </div>
           <div className={calStyles.txMeta}>
-            {t.cat}
+            {classification || t.cat}
             {accountLabel && <span className={calStyles.accountBadge}>{accountLabel}</span>}
             {t.recur && <span className={calStyles.recurBadge}>{t.recur}</span>}
           </div>

@@ -504,11 +504,12 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
   function exportCSV() {
     const escapeCsvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`
+    const classify = tx => [tx.cat, tx.subcat].filter(Boolean).join(' · ')
     const rows = [
-      ['Type', 'Description', 'Category', 'Amount', 'Date', 'Recurring'],
-      ...data.income.map(tx => ['Income', tx.desc, tx.cat, tx.amount, tx.date, tx.recur || '']),
-      ...data.expenses.map(tx => ['Expense', tx.desc, tx.cat, tx.amount, tx.date, tx.recur || '']),
-      ...data.bills.map(tx => ['Bill', tx.name, tx.cat, tx.amount, `Day ${tx.due}`, tx.freq]),
+      ['Type', 'Description', 'Category / Subcategory', 'Amount', 'Date', 'Recurring'],
+      ...data.income.map(tx => ['Income', tx.desc, classify(tx), tx.amount, tx.date, tx.recur || '']),
+      ...data.expenses.map(tx => ['Expense', tx.desc, classify(tx), tx.amount, tx.date, tx.recur || '']),
+      ...data.bills.map(tx => ['Bill', tx.name, tx.subcat || tx.cat, tx.amount, `Day ${tx.due}`, tx.freq]),
     ]
     const csv = rows.map(row => row.map(escapeCsvCell).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })

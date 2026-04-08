@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fsAddTransaction } from '../lib/firestore'
+import { sanitizeTransactionSubcategory } from '../lib/transactionOptions'
 import { fmt, formatDisplayDate, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
 import styles from './GroceryMode.module.css'
@@ -98,6 +99,8 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
         amount: total,
         date: tripDate,
         cat: tripCategory,
+        subcat: sanitizeTransactionSubcategory('expense', tripCategory, tripCategory === 'Food & Dining' ? 'Groceries / Palengke' : tripCategory === 'Shopping' ? 'Household' : 'Miscellaneous'),
+        presetKey: '',
         recur: '',
         type: 'expense',
         accountId,

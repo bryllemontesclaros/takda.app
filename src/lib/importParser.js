@@ -1,4 +1,5 @@
 import { normalizeDate, today } from './utils'
+import { getPresetOptions } from './transactionOptions'
 
 function parseDateCandidate(raw) {
   if (!raw) return ''
@@ -162,6 +163,129 @@ function guessCategory(text) {
   return 'Other'
 }
 
+function detectPreset(type, text = '') {
+  const lower = String(text || '').toLowerCase()
+  if (!lower) return null
+  return getPresetOptions(type).find(item => {
+    if (!item || item.isCustom) return false
+    const labels = [item.label, item.desc].filter(Boolean)
+    return labels.some(label => lower.includes(String(label).toLowerCase()))
+  }) || null
+}
+
+function guessSubcategory(type, cat, text = '') {
+  const lower = String(text || '').toLowerCase()
+
+  if (type === 'income') {
+    if (cat === 'Salary') {
+      if (/overtime|ot/.test(lower)) return 'Overtime'
+      if (/commission/.test(lower)) return 'Commission'
+      return 'Salary'
+    }
+    if (cat === 'Freelance') {
+      if (/retainer/.test(lower)) return 'Retainer'
+      if (/side hustle|sideline|gig/.test(lower)) return 'Side Hustle'
+      return 'Client Project'
+    }
+    if (cat === 'Business') {
+      if (/online/.test(lower)) return 'Online Selling'
+      if (/service/.test(lower)) return 'Service Income'
+      return 'Sales'
+    }
+    if (cat === 'Investment') {
+      if (/dividend/.test(lower)) return 'Dividends'
+      if (/gain/.test(lower)) return 'Investment Gain'
+      return 'Interest'
+    }
+    if (cat === 'Bonus') {
+      if (/incentive/.test(lower)) return 'Incentive'
+      if (/performance/.test(lower)) return 'Performance Bonus'
+      return 'Bonus'
+    }
+    if (cat === '13th Month') return '13th Month'
+    if (/allowance/.test(lower)) return 'Allowance'
+    if (/padala|remittance/.test(lower)) return 'Padala Received'
+    if (/gift/.test(lower)) return 'Gift Received'
+    if (/refund/.test(lower)) return 'Refund'
+    if (/reimburse/.test(lower)) return 'Reimbursement'
+    return 'Miscellaneous'
+  }
+
+  if (cat === 'Food & Dining') {
+    if (/grocer|palengke|market|supermarket/.test(lower)) return 'Groceries / Palengke'
+    if (/jollibee|mcdonald|mcdo|fast food/.test(lower)) return 'Fast Food'
+    if (/coffee|milk tea|cafe|starbucks/.test(lower)) return 'Coffee / Milk Tea'
+    if (/snack/.test(lower)) return 'Snacks'
+    return 'Restaurants / Kainan'
+  }
+
+  if (cat === 'Transport') {
+    if (/angkas|joyride|move it|motor/.test(lower)) return 'Motor Taxi'
+    if (/grab|taxi/.test(lower)) return 'Taxi / Grab'
+    if (/jeep|bus|mrt|lrt|train/.test(lower)) return 'Public Transport'
+    if (/fuel|gas/.test(lower)) return 'Fuel'
+    if (/parking/.test(lower)) return 'Parking'
+    if (/toll/.test(lower)) return 'Toll'
+    return 'Other'
+  }
+
+  if (cat === 'Shopping') {
+    if (/shopee|lazada|online/.test(lower)) return 'Online Shopping'
+    if (/household|grocery|home/.test(lower)) return 'Household'
+    if (/electronic|gadget/.test(lower)) return 'Electronics'
+    return 'Personal'
+  }
+
+  if (cat === 'Health') {
+    if (/clinic/.test(lower)) return 'Clinic'
+    if (/hospital/.test(lower)) return 'Hospital'
+    if (/dental|dentist/.test(lower)) return 'Dental'
+    if (/vitamin/.test(lower)) return 'Vitamins'
+    return 'Medicine'
+  }
+
+  if (cat === 'Entertainment') {
+    if (/movie|cinema/.test(lower)) return 'Movies'
+    if (/game/.test(lower)) return 'Games'
+    if (/event|concert/.test(lower)) return 'Events'
+    return 'Hobbies'
+  }
+
+  if (cat === 'Personal Care') {
+    if (/hair|barber|salon/.test(lower)) return 'Haircut / Salon'
+    if (/skin|toiletr|watsons|beauty/.test(lower)) return 'Skincare / Toiletries'
+    if (/laundry/.test(lower)) return 'Laundry'
+    return 'Other'
+  }
+
+  if (cat === 'Education') {
+    if (/tuition/.test(lower)) return 'Tuition'
+    if (/suppl/.test(lower)) return 'School Supplies'
+    if (/project|contribution/.test(lower)) return 'Projects / Contributions'
+    if (/course/.test(lower)) return 'Online Course'
+    return 'Other'
+  }
+
+  if (cat === 'Bills') {
+    if (/electric|kuryente|meralco/.test(lower)) return 'Electricity'
+    if (/water|maynilad|manila water/.test(lower)) return 'Water'
+    if (/internet|fiber|wifi|pldt|converge/.test(lower)) return 'Internet'
+    if (/globe|smart|dito|mobile|postpaid|load/.test(lower)) return 'Mobile'
+    if (/rent/.test(lower)) return 'Rent'
+    if (/association|assoc/.test(lower)) return 'Association Dues'
+    if (/netflix|spotify|youtube|icloud|subscription/.test(lower)) return 'Subscriptions'
+    if (/loan|installment|hulugan/.test(lower)) return 'Loan / Installment'
+    if (/sss|pag-ibig|philhealth|bir|government/.test(lower)) return 'Government'
+    if (/fee|charge/.test(lower)) return 'Fees'
+    return 'Other'
+  }
+
+  if (/padala|support/.test(lower)) return 'Family Support / Padala'
+  if (/saving|transfer/.test(lower)) return 'Transfer to Savings'
+  if (/cash in|cash out|wallet/.test(lower)) return 'Cash In / Cash Out'
+  return 'Miscellaneous'
+}
+
 function sanitizeEntity(value) {
   return String(value || '')
     .replace(/^[^A-Za-z0-9]+/, '')
@@ -208,6 +332,9 @@ export function parseReceiptText(text) {
   const amountCandidate = extractReceiptAmount(lines)
   const date = extractDate(lines)
   const desc = pickEntity(lines, text.toLowerCase(), 'Receipt')
+  const preset = detectPreset('expense', `${text}\n${desc}`)
+  const cat = preset?.cat || guessCategory(text)
+  const subcat = preset?.subcat || guessSubcategory('expense', cat, `${text}\n${desc}`)
 
   return {
     source: 'receipt',
@@ -216,7 +343,9 @@ export function parseReceiptText(text) {
     amountConfidence: amountCandidate.confidence,
     date: date || today(),
     desc,
-    cat: guessCategory(text),
+    cat,
+    subcat,
+    presetKey: preset?.key || '',
     reference: extractReference(lines),
     needsReview: true,
   }
@@ -239,6 +368,10 @@ export function parseWalletText(text) {
     : type === 'transfer'
       ? `${wallet} transfer`
       : `${wallet} payment`
+  const resolvedType = type === 'income' ? 'income' : 'expense'
+  const preset = detectPreset(resolvedType, `${text}\n${desc}`)
+  const cat = preset?.cat || guessCategory(text)
+  const subcat = preset?.subcat || guessSubcategory(resolvedType, cat, `${text}\n${desc}`)
 
   return {
     source: 'wallet',
@@ -248,7 +381,9 @@ export function parseWalletText(text) {
     amountConfidence: amount ? 'medium' : 'none',
     date: extractDate(lines) || today(),
     desc: desc && !/^(GCash|Maya|Wallet) transaction$/i.test(desc) ? desc : fallbackDesc,
-    cat: guessCategory(text),
+    cat,
+    subcat,
+    presetKey: preset?.key || '',
     reference: extractReference(lines),
     needsReview: type === 'transfer' || !amount,
   }

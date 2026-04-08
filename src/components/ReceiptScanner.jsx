@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { parseReceiptText, parseWalletText } from '../lib/importParser'
+import {
+  findPresetByLabel,
+  getDefaultTransactionDraft,
+  getTransactionCategories,
+  sanitizeTransactionCategory,
+  sanitizeTransactionSubcategory,
+} from '../lib/transactionOptions'
 import { formatDisplayDate, today } from '../lib/utils'
 import rStyles from './ReceiptScanner.module.css'
 
 const OCR_API = 'https://api.ocr.space/parse/image'
 const OCR_KEY = import.meta.env.VITE_OCR_SPACE_API_KEY || ''
-const EXPENSE_CATS = ['Food & Dining', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Personal Care', 'Bills', 'Education', 'Other']
-const INCOME_CATS = ['Salary', 'Freelance', 'Business', 'Investment', '13th Month', 'Bonus', 'Other']
+const EXPENSE_CATS = getTransactionCategories('expense')
+const INCOME_CATS = getTransactionCategories('income')
 
 const EMPTY_FORM = {
   type: 'expense',
@@ -67,7 +74,7 @@ function getBlankDraft(context = 'transaction') {
   }
 }
 
-export default function ReceiptScanner({ onResult, onClose, defaultMode = 'wallet', context = 'transaction' }) {
+export default function ReceiptScanner({ onResult, onClose, defaultMode = 'wallet', context = 'transaction', embedded = false }) {
   const isGrocery = context === 'grocery'
   const [mode, setMode] = useState(isGrocery ? 'receipt' : defaultMode)
   const [status, setStatus] = useState('idle')
@@ -252,12 +259,21 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
     if (!form.amount || !form.date || !form.desc) return
     if (form.type === 'transfer') return
 
+    const nextType = form.type === 'income' ? 'income' : 'expense'
+    const nextDraft = getDefaultTransactionDraft(nextType)
+    const nextCat = sanitizeTransactionCategory(nextType, form.cat || nextDraft.cat)
+    const matchedPreset = findPresetByLabel(nextType, form.desc || '')
+    const nextPreset = matchedPreset && !matchedPreset.isCustom && matchedPreset.cat === nextCat ? matchedPreset : null
+    const nextSubcat = sanitizeTransactionSubcategory(nextType, nextCat, nextPreset?.subcat || nextDraft.subcat)
+
     onResult?.({
-      type: form.type,
+      type: nextType,
       amount: parseFloat(form.amount),
       date: form.date,
       desc: form.desc,
-      cat: form.cat,
+      cat: nextCat,
+      subcat: nextSubcat,
+      presetKey: nextPreset?.key || '',
       reference: form.reference,
       source: mode,
       rawText,
@@ -287,16 +303,18 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
       : 'Receipt OCR is assistive only, so review the details before saving.'
 
   return (
-    <div className={rStyles.wrap}>
-      <div className={rStyles.header}>
-        <div>
-          <div className={rStyles.title}>{headerTitle}</div>
-          <div className={rStyles.uploadSub}>
-            {headerSub}
+    <div className={`${rStyles.wrap} ${embedded ? rStyles.embedded : ''}`}>
+      {!embedded && (
+        <div className={rStyles.header}>
+          <div>
+            <div className={rStyles.title}>{headerTitle}</div>
+            <div className={rStyles.uploadSub}>
+              {headerSub}
+            </div>
           </div>
+          <button className={rStyles.closeBtn} onClick={() => onClose?.()}>✕</button>
         </div>
-        <button className={rStyles.closeBtn} onClick={() => onClose?.()}>✕</button>
-      </div>
+      )}
 
       {!isGrocery && (
         <div className={rStyles.modeRow}>

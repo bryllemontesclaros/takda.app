@@ -1,13 +1,20 @@
 import { useMemo, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsDeleteTransaction, fsUpdateTransaction } from '../lib/firestore'
+import {
+  findPresetByLabel,
+  getPresetByKey,
+  getPresetGroups,
+  getTransactionCategories,
+  getTransactionSubcategories,
+  sanitizeTransactionCategory,
+  sanitizeTransactionSubcategory,
+} from '../lib/transactionOptions'
 import { confirmDelete, displayValue, fmt, getMonthKey, maskMoney, RECUR_OPTIONS, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import hStyles from './History.module.css'
 
-const ALL_CATS = ['All categories', 'Salary', 'Freelance', 'Business', 'Investment', '13th Month', 'Bonus', 'Food & Dining', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Personal Care', 'Education', 'Bills', 'Other']
-const CATS_INCOME = ['Salary', 'Freelance', 'Business', 'Investment', '13th Month', 'Bonus', 'Other']
-const CATS_EXPENSE = ['Food & Dining', 'Transport', 'Shopping', 'Health', 'Entertainment', 'Personal Care', 'Bills', 'Education', 'Other']
+const ALL_CATS = ['All categories', ...new Set([...getTransactionCategories('income'), ...getTransactionCategories('expense')])]
 const TYPES = ['All types', 'Income', 'Expense']
 
 export default function History({ user, data, symbol, privacyMode = false, gamification }) {
@@ -19,7 +26,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   const [sortBy, setSortBy] = useState('date-desc')
   const [showFilters, setShowFilters] = useState(false)
   const [editTx, setEditTx] = useState(null)
-  const [editForm, setEditForm] = useState({ desc: '', amount: '', cat: '', accountId: '' })
+  const [editForm, setEditForm] = useState({ desc: '', amount: '', cat: '', subcat: '', presetKey: '', accountId: '' })
 
   const hasActiveFilters = filterType !== 'All types' || filterCat !== 'All categories' || filterMonth
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
@@ -38,7 +45,11 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
     let list = allTx
     if (search.trim()) {
       const query = search.toLowerCase()
-      list = list.filter(tx => (tx.desc || '').toLowerCase().includes(query) || (tx.cat || '').toLowerCase().includes(query))
+      list = list.filter(tx => (
+        (tx.desc || '').toLowerCase().includes(query)
+        || (tx.cat || '').toLowerCase().includes(query)
+        || (tx.subcat || '').toLowerCase().includes(query)
+      ))
     }
     if (filterType !== 'All types') list = list.filter(tx => tx.type === filterType.toLowerCase())
     if (filterCat !== 'All categories') list = list.filter(tx => tx.cat === filterCat)
@@ -85,8 +96,20 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   }
 
   function openEdit(tx) {
+    const nextCat = sanitizeTransactionCategory(tx.type, tx.cat)
+    const matchedPreset =
+      getPresetByKey(tx.type, tx.presetKey || '')
+      || findPresetByLabel(tx.type, tx.desc || '')
+    const nextSubcat = sanitizeTransactionSubcategory(tx.type, nextCat, tx.subcat || matchedPreset?.subcat)
     setEditTx(tx)
-    setEditForm({ desc: tx.desc || '', amount: String(tx.amount || ''), cat: tx.cat || '', accountId: tx.accountId || '' })
+    setEditForm({
+      desc: tx.desc || '',
+      amount: String(tx.amount || ''),
+      cat: nextCat,
+      subcat: nextSubcat,
+      presetKey: matchedPreset && !matchedPreset.isCustom && matchedPreset.cat === nextCat && matchedPreset.subcat === nextSubcat ? matchedPreset.key : '',
+      accountId: tx.accountId || '',
+    })
   }
 
   async function handleSaveEdit() {
@@ -98,6 +121,8 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
       desc: editForm.desc,
       amount: parseFloat(editForm.amount),
       cat: editForm.cat,
+      subcat: editForm.subcat,
+      presetKey: editForm.presetKey || '',
       accountId: editForm.accountId,
       accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
     }, data.accounts)
@@ -107,7 +132,46 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   const typeColor = { income: 'var(--accent)', expense: 'var(--red)' }
   const typeBg = { income: 'var(--accent-glow)', expense: 'var(--red-dim)' }
   const typeSign = { income: '+', expense: '−' }
-  const editCats = editTx?.type === 'income' ? CATS_INCOME : CATS_EXPENSE
+  const editCats = editTx ? getTransactionCategories(editTx.type) : []
+  const editSubcats = editTx ? getTransactionSubcategories(editTx.type, editForm.cat) : []
+  const editPresetGroups = editTx ? getPresetGroups(editTx.type) : []
+  const editSelectedPreset = editTx ? getPresetByKey(editTx.type, editForm.presetKey) : null
+
+  function clearEditPreset() {
+    if (!editTx) return
+    const nextCat = 'Other'
+    const nextSubcat = sanitizeTransactionSubcategory(editTx.type, nextCat, 'Miscellaneous')
+    setEditForm(current => ({ ...current, presetKey: '', cat: nextCat, subcat: nextSubcat }))
+  }
+
+  function applyEditPreset(nextPresetKey) {
+    if (!editTx) return
+    const preset = getPresetByKey(editTx.type, nextPresetKey)
+    if (!preset || preset.isCustom) {
+      clearEditPreset()
+      return
+    }
+    setEditForm(current => ({
+      ...current,
+      presetKey: preset.key,
+      desc: preset.desc || preset.label,
+      cat: preset.cat,
+      subcat: preset.subcat,
+    }))
+  }
+
+  function handleEditCategoryChange(value) {
+    if (!editTx) return
+    const nextCat = sanitizeTransactionCategory(editTx.type, value)
+    const nextSubcat = getTransactionSubcategories(editTx.type, nextCat)[0]
+    setEditForm(current => ({ ...current, presetKey: '', cat: nextCat, subcat: nextSubcat }))
+  }
+
+  function handleEditSubcategoryChange(value) {
+    if (!editTx) return
+    const nextSubcat = sanitizeTransactionSubcategory(editTx.type, editForm.cat, value)
+    setEditForm(current => ({ ...current, presetKey: '', subcat: nextSubcat }))
+  }
 
   return (
     <div className={styles.page}>
@@ -125,7 +189,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
       />
 
       <div className={hStyles.searchRow}>
-        <input className={hStyles.searchInput} placeholder="Search description or category" value={search} onChange={event => setSearch(event.target.value)} />
+        <input className={hStyles.searchInput} placeholder="Search description, category, or subcategory" value={search} onChange={event => setSearch(event.target.value)} />
         {search && <button className={hStyles.clearSearch} onClick={() => setSearch('')}>✕</button>}
         <button className={`${hStyles.filterBtn} ${hasActiveFilters ? hStyles.filterBtnActive : ''}`} onClick={() => setShowFilters(value => !value)}>
           {hasActiveFilters ? '● Filters' : 'Filters'}
@@ -218,7 +282,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
                   <div className={hStyles.txInfo}>
                     <div className={hStyles.txDesc}>{tx.desc}</div>
                     <div className={hStyles.txMeta}>
-                      <span className={hStyles.txCat}>{tx.cat}</span>
+                      <span className={hStyles.txCat}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')}</span>
                       {tx.accountId && <span className={hStyles.txAccount}>{accountLookup[tx.accountId]?.name || 'Missing account'}</span>}
                       {tx.recur && (
                         <span className={hStyles.txRecur}>{RECUR_OPTIONS.find(option => option.value === tx.recur)?.label || tx.recur}</span>
@@ -252,6 +316,25 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
               <label>Description</label>
               <input value={editForm.desc} onChange={event => setEditForm(current => ({ ...current, desc: event.target.value }))} placeholder="Description" />
             </div>
+            <div className={styles.formGroup} style={{ marginBottom: 12 }}>
+              <label>Preset</label>
+              <select value={editForm.presetKey || 'other-custom'} onChange={event => {
+                if (event.target.value === 'other-custom') clearEditPreset()
+                else applyEditPreset(event.target.value)
+              }}>
+                {editPresetGroups.map(group => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                  </optgroup>
+                ))}
+                <option value="other-custom">Other / custom</option>
+              </select>
+              <div className={styles.helper} style={{ marginTop: 8 }}>
+                {editSelectedPreset
+                  ? `${editSelectedPreset.label} maps to ${editSelectedPreset.cat} → ${editSelectedPreset.subcat}.`
+                  : 'No preset selected. This transaction will stay as a custom entry.'}
+              </div>
+            </div>
             <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
               <div className={styles.formGroup}>
                 <label>Amount ({s})</label>
@@ -259,10 +342,16 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
               </div>
               <div className={styles.formGroup}>
                 <label>Category</label>
-                <select value={editForm.cat} onChange={event => setEditForm(current => ({ ...current, cat: event.target.value }))}>
+                <select value={editForm.cat} onChange={event => handleEditCategoryChange(event.target.value)}>
                   {editCats.map(cat => <option key={cat}>{cat}</option>)}
                 </select>
               </div>
+            </div>
+            <div className={styles.formGroup} style={{ marginBottom: 12 }}>
+              <label>Subcategory</label>
+              <select value={editForm.subcat} onChange={event => handleEditSubcategoryChange(event.target.value)}>
+                {editSubcats.map(subcat => <option key={subcat}>{subcat}</option>)}
+              </select>
             </div>
             <div className={styles.formGroup} style={{ marginBottom: 12 }}>
               <label>Account</label>
