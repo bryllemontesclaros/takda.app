@@ -526,6 +526,7 @@
     font-size: 8px;
     line-height: 1.05;
     -webkit-line-clamp: 2;
+    min-height: 17px;
   }
   .dots {
     gap: 1px;
