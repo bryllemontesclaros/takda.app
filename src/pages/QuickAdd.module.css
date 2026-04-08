@@ -78,15 +78,26 @@
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
 
-.descInput { flex: 1; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; font-family: var(--font-body); min-height: 44px; }
+.descInput { flex: 1; box-sizing: border-box; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; line-height: 1.2; outline: none; font-family: var(--font-body); min-height: 44px; }
 .descInput:focus { border-color: var(--accent); }
 .descRow { display: flex; gap: 8px; }
 
 .metaGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .metaField { display: flex; flex-direction: column; gap: 6px; }
+.metaFieldFull { grid-column: 1 / -1; }
 .fieldLabel { font-size: 12px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
-.fieldControl { width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; font-family: var(--font-body); min-height: 44px; }
+.fieldControl { width: 100%; box-sizing: border-box; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; line-height: 1.2; outline: none; font-family: var(--font-body); min-height: 44px; }
 .fieldControl:focus { border-color: var(--accent); }
+select.fieldControl {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 38px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%236d7196' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+}
 .dateFieldWrap { position: relative; }
 .dateFieldWrap:focus-within .dateFieldDisplay { border-color: var(--accent); }
 .dateFieldDisplay {

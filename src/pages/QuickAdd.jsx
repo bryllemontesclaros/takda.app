@@ -77,10 +77,10 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   const selectedPreset = getPresetByKey(type, presetKey)
   const visibleQuickPresets = useMemo(() => {
     if (showPresetBrowser) return quickPresets
-    const limited = quickPresets.slice(0, 4)
+    const limited = quickPresets.slice(0, 6)
     if (!presetKey || limited.some(item => item.key === presetKey)) return limited
     const selected = quickPresets.find(item => item.key === presetKey)
-    return selected ? [...limited.slice(0, 3), selected] : limited
+    return selected ? [...limited.slice(0, 5), selected] : limited
   }, [presetKey, quickPresets, showPresetBrowser])
 
   useEffect(() => {
@@ -437,7 +437,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
             {RECUR_OPTIONS.map(option => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
           </select>
         </label>
-        <label className={styles.metaField}>
+        <label className={`${styles.metaField} ${styles.metaFieldFull}`}>
           <span className={styles.fieldLabel}>Account</span>
           <select
             className={styles.fieldControl}
