@@ -670,17 +670,19 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         <>
           <div className={calStyles.dayPanelOverlay} onClick={closeSelectedDay} aria-hidden="true" />
           <div className={calStyles.dayPanel} role="dialog" aria-modal="true" aria-labelledby="calendar-day-panel-title">
-            <div className={calStyles.dayPanelHandle} />
-            <div className={calStyles.dayPanelHeader}>
-              <div className={calStyles.dayPanelHeaderMain}>
-                <div className={calStyles.dayPanelEyebrowRow}>
-                  <span className={calStyles.dayPanelEyebrow}>{formatDayPanelEyebrow(selected)}</span>
-                  {selected === todayStr && <span className={calStyles.dayPanelTodayBadge}>Today</span>}
+            <div className={calStyles.dayPanelTop}>
+              <div className={calStyles.dayPanelHandle} />
+              <div className={calStyles.dayPanelHeader}>
+                <div className={calStyles.dayPanelHeaderMain}>
+                  <div className={calStyles.dayPanelEyebrowRow}>
+                    <span className={calStyles.dayPanelEyebrow}>{formatDayPanelEyebrow(selected)}</span>
+                    {selected === todayStr && <span className={calStyles.dayPanelTodayBadge}>Today</span>}
+                  </div>
+                  <div id="calendar-day-panel-title" className={calStyles.dayPanelTitle}>{formatBalanceDate(selected)}</div>
                 </div>
-                <div id="calendar-day-panel-title" className={calStyles.dayPanelTitle}>{formatBalanceDate(selected)}</div>
-              </div>
-              <div className={calStyles.dayPanelHeaderRight}>
-                <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close selected day">✕</button>
+                <div className={calStyles.dayPanelHeaderRight}>
+                  <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close selected day">✕</button>
+                </div>
               </div>
             </div>
 
