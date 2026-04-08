@@ -865,31 +865,31 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                                 setEditGoalId(isEditing ? null : goal._id)
                                 setGoalInput(String(goal.current || 0))
                               }}
-                            style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-                          >
-                            {isEditing ? 'Cancel' : 'Edit'}
-                          </button>
+                              style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                            >
+                              {isEditing ? 'Cancel' : 'Edit'}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div style={{ height: 5, background: 'var(--surface3)', borderRadius: 3, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pct}%`, background: pct >= 80 ? 'var(--amber)' : 'var(--accent)', borderRadius: 3, transition: 'width 0.4s' }} />
-                      </div>
-                      {isEditing && (
-                        <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                          <input
-                            type="number"
-                            min="0"
-                            value={goalInput}
-                            onChange={event => setGoalInput(event.target.value)}
-                            placeholder="New total saved"
-                            style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
-                          />
-                          <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                        <div style={{ height: 5, background: 'var(--surface3)', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${pct}%`, background: pct >= 80 ? 'var(--amber)' : 'var(--accent)', borderRadius: 3, transition: 'width 0.4s' }} />
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
+                        {isEditing && (
+                          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                            <input
+                              type="number"
+                              min="0"
+                              value={goalInput}
+                              onChange={event => setGoalInput(event.target.value)}
+                              placeholder="New total saved"
+                              style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
+                            />
+                            <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
               </div>
             )}
           </div>
