@@ -318,11 +318,42 @@
 /* IMPACT PREVIEW in modal */
 .impactPreview { border: 1px solid; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; font-weight: 500; margin-bottom: 1rem; }
 
-/* DAY PANEL — inline on desktop */
-.dayPanelOverlay { display: none; }
-.dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; box-sizing: border-box; overflow-x: hidden; }
-.dayPanelHandle { display: none; }
-.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+/* DAY PANEL — shared sheet */
+.dayPanelOverlay {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.42);
+  z-index: 300;
+  backdrop-filter: blur(4px);
+}
+.dayPanel {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 310;
+  width: min(760px, calc(100vw - 40px));
+  max-height: min(78vh, 760px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 20px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 28px 64px rgba(8, 12, 18, 0.26);
+}
+.dayPanelHandle {
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: var(--border2);
+  border-radius: 2px;
+  margin: 0 auto 14px;
+}
+.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 10px; position: sticky; top: 0; z-index: 2; padding-bottom: 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%)); }
 .dayPanelHeaderMain { min-width: 0; }
 .dayPanelEyebrowRow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
 .dayPanelEyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); }
@@ -494,9 +525,7 @@
     font-size: 18px;
   }
   .dayPanel {
-    max-width: 920px;
-    margin-left: auto;
-    margin-right: auto;
+    width: min(920px, calc(100vw - 56px));
   }
 }
 
@@ -635,17 +664,12 @@
   .modalFields { grid-template-columns: 1fr; }
 
   /* Bottom sheet day panel */
-  .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; }
-  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 310; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; padding: 14px 14px 16px; }
-  .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 12px; }
+  .dayPanelOverlay { background: rgba(0,0,0,0.5); }
+  .dayPanel { left: 0; right: 0; bottom: 60px; transform: none; width: auto; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; padding: 14px 14px 16px; box-shadow: 0 18px 48px rgba(8, 12, 18, 0.24); }
+  .dayPanelHandle { margin: 0 auto 12px; }
   .dayPanelHeader {
-    position: sticky;
-    top: 0;
-    z-index: 2;
     padding-bottom: 8px;
     margin-bottom: 8px;
-    background:
-      linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
   }
   .dayPanelTitle {
     font-size: 20px;
