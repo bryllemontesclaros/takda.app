@@ -91,6 +91,9 @@ export default function TermsPage() {
       eyebrow="Terms of Use"
       title="The product rules for using Takda."
       intro="These terms explain what Takda provides, what it does not provide, what you remain responsible for, and how account access, third-party providers, and service changes are handled."
+      metaTitle="Terms of Use — Takda"
+      metaDescription="Read the terms for using Takda, including account responsibilities, third-party services, forecasts, imports, and service changes."
+      metaPath="/terms"
       summaryPoints={SUMMARY_POINTS}
       sections={SECTIONS}
     />

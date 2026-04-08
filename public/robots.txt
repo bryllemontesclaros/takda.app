@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://sentimo-app.vercel.app/sitemap.xml
+Sitemap: https://takda-app.vercel.app/sitemap.xml

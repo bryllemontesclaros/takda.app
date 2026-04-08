@@ -1,4 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
+import RouteMeta from '../components/RouteMeta'
 import { auth } from '../lib/firebase'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import styles from './LandingPage.module.css'
@@ -48,6 +49,11 @@ export default function LandingPage() {
   const goLogin = () => navigate('/login')
   return (
     <div className={styles.page}>
+      <RouteMeta
+        title="Takda — Calendar-First Money Tracker for Filipinos"
+        description="See daily closing balances, log income and expenses quickly, and keep bills, budgets, and goals in one calm calendar view."
+        path="/"
+      />
       <a href="#landing-main" className="skipLink">Skip to main content</a>
       <nav className={styles.nav}>
         <div className={styles.navInner}>

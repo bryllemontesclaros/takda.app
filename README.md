@@ -2,7 +2,7 @@
 
 > Bawat piso, sinusubaybayan. — Every peso, tracked.
 
-Takda is a personal finance tracker built for Filipinos. The current app focuses on calendar-based logging, budgeting, savings goals, account balances, OCR-assisted imports, and monthly insights powered by React, Firebase Auth, and Firestore.
+Takda is a calendar-first money tracker built for Filipinos. The current app focuses on daily closing balances, budgeting, savings goals, account balances, OCR-assisted imports, and monthly insights powered by React, Firebase Auth, and Firestore.
 
 ## Current App Sections
 
@@ -19,7 +19,7 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 
 - Email/password authentication with registration, login, logout, remember-me, and password reset
 - First-run onboarding for preferred currency, account balances, and recurring bills
-- Dashboard with net worth, monthly income/expense summary, savings rate, budget health, recent transactions, and end-of-month forecast
+- Dashboard with current balance, monthly income/expense summary, savings rate, budget health, recent transactions, and projected month-end balance
 - Calendar-based income and expense tracking with add, edit, delete, and day-level summaries
 - Recurring transactions with projected entries and cash-flow forecasting
 - OCR-assisted import for GCash/Maya screenshots and receipt images
@@ -49,8 +49,8 @@ Takda is a personal finance tracker built for Filipinos. The current app focuses
 ## Getting Started
 
 ```bash
-git clone https://github.com/bryllemontesclaros/sentimo.git
-cd sentimo
+git clone <your-takda-repo-url>
+cd <your-takda-folder>
 npm install
 cp .env.example .env.local
 # Fill in your Firebase config in .env.local
@@ -99,8 +99,8 @@ firebase deploy --only firestore:rules
 
 ```text
 users/{uid}/
-  income/       { desc, amount, date, cat, recur, type, createdAt }
-  expenses/     { desc, amount, date, cat, recur, type, createdAt }
+  income/       { desc, amount, date, cat, recur, type, accountId, createdAt }
+  expenses/     { desc, amount, date, cat, recur, type, accountId, createdAt }
   bills/        { name, amount, due, cat, freq, paid, type, createdAt }
   goals/        { name, target, current, date, createdAt }
   accounts/     { name, type, balance, color, notes, createdAt }

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import RouteMeta from '../components/RouteMeta'
 import { auth } from '../lib/firebase'
 import {
   LEGAL_CONTACT_EMAIL,
@@ -8,13 +9,18 @@ import {
 } from '../lib/legal'
 import styles from './LegalPage.module.css'
 
-export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, sections }) {
+export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, sections, metaTitle, metaDescription, metaPath }) {
   const isSignedIn = Boolean(auth.currentUser)
   const primaryHref = isSignedIn ? '/app' : '/login'
   const primaryLabel = isSignedIn ? 'Open the app' : 'Get started'
 
   return (
     <div className={styles.page}>
+      <RouteMeta
+        title={metaTitle || `${title} — Takda`}
+        description={metaDescription || intro}
+        path={metaPath || '/'}
+      />
       <a href="#legal-main" className="skipLink">Skip to main content</a>
       <nav className={styles.nav}>
         <div className={styles.navInner}>

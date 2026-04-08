@@ -21,8 +21,44 @@
 .col3 { grid-template-columns: 1fr 1fr 1fr; }
 .formGroup { display: flex; flex-direction: column; gap: 4px; }
 .formGroup label { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.3px; }
-.formGroup input, .formGroup select { padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; outline: none; transition: border 0.2s; min-height: 44px; }
-.formGroup input:focus, .formGroup select:focus { border-color: var(--accent); }
+.formGroup input, .formGroup select, .formGroup textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 16px;
+  outline: none;
+  transition: border 0.2s;
+  min-height: 44px;
+  font-family: var(--font-body);
+  line-height: 1.2;
+}
+.formGroup input:focus, .formGroup select:focus, .formGroup textarea:focus { border-color: var(--accent); }
+.formGroup textarea {
+  resize: vertical;
+  min-height: 112px;
+}
+.formGroup select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 42px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.25L7 9.25L11 5.25' stroke='%236d7196' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+}
+.formGroup input[type='number'] {
+  -moz-appearance: textfield;
+}
+.formGroup input[type='number']::-webkit-outer-spin-button,
+.formGroup input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 .formGroup select option { background: var(--surface2); }
 .btnAdd { padding: 9px 20px; background: var(--accent); color: #0a0a0f; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; width: 100%; min-height: 40px; }
 .btnAdd:hover { opacity: 0.85; }

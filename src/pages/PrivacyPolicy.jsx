@@ -105,6 +105,9 @@ export default function PrivacyPolicy() {
       eyebrow="Privacy Policy"
       title="How Takda handles your account and finance data."
       intro="This page explains what Takda collects, why it is used, which providers help run the product, and how you can access, export, or delete information tied to your account."
+      metaTitle="Privacy Policy — Takda"
+      metaDescription="Read how Takda handles account, balance, transaction, budget, goal, and import data, and how you can access, export, or delete it."
+      metaPath="/privacy"
       summaryPoints={SUMMARY_POINTS}
       sections={SECTIONS}
     />

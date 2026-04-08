@@ -10,6 +10,7 @@ import {
   signInWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth'
+import RouteMeta from '../components/RouteMeta'
 import { auth } from '../lib/firebase'
 import styles from './AuthScreen.module.css'
 
@@ -142,6 +143,12 @@ export default function AuthScreen() {
 
   return (
     <div className={styles.screen}>
+      <RouteMeta
+        title="Log in or create your account — Takda"
+        description="Access Takda to track daily closing balances, income, expenses, bills, budgets, and goals in one calendar-first app."
+        path="/login"
+        robots="noindex, nofollow"
+      />
       <div className={styles.card}>
         <div className={styles.logo}>Takda</div>
         <div className={styles.tagline}>Bawat piso, sinusubaybayan.</div>
