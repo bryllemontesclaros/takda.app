@@ -197,6 +197,40 @@
   line-height: 1;
   color: var(--text);
 }
+.dayBalanceStats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.dayBalanceStat {
+  min-width: 0;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
+  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+}
+.dayBalanceStatLabel {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.dayBalanceStatValue {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dayBalanceStatPositive { color: var(--accent); }
+.dayBalanceStatNegative { color: var(--red); }
 .dayBalanceMeta {
   margin-top: 6px;
   font-size: 12px;
@@ -602,25 +636,118 @@
 
   /* Bottom sheet day panel */
   .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; }
-  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 310; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
-  .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1rem; }
+  .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 310; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; padding: 14px 14px 16px; }
+  .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 12px; }
   .dayPanelHeader {
     position: sticky;
     top: 0;
     z-index: 2;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
   }
   .dayPanelTitle {
-    font-size: 22px;
+    font-size: 20px;
   }
-  .dayPanelHeaderMeta {
-    margin-bottom: 14px;
+  .dayPanelEyebrowRow {
+    margin-bottom: 3px;
   }
-  .dayPanelHeaderStat {
-    padding: 10px;
+  .dayPanelClose {
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 14px;
+  }
+  .dayBalanceCard {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+  .dayBalanceHeader {
+    gap: 8px;
+  }
+  .dayBalanceValue {
+    margin-top: 4px;
+    font-size: 24px;
+  }
+  .dayBalanceStats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .dayBalanceStat {
+    padding: 8px 9px;
+  }
+  .dayBalanceStatLabel {
+    margin-bottom: 3px;
+    font-size: 9px;
+  }
+  .dayBalanceStatValue {
+    font-size: 11px;
+  }
+  .dayBalanceMeta {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+  .dayBalanceEditBtn,
+  .dayBalanceGhostBtn,
+  .dayBalanceSaveBtn {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .dayBalanceActions {
+    margin-top: 8px;
+    gap: 6px;
+  }
+  .dayPanelActions {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .dayPanelAction {
+    min-height: 36px;
+    font-size: 12px;
+    padding: 0 10px;
+  }
+  .daySection {
+    margin-bottom: 10px;
+  }
+  .daySectionHeader {
+    margin-bottom: 4px;
+  }
+  .txRow {
+    padding: 6px 0;
+  }
+  .txLeft {
+    gap: 8px;
+  }
+  .txIcon {
+    width: 26px;
+    height: 26px;
+    font-size: 13px;
+  }
+  .txDesc {
+    font-size: 12px;
+  }
+  .txMeta {
+    font-size: 10px;
+  }
+  .txAmount {
+    font-size: 12px;
+  }
+  .editBtn {
+    min-height: 26px;
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+  .delBtnSm {
+    min-height: 26px;
+    min-width: 26px;
+  }
+  .dayPanelEmpty {
+    padding: 12px 14px;
+    font-size: 12px;
   }
   .modalOverlay { padding: 0; }
   .modal { width: 100%; max-height: calc(100dvh - 74px - env(safe-area-inset-bottom)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); }

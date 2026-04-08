@@ -684,23 +684,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               </div>
             </div>
 
-            <div className={calStyles.dayPanelHeaderMeta}>
-              <div className={calStyles.dayPanelHeaderStat}>
-                <span className={calStyles.dayPanelHeaderStatLabel}>Entries</span>
-                <span className={calStyles.dayPanelHeaderStatValue}>{selectedDayCount}</span>
-              </div>
-              <div className={calStyles.dayPanelHeaderStat}>
-                <span className={calStyles.dayPanelHeaderStatLabel}>Net</span>
-                <span className={`${calStyles.dayPanelHeaderStatValue} ${selectedDayNet >= 0 ? calStyles.dayPanelHeaderStatPositive : calStyles.dayPanelHeaderStatNegative}`}>
-                  {displayValue(
-                    privacyMode,
-                    `${selectedDayNet >= 0 ? '+' : '−'}${fmt(Math.abs(selectedDayNet), s)}`,
-                    `${selectedDayNet >= 0 ? '+' : '−'}${maskMoney(s)}`,
-                  )}
-                </span>
-              </div>
-            </div>
-
             <div className={calStyles.dayBalanceCard}>
               {!editingDayBalance ? (
                 <>
@@ -711,10 +694,46 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                     </button>
                   </div>
                   <div className={calStyles.dayBalanceValue}>{money(selectedDayBalance)}</div>
+                  <div className={calStyles.dayBalanceStats}>
+                    <div className={calStyles.dayBalanceStat}>
+                      <span className={calStyles.dayBalanceStatLabel}>Entries</span>
+                      <span className={calStyles.dayBalanceStatValue}>{selectedDayCount}</span>
+                    </div>
+                    <div className={calStyles.dayBalanceStat}>
+                      <span className={calStyles.dayBalanceStatLabel}>Income</span>
+                      <span className={`${calStyles.dayBalanceStatValue} ${calStyles.dayBalanceStatPositive}`}>
+                        {displayValue(privacyMode, `+${fmt(selectedDayIncome, s)}`, `+${maskMoney(s)}`)}
+                      </span>
+                    </div>
+                    <div className={calStyles.dayBalanceStat}>
+                      <span className={calStyles.dayBalanceStatLabel}>Expenses</span>
+                      <span className={`${calStyles.dayBalanceStatValue} ${calStyles.dayBalanceStatNegative}`}>
+                        {displayValue(privacyMode, `−${fmt(selectedDayExpense, s)}`, `−${maskMoney(s)}`)}
+                      </span>
+                    </div>
+                    <div className={calStyles.dayBalanceStat}>
+                      <span className={calStyles.dayBalanceStatLabel}>Net</span>
+                      <span className={`${calStyles.dayBalanceStatValue} ${selectedDayNet >= 0 ? calStyles.dayBalanceStatPositive : calStyles.dayBalanceStatNegative}`}>
+                        {displayValue(
+                          privacyMode,
+                          `${selectedDayNet >= 0 ? '+' : '−'}${fmt(Math.abs(selectedDayNet), s)}`,
+                          `${selectedDayNet >= 0 ? '+' : '−'}${maskMoney(s)}`,
+                        )}
+                      </span>
+                    </div>
+                  </div>
                   <div className={calStyles.dayBalanceMeta}>
                     {hasManualBalanceOnSelectedDay
-                      ? 'Pinned as the closing balance for this date. Later days inherit from it until another manual balance appears.'
-                      : 'Calculated as the end-of-day total from your account balances, transactions, and any earlier manual balance anchors.'}
+                      ? 'Pinned day balance.'
+                      : 'Auto-calculated from balances and transactions.'}
+                  </div>
+                  <div className={calStyles.dayPanelActions}>
+                    <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')} disabled={selectedDateLocked}>
+                      + Income
+                    </button>
+                    <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')} disabled={selectedDateLocked}>
+                      − Expense
+                    </button>
                   </div>
                 </>
               ) : (
@@ -755,15 +774,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   </div>
                 </>
               )}
-            </div>
-
-            <div className={calStyles.dayPanelActions}>
-              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')} disabled={selectedDateLocked}>
-                + Add income
-              </button>
-              <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionExpense}`} onClick={() => openComposer('expense')} disabled={selectedDateLocked}>
-                − Add expense
-              </button>
             </div>
 
             {selectedIncome.length > 0 && (
