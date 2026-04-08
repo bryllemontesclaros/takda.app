@@ -340,13 +340,13 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 18px 20px;
+  padding: 0;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   box-shadow: 0 28px 64px rgba(8, 12, 18, 0.26);
 }
 .dayPanelHandle {
-  display: block;
+  display: none;
   width: 32px;
   height: 3px;
   background: color-mix(in srgb, var(--border2) 78%, transparent);
@@ -358,11 +358,13 @@
   position: sticky;
   top: 0;
   z-index: 3;
-  margin: -18px -18px 12px;
-  padding: 14px 18px 10px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
+  padding: 12px 18px 10px;
+  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
   border-bottom: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  box-shadow: 0 8px 18px rgba(8, 12, 18, 0.04);
+}
+.dayPanelBody {
+  padding: 10px 18px 20px;
 }
 .dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .dayPanelHeaderMain { min-width: 0; }
@@ -538,6 +540,9 @@
   .dayPanel {
     width: min(920px, calc(100vw - 56px));
   }
+  .dayPanelTop {
+    padding-top: 10px;
+  }
 }
 
 /* MOBILE */
@@ -676,16 +681,19 @@
 
   /* Bottom sheet day panel */
   .dayPanelOverlay { background: rgba(0,0,0,0.5); }
-  .dayPanel { left: 0; right: 0; bottom: 60px; transform: none; width: auto; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; padding: 14px 14px 16px; box-shadow: 0 18px 48px rgba(8, 12, 18, 0.24); }
+  .dayPanel { left: 0; right: 0; bottom: 60px; transform: none; width: auto; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; padding: 0; box-shadow: 0 18px 48px rgba(8, 12, 18, 0.24); }
   .dayPanelTop {
-    margin: -14px -14px 10px;
     padding: 14px 14px 8px;
   }
   .dayPanelHandle {
+    display: block;
     width: 28px;
     height: 3px;
     margin: 0 auto 8px;
     opacity: 0.72;
+  }
+  .dayPanelBody {
+    padding: 0 14px 16px;
   }
   .dayPanelTitle {
     font-size: 20px;
