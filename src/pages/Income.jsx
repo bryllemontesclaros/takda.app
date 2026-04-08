@@ -25,12 +25,18 @@ function getIncomeDraft(accounts = []) {
 export default function Income({ user, data, symbol }) {
   const s = symbol || '₱'
   const [form, setForm] = useState(() => getIncomeDraft(data.accounts))
+  const [showPresetBrowser, setShowPresetBrowser] = useState(false)
 
   const quickPresets = getQuickItems('income')
   const presetGroups = getPresetGroups('income')
   const categories = getTransactionCategories('income')
   const subcategories = getTransactionSubcategories('income', form.cat)
   const selectedPreset = useMemo(() => getPresetByKey('income', form.presetKey), [form.presetKey])
+  const visibleQuickPresets = useMemo(() => {
+    const limited = quickPresets.slice(0, 6)
+    if (!selectedPreset || selectedPreset.isCustom || limited.some(item => item.key === selectedPreset.key)) return limited
+    return [...limited.slice(0, 5), selectedPreset]
+  }, [quickPresets, selectedPreset])
 
   function setField(key, value) {
     setForm(current => ({ ...current, [key]: value }))
@@ -52,6 +58,7 @@ export default function Income({ user, data, symbol }) {
       subcat: nextSubcat,
       desc: current.desc ? current.desc : getSuggestedDescription('income', nextCat, nextSubcat),
     }))
+    setShowPresetBrowser(false)
   }
 
   function applyPreset(nextPresetKey) {
@@ -67,6 +74,7 @@ export default function Income({ user, data, symbol }) {
       cat: preset.cat,
       subcat: preset.subcat,
     }))
+    setShowPresetBrowser(false)
   }
 
   function handleCategoryChange(value) {
@@ -122,7 +130,7 @@ export default function Income({ user, data, symbol }) {
         <div className={styles.formGroup} style={{ marginBottom: 12 }}>
           <label>What did you receive?</label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
-            {quickPresets.map(item => (
+            {visibleQuickPresets.map(item => (
               <button
                 key={item.key}
                 type="button"
@@ -138,18 +146,30 @@ export default function Income({ user, data, symbol }) {
               </button>
             ))}
           </div>
-          <select value={form.presetKey || 'other-custom'} onChange={event => {
-            if (event.target.value === 'other-custom') clearPreset()
-            else applyPreset(event.target.value)
-          }}>
-            {presetGroups.map(group => (
-              <optgroup key={group.label} label={group.label}>
-                {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
-              </optgroup>
-            ))}
-            <option value="other-custom">Other / custom</option>
-          </select>
-          <div className={styles.helper} style={{ marginTop: 8 }}>
+          <div className={styles.presetToggleRow}>
+            <button
+              type="button"
+              className={`${styles.presetToggle} ${showPresetBrowser ? styles.presetToggleActive : ''}`}
+              onClick={() => setShowPresetBrowser(current => !current)}
+              aria-expanded={showPresetBrowser}
+            >
+              {showPresetBrowser ? 'Hide presets' : 'More presets'}
+            </button>
+          </div>
+          {showPresetBrowser && (
+            <select value={form.presetKey || 'other-custom'} onChange={event => {
+              if (event.target.value === 'other-custom') clearPreset()
+              else applyPreset(event.target.value)
+            }}>
+              {presetGroups.map(group => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                </optgroup>
+              ))}
+              <option value="other-custom">Other / custom</option>
+            </select>
+          )}
+          <div className={styles.presetHint} style={{ marginTop: 8 }}>
             {selectedPreset
               ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}.`
               : 'Pick a familiar income source, or keep this as a custom entry.'}

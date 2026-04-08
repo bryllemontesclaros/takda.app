@@ -460,7 +460,12 @@
 .quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; max-width: 100%; }
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
+.presetActions { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.presetToggle { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 42px; white-space: nowrap; }
+.presetToggleActive { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
 .modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.modalFieldFull { grid-column: 1 / -1; }
+.presetHint { margin-bottom: 12px; color: var(--text3); font-size: 12px; line-height: 1.45; }
 .accountHint { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border)); background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--text2); font-size: 12px; line-height: 1.5; }
 .formError { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
 .recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }

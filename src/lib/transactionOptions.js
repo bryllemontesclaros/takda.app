@@ -147,7 +147,7 @@ const TRANSACTION_PRESET_GROUPS = {
 }
 
 const QUICK_PRESET_KEYS = {
-  expense: ['groceries-palengke', 'meralco', 'pldt', 'grab', 'jollibee', 'shopee'],
+  expense: ['groceries-palengke', 'meralco', 'manila-water', 'grab', 'jollibee', 'netflix'],
   income: ['salary', 'client-payment', 'allowance', 'padala-received', 'bonus', '13th-month'],
 }
 

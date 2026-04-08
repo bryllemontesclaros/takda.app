@@ -60,6 +60,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [modalType, setModalType] = useState('income')
   const [editTx, setEditTx] = useState(null)
   const [form, setForm] = useState(() => getEmptyForm('income', defaultAccountId))
+  const [showPresetBrowser, setShowPresetBrowser] = useState(false)
   const [descTouched, setDescTouched] = useState(false)
   const [formError, setFormError] = useState('')
   const [formSaving, setFormSaving] = useState(false)
@@ -116,6 +117,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const presetGroups = getPresetGroups(modalType)
   const subcats = getTransactionSubcategories(modalType, form.cat)
   const selectedPreset = getPresetByKey(modalType, form.presetKey)
+  const visibleQuickPresets = useMemo(() => {
+    const limited = quickPresets.slice(0, 6)
+    if (!selectedPreset || selectedPreset.isCustom || limited.some(item => item.key === selectedPreset.key)) return limited
+    return [...limited.slice(0, 5), selectedPreset]
+  }, [quickPresets, selectedPreset])
   const maskFormattedBalance = value => String(value || '').replace(/\d/g, '•')
   const money = value => {
     const formatted = fmt(value, s)
@@ -209,6 +215,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setEditTx(null)
     setModalType(type)
     setForm(nextDraft)
+    setShowPresetBrowser(false)
     setDescTouched(false)
     setFormError('')
     setShowModal(true)
@@ -217,6 +224,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   function clearComposerPreset(nextType = modalType, nextCat = 'Other', nextSubcat = 'Miscellaneous') {
     const resolvedCat = sanitizeTransactionCategory(nextType, nextCat)
     const resolvedSubcat = sanitizeTransactionSubcategory(nextType, resolvedCat, nextSubcat)
+    setShowPresetBrowser(false)
     setForm(current => ({
       ...current,
       cat: resolvedCat,
@@ -233,6 +241,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       clearComposerPreset(modalType, 'Other', 'Miscellaneous')
       return
     }
+    setShowPresetBrowser(false)
     setForm(current => ({
       ...current,
       cat: preset.cat,
@@ -272,6 +281,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (nextType === modalType) return
     const nextDraft = getEmptyForm(nextType, form.accountId || defaultAccountId)
     setModalType(nextType)
+    setShowPresetBrowser(false)
     setForm({
       ...nextDraft,
       accountId: form.accountId || defaultAccountId,
@@ -291,6 +301,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     closeDayBalanceEditor()
     setEditTx(tx)
     setModalType(nextType)
+    setShowPresetBrowser(false)
     setForm({
       desc: nextDesc,
       amount: String(tx.amount || ''),
@@ -312,6 +323,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setShowModal(false)
     setEditTx(null)
     setModalType('income')
+    setShowPresetBrowser(false)
     setForm(getEmptyForm('income', defaultAccountId))
     setDescTouched(false)
     setFormError('')
@@ -994,7 +1006,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
             <div className={calStyles.modalSectionLabel}>{isIncome ? 'What did you receive?' : 'What did you pay for?'}</div>
             <div className={calStyles.quickCats}>
-              {quickPresets.map(item => (
+              {visibleQuickPresets.map(item => (
                 <button
                   key={item.key}
                   className={`${calStyles.quickCat} ${form.presetKey === item.key ? calStyles.quickCatActive : ''}`}
@@ -1015,26 +1027,39 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 </button>
               ))}
             </div>
+            <div className={calStyles.presetActions}>
+              <button
+                type="button"
+                className={`${calStyles.presetToggle} ${showPresetBrowser ? calStyles.presetToggleActive : ''}`}
+                onClick={() => setShowPresetBrowser(current => !current)}
+                disabled={formSaving}
+                aria-expanded={showPresetBrowser}
+              >
+                {showPresetBrowser ? 'Hide presets' : 'More presets'}
+              </button>
+            </div>
 
             <div className={calStyles.modalFields}>
-              <div className={styles.formGroup}>
-                <label>Browse presets</label>
-                <select
-                  value={form.presetKey || 'other-custom'}
-                  onChange={event => {
-                    if (event.target.value === 'other-custom') clearComposerPreset(modalType, 'Other', 'Miscellaneous')
-                    else applyComposerPreset(event.target.value)
-                  }}
-                  disabled={formSaving}
-                >
-                  {presetGroups.map(group => (
-                    <optgroup key={group.label} label={group.label}>
-                      {group.items.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
-                    </optgroup>
-                  ))}
-                  <option value="other-custom">Other / custom</option>
-                </select>
-              </div>
+              {showPresetBrowser && (
+                <div className={`${styles.formGroup} ${calStyles.modalFieldFull}`}>
+                  <label>Browse presets</label>
+                  <select
+                    value={form.presetKey || 'other-custom'}
+                    onChange={event => {
+                      if (event.target.value === 'other-custom') clearComposerPreset(modalType, 'Other', 'Miscellaneous')
+                      else applyComposerPreset(event.target.value)
+                    }}
+                    disabled={formSaving}
+                  >
+                    {presetGroups.map(group => (
+                      <optgroup key={group.label} label={group.label}>
+                        {group.items.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+                      </optgroup>
+                    ))}
+                    <option value="other-custom">Other / custom</option>
+                  </select>
+                </div>
+              )}
               <div className={styles.formGroup}>
                 <label>{selectedPreset ? 'Description' : (isIncome ? 'Payer or note' : 'Merchant, biller, or note')}</label>
                 <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
@@ -1064,10 +1089,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               </div>
             </div>
 
-            <div className={calStyles.accountHint}>
+            <div className={calStyles.presetHint}>
               {selectedPreset
-                ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}. You can still edit the category details below.`
-                : 'No preset selected. Choose a familiar biller or merchant, or keep this as a custom entry.'}
+                ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}.`
+                : isIncome
+                  ? 'No preset selected. Choose a familiar income source, or keep this as a custom entry.'
+                  : 'No preset selected. Choose a familiar biller or merchant, or keep this as a custom entry.'}
             </div>
 
             <div className={calStyles.accountHint}>{accountHint}</div>
