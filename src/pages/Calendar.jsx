@@ -42,7 +42,7 @@ function buildDayAriaLabel({ ds, day, forecast, hasIncome, hasExpense, hasManual
   return parts.join(', ')
 }
 
-export default function Calendar({ user, data, profile = {}, symbol, privacyMode = false, onSelectedDateChange }) {
+export default function Calendar({ user, data, profile = {}, symbol, privacyMode = false, onTogglePrivacy = () => {}, onSelectedDateChange }) {
   const s = symbol || '₱'
   const now = new Date()
   const currentYear = now.getFullYear()
@@ -469,6 +469,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     : isCurrentMonthView
       ? 'Showing today by default. Tap any day to compare its exact closing balance.'
       : 'Showing the last day of this viewed month by default. Tap any day to compare its exact closing balance.'
+  const balanceRailHint = privacyMode ? 'Tap to show balances.' : 'Tap to hide balances.'
   const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
@@ -631,13 +632,19 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
         </div>
 
-        <div className={calStyles.balanceRail}>
+        <button
+          type="button"
+          className={calStyles.balanceRail}
+          onClick={onTogglePrivacy}
+          aria-pressed={privacyMode}
+          aria-label={`${balanceRailLabel}. ${privacyMode ? 'Balance hidden.' : `${fmt(balanceFocusValue, s)}.`} ${balanceRailHint}`}
+        >
           <div className={calStyles.balanceRailCopy}>
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
-            <div className={calStyles.balanceRailMeta}>{balanceRailMeta}</div>
+            <div className={calStyles.balanceRailMeta}>{`${balanceRailMeta} ${balanceRailHint}`}</div>
           </div>
           <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
-        </div>
+        </button>
       </div>
 
       {selected && (

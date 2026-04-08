@@ -98,6 +98,7 @@ export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
   const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [] })
   const [profile, setProfile] = useState({})
+  const [gamificationReady, setGamificationReady] = useState(false)
   const [celebrationToast, setCelebrationToast] = useState(null)
   const [quickAddMenuOpen, setQuickAddMenuOpen] = useState(false)
   const [quickAddSheet, setQuickAddSheet] = useState({ open: false, mode: 'manual', type: 'expense', initialEntry: null })
@@ -107,20 +108,110 @@ export default function AppShell({ user }) {
   const [verifyBannerMsg, setVerifyBannerMsg] = useState({ text: '', ok: false })
   const [verifySending, setVerifySending] = useState(false)
   const previousGamificationRef = useRef(null)
+  const celebrationToastRef = useRef(null)
+  const toastQueueRef = useRef([])
   const toastTimerRef = useRef(null)
   const syncingDueTransactionsRef = useRef(false)
+  const loadFlagsRef = useRef({
+    income: false,
+    expenses: false,
+    bills: false,
+    goals: false,
+    accounts: false,
+    budgets: false,
+    profile: false,
+  })
+
+  function markLoaded(key) {
+    if (loadFlagsRef.current[key]) return
+    loadFlagsRef.current[key] = true
+    if (Object.values(loadFlagsRef.current).every(Boolean)) {
+      setGamificationReady(true)
+    }
+  }
+
+  function clearCelebrationToastTimer() {
+    if (!toastTimerRef.current) return
+    window.clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = null
+  }
+
+  function dismissCelebrationToast() {
+    clearCelebrationToastTimer()
+    const nextToast = toastQueueRef.current.shift() || null
+    celebrationToastRef.current = nextToast
+    setCelebrationToast(nextToast)
+    if (!nextToast) return
+    toastTimerRef.current = window.setTimeout(() => {
+      dismissCelebrationToast()
+    }, 3200)
+  }
+
+  function showCelebrationToast(toast) {
+    celebrationToastRef.current = toast
+    setCelebrationToast(toast)
+    clearCelebrationToastTimer()
+    toastTimerRef.current = window.setTimeout(() => {
+      dismissCelebrationToast()
+    }, 3200)
+  }
+
+  function enqueueCelebrationToasts(toasts = []) {
+    const incoming = toasts.filter(Boolean)
+    if (!incoming.length) return
+
+    if (celebrationToastRef.current) {
+      toastQueueRef.current.push(...incoming)
+      return
+    }
+
+    const [firstToast, ...rest] = incoming
+    toastQueueRef.current.push(...rest)
+    showCelebrationToast(firstToast)
+  }
 
   useEffect(() => {
     if (!user) return
+    setGamificationReady(false)
+    loadFlagsRef.current = {
+      income: false,
+      expenses: false,
+      bills: false,
+      goals: false,
+      accounts: false,
+      budgets: false,
+      profile: false,
+    }
     const uid = user.uid
     const unsubs = [
-      listenCol(uid, 'income', rows => setData(d => ({ ...d, income: rows }))),
-      listenCol(uid, 'expenses', rows => setData(d => ({ ...d, expenses: rows }))),
-      listenCol(uid, 'bills', rows => setData(d => ({ ...d, bills: rows }))),
-      listenCol(uid, 'goals', rows => setData(d => ({ ...d, goals: rows }))),
-      listenCol(uid, 'accounts', rows => setData(d => ({ ...d, accounts: rows }))),
-      listenCol(uid, 'budgets', rows => setData(d => ({ ...d, budgets: rows }))),
-      listenProfile(uid, p => setProfile(p)),
+      listenCol(uid, 'income', rows => {
+        setData(d => ({ ...d, income: rows }))
+        markLoaded('income')
+      }),
+      listenCol(uid, 'expenses', rows => {
+        setData(d => ({ ...d, expenses: rows }))
+        markLoaded('expenses')
+      }),
+      listenCol(uid, 'bills', rows => {
+        setData(d => ({ ...d, bills: rows }))
+        markLoaded('bills')
+      }),
+      listenCol(uid, 'goals', rows => {
+        setData(d => ({ ...d, goals: rows }))
+        markLoaded('goals')
+      }),
+      listenCol(uid, 'accounts', rows => {
+        setData(d => ({ ...d, accounts: rows }))
+        markLoaded('accounts')
+      }),
+      listenCol(uid, 'budgets', rows => {
+        setData(d => ({ ...d, budgets: rows }))
+        markLoaded('budgets')
+      }),
+      listenProfile(uid, p => {
+        setProfile(p)
+        markLoaded('profile')
+      }),
     ]
     return () => unsubs.forEach(u => u())
   }, [user])
@@ -153,57 +244,53 @@ export default function AppShell({ user }) {
   useEffect(() => {
     if (!gamification) return
 
-    if (previousGamificationRef.current == null) {
+    if (!gamificationReady || previousGamificationRef.current == null) {
       previousGamificationRef.current = gamification
       return
     }
 
     const previous = previousGamificationRef.current
-    let nextToast = null
+    const nextToasts = []
 
     if (gamification.level > previous.level) {
-      nextToast = {
+      nextToasts.push({
         eyebrow: 'Level up',
         title: `Level ${gamification.level} reached`,
         meta: 'Your money momentum just moved up another step.',
-      }
-    } else {
-      const streakMilestone = STREAK_MILESTONES.find(target => (
-        gamification.currentStreakDays >= target && previous.currentStreakDays < target
-      ))
-
-      if (streakMilestone) {
-        nextToast = {
-          eyebrow: 'Streak milestone',
-          title: `${streakMilestone}-day rhythm`,
-          meta: 'Your logging habit is starting to feel automatic. Protect the streak tomorrow.',
-        }
-      } else if (
-        gamification.weeklyCheckins >= gamification.weeklyTarget &&
-        previous.weeklyCheckins < previous.weeklyTarget
-      ) {
-        nextToast = {
-          eyebrow: 'Weekly target hit',
-          title: `${gamification.weeklyTarget} check-ins done`,
-          meta: 'That weekly rhythm is what keeps the product useful day to day.',
-        }
-      }
+      })
     }
 
-    if (nextToast) {
-      setCelebrationToast(nextToast)
-      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
-      toastTimerRef.current = window.setTimeout(() => {
-        setCelebrationToast(null)
-      }, 3200)
+    const streakMilestone = STREAK_MILESTONES.find(target => (
+      gamification.currentStreakDays >= target && previous.currentStreakDays < target
+    ))
+
+    if (streakMilestone) {
+      nextToasts.push({
+        eyebrow: 'Streak milestone',
+        title: `${streakMilestone}-day rhythm`,
+        meta: 'Your logging habit is starting to feel automatic. Protect the streak tomorrow.',
+      })
     }
+
+    if (
+      gamification.weeklyCheckins >= gamification.weeklyTarget &&
+      previous.weeklyCheckins < previous.weeklyTarget
+    ) {
+      nextToasts.push({
+        eyebrow: 'Weekly target hit',
+        title: `${gamification.weeklyTarget} check-ins done`,
+        meta: 'That weekly rhythm is what keeps the product useful day to day.',
+      })
+    }
+
+    enqueueCelebrationToasts(nextToasts)
 
     previousGamificationRef.current = gamification
-  }, [gamification])
+  }, [gamification, gamificationReady])
 
   useEffect(() => {
     return () => {
-      if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current)
+      clearCelebrationToastTimer()
     }
   }, [])
 
@@ -436,6 +523,17 @@ export default function AppShell({ user }) {
         {celebrationToast && (
           <div className={styles.levelToastWrap}>
             <div className={styles.levelToast} role="status" aria-live="polite">
+              <button
+                type="button"
+                className={styles.levelToastDismiss}
+                onClick={dismissCelebrationToast}
+                aria-label="Dismiss celebration notification"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
               <div className={styles.levelToastEyebrow}>{celebrationToast.eyebrow}</div>
               <div className={styles.levelToastTitle}>{celebrationToast.title}</div>
               <div className={styles.levelToastMeta}>

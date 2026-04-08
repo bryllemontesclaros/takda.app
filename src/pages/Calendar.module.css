@@ -126,6 +126,21 @@
   justify-content: space-between;
   gap: 14px;
   flex-shrink: 0;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.balanceRail:hover {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--surface3) 92%, #ffffff 8%);
+}
+
+.balanceRail:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .balanceRailCopy { min-width: 0; }
@@ -429,9 +444,9 @@
 /* MOBILE */
 @media (max-width: 768px) {
   .page {
-    flex: 1;
-    height: 100%;
-    overflow: hidden;
+    flex: 0 0 auto;
+    height: auto;
+    overflow: visible;
     padding: 10px;
     padding-bottom: 0;
     gap: 8px;
@@ -450,8 +465,9 @@
     display: none;
   }
   .calendarCard {
-    flex: 1;
-    height: 100%;
+    flex: 0 0 auto;
+    height: auto;
+    min-height: auto;
     padding: 10px;
     border-radius: 18px;
     grid-template-rows: auto auto auto;
