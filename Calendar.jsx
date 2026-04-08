@@ -470,6 +470,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     : isCurrentMonthView
       ? `Today’s closing balance for ${formatBalanceDate(balanceFocusDate)}`
       : `Month-end closing balance for ${formatBalanceDate(balanceFocusDate)}`
+  const balanceRailCompactLabel = selected
+    ? `Closing balance · ${formatBalanceDate(balanceFocusDate)}`
+    : isCurrentMonthView
+      ? `Today · ${formatBalanceDate(balanceFocusDate)}`
+      : `Month-end · ${formatBalanceDate(balanceFocusDate)}`
   const balanceRailMeta = selected
     ? 'Selected day closing balance.'
     : isCurrentMonthView
@@ -647,6 +652,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         >
           <div className={calStyles.balanceRailCopy}>
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
+            <div className={calStyles.balanceRailLabelCompact}>{balanceRailCompactLabel}</div>
             <div className={calStyles.balanceRailMeta}>{`${balanceRailMeta} ${balanceRailHint}`}</div>
           </div>
           <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
