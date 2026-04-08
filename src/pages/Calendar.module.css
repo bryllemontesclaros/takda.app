@@ -153,6 +153,10 @@
   color: var(--text);
 }
 
+.balanceRailLabelCompact {
+  display: none;
+}
+
 .balanceRailMeta {
   margin-top: 4px;
   font-size: 11px;
@@ -429,6 +433,9 @@
   .balanceRailLabel {
     font-size: 12px;
   }
+  .balanceRailLabelCompact {
+    display: none;
+  }
   .balanceRailMeta {
     margin-top: 2px;
     font-size: 10px;
@@ -480,11 +487,19 @@
     margin-bottom: 8px;
     gap: 6px;
   }
-  .nav { justify-content: space-between; }
+  .nav {
+    justify-content: space-between;
+    align-items: center;
+    min-height: 38px;
+  }
   .monthLabel {
-    width: auto;
+    width: 170px;
     flex: 1;
     font-size: 17px;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .navBtn {
     min-width: 38px;
@@ -547,7 +562,17 @@
     gap: 10px;
   }
   .balanceRailLabel {
+    display: none;
+  }
+  .balanceRailLabelCompact {
+    display: block;
     font-size: 12px;
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .balanceRailMeta {
     display: none;

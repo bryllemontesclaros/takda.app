@@ -79,6 +79,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const prevDays = new Date(year, month, 0).getDate()
+  const totalCalendarCells = 42
+  const trailingDayCount = Math.max(0, totalCalendarCells - (firstDay + daysInMonth))
   const dailyBalanceOverrides = profile?.dailyBalanceOverrides && typeof profile.dailyBalanceOverrides === 'object' && !Array.isArray(profile.dailyBalanceOverrides)
     ? profile.dailyBalanceOverrides
     : {}
@@ -468,6 +470,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     : isCurrentMonthView
       ? `Today’s closing balance for ${formatBalanceDate(balanceFocusDate)}`
       : `Month-end closing balance for ${formatBalanceDate(balanceFocusDate)}`
+  const balanceRailCompactLabel = selected
+    ? `Closing balance · ${formatBalanceDate(balanceFocusDate)}`
+    : isCurrentMonthView
+      ? `Today · ${formatBalanceDate(balanceFocusDate)}`
+      : `Month-end · ${formatBalanceDate(balanceFocusDate)}`
   const balanceRailMeta = selected
     ? 'Selected day closing balance.'
     : isCurrentMonthView
@@ -628,7 +635,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 </button>
               )
             })}
-            {Array.from({ length: (7 - (firstDay + daysInMonth) % 7) % 7 }, (_, index) => (
+            {Array.from({ length: trailingDayCount }, (_, index) => (
               <div key={`n${index}`} className={`${calStyles.cell} ${calStyles.otherMonth}`} aria-hidden="true">
                 <div className={calStyles.dateNum}>{index + 1}</div>
               </div>
@@ -645,6 +652,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         >
           <div className={calStyles.balanceRailCopy}>
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
+            <div className={calStyles.balanceRailLabelCompact}>{balanceRailCompactLabel}</div>
             <div className={calStyles.balanceRailMeta}>{`${balanceRailMeta} ${balanceRailHint}`}</div>
           </div>
           <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
