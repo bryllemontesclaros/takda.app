@@ -893,6 +893,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               </div>
             )}
           </div>
+          </div>
         </>
       )}
 
