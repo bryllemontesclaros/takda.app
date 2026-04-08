@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { confirmDelete, displayValue, fmt, maskMoney } from '../lib/utils'
+import { confirmDelete, displayValue, fmt, formatDisplayDate, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
 
 export default function Savings({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
@@ -33,6 +33,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
   }
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const hasTargetDate = Boolean(form.date)
 
   return (
     <div className={styles.page}>
@@ -54,7 +55,26 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
         <div className={`${styles.formRow} ${styles.col3}`}>
           <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={form.name} onChange={event => set('name', event.target.value)} /></div>
           <div className={styles.formGroup}><label>Target amount ({s})</label><input type="number" min="0" placeholder="0.00" value={form.target} onChange={event => set('target', event.target.value)} /></div>
-          <div className={styles.formGroup}><label>Target date</label><input type="date" value={form.date} onChange={event => set('date', event.target.value)} /></div>
+          <div className={styles.formGroup}>
+            <div className={styles.fieldLabelRow}>
+              <label htmlFor="savings-target-date">Target date</label>
+              <span className={styles.fieldLabelNote}>Optional</span>
+            </div>
+            <div className={styles.dateFieldWrap}>
+              <div className={`${styles.dateFieldDisplay} ${!hasTargetDate ? styles.dateFieldPlaceholder : ''}`}>
+                {formatDisplayDate(form.date)}
+              </div>
+              <input
+                id="savings-target-date"
+                type="date"
+                className={styles.dateFieldNative}
+                value={form.date}
+                aria-label="Target date"
+                onChange={event => set('date', event.target.value)}
+              />
+            </div>
+            <div className={styles.formHint}>Set a finish line so this goal stays easier to pace.</div>
+          </div>
         </div>
         <div className={`${styles.formRow} ${styles.col2}`}>
           <div className={styles.formGroup}><label>Current saved ({s})</label><input type="number" min="0" placeholder="0.00" value={form.current} onChange={event => set('current', event.target.value)} /></div>
@@ -81,9 +101,11 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
               <div className={`${styles.progressFill} ${pct >= 80 ? styles.almost : ''}`} style={{ width: `${pct}%` }} />
             </div>
             <div className={styles.goalMeta}>
-              <span className={styles.goalSaved}>{displayValue(privacyMode, `${fmt(goal.current || 0, s)} saved`, `${maskMoney(s)} saved`)}</span>
-              <span>of {money(goal.target)}</span>
-              {goal.date && <span>{goal.date}</span>}
+              <div className={styles.goalMetaPrimary}>
+                <span className={styles.goalSaved}>{displayValue(privacyMode, `${fmt(goal.current || 0, s)} saved`, `${maskMoney(s)} saved`)}</span>
+                <span>of {money(goal.target)}</span>
+              </div>
+              {goal.date && <span className={styles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
             </div>
             <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
               <input

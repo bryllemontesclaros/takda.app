@@ -17,7 +17,7 @@ import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpd
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
-import { CURRENCIES, confirmDelete, displayValue, fmt, maskMoney, today } from '../lib/utils'
+import { CURRENCIES, confirmDelete, displayValue, fmt, formatDisplayDate, maskMoney, today } from '../lib/utils'
 import styles from './Page.module.css'
 import settStyles from './Settings.module.css'
 
@@ -185,17 +185,9 @@ function StatusBanner({ message }) {
   const ok = Boolean(message.ok)
   return (
     <div
+      className={`${settStyles.statusBanner} ${ok ? settStyles.statusBannerOk : settStyles.statusBannerError}`}
       role={ok ? 'status' : 'alert'}
       aria-live={ok ? 'polite' : 'assertive'}
-      style={{
-        background: ok ? 'var(--accent-glow)' : 'var(--red-dim)',
-        color: ok ? 'var(--accent)' : 'var(--red)',
-        border: `1px solid ${ok ? 'var(--accent)' : 'var(--red)'}`,
-        borderRadius: 'var(--radius-sm)',
-        padding: '10px 14px',
-        fontSize: 13,
-        marginBottom: '1rem',
-      }}
     >
       {ok ? '✓ ' : ''}{message.text}
     </div>
@@ -208,19 +200,7 @@ function ToggleButton({ enabled, onClick, onLabel = 'On', offLabel = 'Off', disa
       type="button"
       onClick={onClick}
       disabled={disabled}
-      style={{
-        minWidth: 82,
-        padding: '9px 14px',
-        background: enabled ? 'var(--accent-glow)' : 'var(--surface2)',
-        border: `1px solid ${enabled ? 'var(--accent)' : 'var(--border)'}`,
-        color: enabled ? 'var(--accent)' : 'var(--text2)',
-        borderRadius: 'var(--radius-sm)',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: 'var(--font-body)',
-        fontSize: 13,
-        fontWeight: 600,
-        opacity: disabled ? 0.6 : 1,
-      }}
+      className={`${settStyles.toggleButton} ${enabled ? settStyles.toggleButtonActive : ''}`}
     >
       {enabled ? onLabel : offLabel}
     </button>
@@ -232,20 +212,25 @@ function ModeButton({ active, onClick, children }) {
     <button
       type="button"
       onClick={onClick}
-      style={{
-        padding: '9px 14px',
-        background: active ? 'var(--accent-glow)' : 'var(--surface2)',
-        border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-        color: active ? 'var(--accent)' : 'var(--text2)',
-        borderRadius: 'var(--radius-sm)',
-        cursor: 'pointer',
-        fontFamily: 'var(--font-body)',
-        fontSize: 13,
-        fontWeight: 600,
-      }}
+      className={`${settStyles.modeButton} ${active ? settStyles.modeButtonActive : ''}`}
     >
       {children}
     </button>
+  )
+}
+
+function CardHeader({ title, description, eyebrow, badge }) {
+  return (
+    <div className={settStyles.sectionHeader}>
+      <div className={settStyles.sectionHeaderCopy}>
+        {eyebrow && <div className={settStyles.sectionEyebrow}>{eyebrow}</div>}
+        <div className={settStyles.sectionTitleRow}>
+          <div className={settStyles.sectionTitle}>{title}</div>
+          {badge ? <span className={settStyles.sectionBadge}>{badge}</span> : null}
+        </div>
+        {description ? <p className={settStyles.sectionCopy}>{description}</p> : null}
+      </div>
+    </div>
   )
 }
 
@@ -713,16 +698,56 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const showPublishConsent = feedbackForm.kind === 'testimonial' || Number(feedbackForm.rating) >= 4
   const currentEmail = auth.currentUser?.email || user?.email || ''
   const currentDisplayName = auth.currentUser?.displayName || user?.displayName || ''
-  const emailStatusColor = emailVerified ? 'var(--accent)' : 'var(--amber)'
-  const emailStatusBg = emailVerified ? 'var(--accent-glow)' : 'var(--amber-dim)'
   const restoreExportedAt = restorePreview?.exportedAt && !Number.isNaN(new Date(restorePreview.exportedAt).getTime())
     ? new Date(restorePreview.exportedAt).toLocaleString()
     : restorePreview?.exportedAt
+  const enabledNotificationCount = NOTIFICATION_OPTIONS.filter(option => notificationPrefs[option.key]).length
+  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length
+  const goalDateSelected = Boolean(goalForm.date)
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Settings</div>
         <div className={styles.sub}>Manage your account, exports, and app preferences</div>
+      </div>
+
+      <div className={settStyles.overviewCard}>
+        <div className={settStyles.overviewHeader}>
+          <div>
+            <div className={settStyles.overviewEyebrow}>Settings center</div>
+            <div className={settStyles.overviewTitle}>Keep Takda secure, personal, and easy to recover.</div>
+            <div className={settStyles.overviewCopy}>
+              Everything sensitive lives here: account identity, notifications, backups, legal controls, and the tools you need if something goes wrong.
+            </div>
+          </div>
+          <div className={settStyles.accountBadge}>
+            <span className={settStyles.accountBadgeName}>{currentDisplayName || 'Takda account'}</span>
+            <span className={settStyles.accountBadgeMeta}>{currentEmail}</span>
+          </div>
+        </div>
+
+        <div className={settStyles.overviewGrid}>
+          <div className={settStyles.overviewStat}>
+            <div className={settStyles.overviewStatLabel}>Email status</div>
+            <div className={settStyles.overviewStatValue}>{emailVerified ? 'Verified' : 'Needs verification'}</div>
+            <div className={settStyles.overviewStatMeta}>{emailVerified ? 'Recovery-ready account' : 'Verify for smoother recovery'}</div>
+          </div>
+          <div className={settStyles.overviewStat}>
+            <div className={settStyles.overviewStatLabel}>Currency</div>
+            <div className={settStyles.overviewStatValue}>{profileForm.currency || 'PHP'}</div>
+            <div className={settStyles.overviewStatMeta}>Used across balances, goals, and reports</div>
+          </div>
+          <div className={settStyles.overviewStat}>
+            <div className={settStyles.overviewStatLabel}>Notifications</div>
+            <div className={settStyles.overviewStatValue}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length}</div>
+            <div className={settStyles.overviewStatMeta}>In-app alert categories enabled</div>
+          </div>
+          <div className={settStyles.overviewStat}>
+            <div className={settStyles.overviewStatLabel}>Tracked records</div>
+            <div className={settStyles.overviewStatValue}>{trackedRecords}</div>
+            <div className={settStyles.overviewStatMeta}>Transactions, goals, bills, accounts, and budgets</div>
+          </div>
+        </div>
       </div>
 
       <GamificationCard
@@ -732,11 +757,13 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         message="Settings shape the experience. Consistent logging keeps the numbers useful."
       />
 
+      <div className={settStyles.settingsGrid}>
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Account & security</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Update your display name, verification status, and secure email details.
-        </p>
+        <CardHeader
+          eyebrow="Identity"
+          title="Account & security"
+          description="Update your display name, verification status, and the email details tied to your Takda account."
+        />
         <StatusBanner message={accountMsg} />
 
         <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
@@ -755,18 +782,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             <div className={settStyles.preferenceTitle}>Email verification</div>
             <div className={settStyles.preferenceMeta}>A verified email helps with recovery and sensitive account changes.</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span
-              style={{
-                padding: '7px 12px',
-                background: emailStatusBg,
-                border: `1px solid ${emailStatusColor}`,
-                borderRadius: '999px',
-                color: emailStatusColor,
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
+          <div className={settStyles.inlineActions}>
+            <span className={`${settStyles.statusPill} ${emailVerified ? settStyles.statusPillOk : settStyles.statusPillWarn}`}>
               {emailVerified ? 'Verified' : 'Unverified'}
             </span>
             {!emailVerified && (
@@ -777,15 +794,15 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-          <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleSaveAccountProfile} disabled={accountSaving}>
+        <div className={settStyles.actionRow}>
+          <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleSaveAccountProfile} disabled={accountSaving}>
             {accountSaving ? 'Saving...' : 'Save display name'}
           </button>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-          <div className={styles.cardTitle} style={{ marginBottom: 8 }}>Change email</div>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+        <div className={settStyles.subsection}>
+          <div className={settStyles.subsectionTitle}>Change email</div>
+          <p className={settStyles.subsectionCopy}>
             Takda will ask Firebase to verify the new address before the change is applied.
           </p>
           <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
@@ -798,16 +815,20 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
               <input type="password" placeholder="Required to confirm this change" value={accountForm.password} onChange={event => setAccountField('password', event.target.value)} />
             </div>
           </div>
-          <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleChangeEmail} disabled={accountSaving}>
+          <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleChangeEmail} disabled={accountSaving}>
             {accountSaving ? 'Updating...' : 'Update email'}
           </button>
         </div>
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Change Password</div>
+        <CardHeader
+          eyebrow="Security"
+          title="Change password"
+          description="Keep your login secure and update your password without leaving Takda."
+        />
         {pwMsg.text && (
-          <div style={{ padding: '8px 12px', borderRadius: 'var(--radius-sm)', fontSize: 13, marginBottom: 12, background: pwMsg.ok ? 'var(--accent-glow)' : 'var(--red-dim)', color: pwMsg.ok ? 'var(--accent)' : 'var(--red)', border: `1px solid ${pwMsg.ok ? 'var(--accent)' : 'var(--red)'}` }}>
+          <div className={`${settStyles.statusBanner} ${pwMsg.ok ? settStyles.statusBannerOk : settStyles.statusBannerError}`} style={{ marginBottom: 12 }}>
             {pwMsg.text}
           </div>
         )}
@@ -825,16 +846,17 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             <input type="password" placeholder="••••••••" value={pwForm.confirm} onChange={event => setPwForm(current => ({ ...current, confirm: event.target.value }))} />
           </div>
         </div>
-        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleChangePassword} disabled={pwLoading}>
+        <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleChangePassword} disabled={pwLoading}>
           {pwLoading ? 'Updating...' : 'Update password'}
         </button>
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Notifications</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Choose which alerts Takda shows and whether this browser can send notifications.
-        </p>
+        <CardHeader
+          eyebrow="Alerts"
+          title="Notifications"
+          description="Choose which alerts Takda shows and whether this browser can send notifications."
+        />
         <StatusBanner message={notifMsg} />
 
         <div className={settStyles.preferenceRow}>
@@ -842,17 +864,15 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             <div className={settStyles.preferenceTitle}>Browser notifications</div>
             <div className={settStyles.preferenceMeta}>Allow notification permission from this browser when supported.</div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <div className={settStyles.inlineActions}>
             <span
-              style={{
-                padding: '7px 12px',
-                background: browserPermission === 'granted' ? 'var(--accent-glow)' : browserPermission === 'denied' ? 'var(--red-dim)' : 'var(--surface2)',
-                border: `1px solid ${browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--border)'}`,
-                borderRadius: '999px',
-                color: browserPermission === 'granted' ? 'var(--accent)' : browserPermission === 'denied' ? 'var(--red)' : 'var(--text2)',
-                fontSize: 12,
-                fontWeight: 600,
-              }}
+              className={`${settStyles.statusPill} ${
+                browserPermission === 'granted'
+                  ? settStyles.statusPillOk
+                  : browserPermission === 'denied'
+                    ? settStyles.statusPillError
+                    : settStyles.statusPillNeutral
+              }`}
             >
               {browserPermission === 'granted'
                 ? 'Enabled'
@@ -886,10 +906,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Legal & privacy</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Review Takda&apos;s legal terms, understand how your data is handled, and reach the privacy contact if you need help with access, correction, export, deletion, or a complaint.
-        </p>
+        <CardHeader
+          eyebrow="Trust"
+          title="Legal & privacy"
+          description="Review Takda&apos;s terms, understand how data is handled, and reach the privacy contact if you need help with access, correction, export, deletion, or a complaint."
+        />
         <StatusBanner message={legalMsg} />
 
         <div className={settStyles.preferenceRow}>
@@ -927,10 +948,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Currency & rates</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1.25rem', lineHeight: 1.6 }}>
-          Choose the currency Takda should use across the app and view indicative exchange rates for context.
-        </p>
+        <CardHeader
+          eyebrow="Formatting"
+          title="Currency & rates"
+          description="Choose the currency Takda should use across the app and view indicative exchange rates for context."
+        />
 
         <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
           <label>Currency</label>
@@ -939,94 +961,135 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           </select>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginBottom: '1.25rem' }}>
-          <div className={styles.cardTitle} style={{ marginBottom: 8 }}>Live Exchange Rates</div>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+        <div className={settStyles.subsection} style={{ marginBottom: '1.25rem' }}>
+          <div className={settStyles.subsectionTitle}>Live exchange rates</div>
+          <p className={settStyles.subsectionCopy}>
             Indicative rates for your selected base currency. Helpful for context, not a core account setting.
           </p>
           {ratesLoading ? (
-            <div style={{ fontSize: 13, color: 'var(--text3)' }}>Loading rates...</div>
+            <div className={settStyles.emptyCopy}>Loading rates...</div>
           ) : !rates ? (
-            <div style={{ fontSize: 13, color: 'var(--text3)' }}>Could not load rates. Check your connection.</div>
+            <div className={settStyles.emptyCopy}>Could not load rates. Check your connection.</div>
           ) : (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
-                <div style={{ background: 'var(--accent-glow)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: 11, color: 'var(--accent)', marginBottom: 4, fontWeight: 600 }}>Your currency — Base</div>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 20, color: 'var(--accent)', fontWeight: 700 }}>{s} {rates.base}</div>
+              <div className={settStyles.ratesGrid}>
+                <div className={settStyles.rateBaseCard}>
+                  <div className={settStyles.rateBaseLabel}>Your currency — Base</div>
+                  <div className={settStyles.rateBaseValue}>{s} {rates.base}</div>
                 </div>
                 {['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD', 'CAD', 'HKD', 'KRW', 'CNY', 'PHP'].filter(code => code !== rates.base).map(code => {
                   if (!rates.data[code]) return null
                   const unitsPerForeign = (1 / rates.data[code]).toFixed(2)
                   return (
-                    <div key={code} style={{ background: 'var(--surface2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
-                      <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>1 {code} =</div>
-                      <div style={{ fontFamily: 'var(--font-mono)', fontSize: 15, color: 'var(--text)', fontWeight: 700 }}>{s}{unitsPerForeign}</div>
-                      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{rates.base}</div>
+                    <div key={code} className={settStyles.rateCard}>
+                      <div className={settStyles.rateLabel}>1 {code} =</div>
+                      <div className={settStyles.rateValue}>{s}{unitsPerForeign}</div>
+                      <div className={settStyles.rateMeta}>{rates.base}</div>
                     </div>
                   )
                 })}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>Source: exchangerate-api.com · Rates are indicative</div>
+              <div className={settStyles.rateSource}>Source: exchangerate-api.com · Rates are indicative</div>
             </>
           )}
         </div>
 
         {profileSaved && (
-          <div style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontSize: 13, marginBottom: '1rem' }}>
+          <div className={`${settStyles.statusBanner} ${settStyles.statusBannerOk}`}>
             ✓ Profile saved.
           </div>
         )}
 
-        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 24px' }} onClick={handleSaveProfile}>
+        <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleSaveProfile}>
           Save profile
         </button>
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Savings Goals</div>
+        <CardHeader
+          eyebrow="Planning"
+          title="Savings goals"
+          description="Manage your finish lines here without leaving Settings."
+        />
+
+        <div className={settStyles.goalComposer}>
         <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 8 }}>
           <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={goalForm.name} onChange={event => setGoalForm(current => ({ ...current, name: event.target.value }))} /></div>
           <div className={styles.formGroup}><label>Target ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.target} onChange={event => setGoalForm(current => ({ ...current, target: event.target.value }))} /></div>
         </div>
         <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
           <div className={styles.formGroup}><label>Already saved ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.current} onChange={event => setGoalForm(current => ({ ...current, current: event.target.value }))} /></div>
-          <div className={styles.formGroup}><label>Target date</label><input type="date" value={goalForm.date} onChange={event => setGoalForm(current => ({ ...current, date: event.target.value }))} /></div>
+          <div className={styles.formGroup}>
+            <div className={styles.fieldLabelRow}>
+              <label htmlFor="settings-goal-date">Target date</label>
+              <span className={styles.fieldLabelNote}>Optional</span>
+            </div>
+            <div className={styles.dateFieldWrap}>
+              <div className={`${styles.dateFieldDisplay} ${!goalDateSelected ? styles.dateFieldPlaceholder : ''}`}>
+                {formatDisplayDate(goalForm.date)}
+              </div>
+              <input
+                id="settings-goal-date"
+                type="date"
+                className={styles.dateFieldNative}
+                value={goalForm.date}
+                onChange={event => setGoalForm(current => ({ ...current, date: event.target.value }))}
+              />
+            </div>
+          </div>
         </div>
-        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px', marginBottom: data.goals.length ? '1.25rem' : 0 }} onClick={handleAddGoal}>Add goal</button>
+        <div className={settStyles.actionRow}>
+          <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} style={{ marginBottom: data.goals.length ? '0.25rem' : 0 }} onClick={handleAddGoal}>Add goal</button>
+        </div>
+        </div>
 
         {data.goals.map(goal => {
           const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
           return (
-            <div key={goal._id} style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{goal.name}</span>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>{money(goal.current || 0)}</span>
-                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>/ {money(goal.target)}</span>
-                  <button onClick={() => handleDelGoal(goal._id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 13, padding: '2px 4px' }}>✕</button>
+            <div key={goal._id} className={`${styles.goalCard} ${settStyles.goalItem}`}>
+              <div className={settStyles.goalItemHeader}>
+                <div>
+                  <div className={styles.goalName}>{goal.name}</div>
+                  <div className={settStyles.goalItemMeta}>
+                    <span>{pct}% complete</span>
+                    {goal.date && <span className={styles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
+                  </div>
+                </div>
+                <button className={styles.delBtn} onClick={() => handleDelGoal(goal._id)}>✕</button>
+              </div>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
+              </div>
+              <div className={styles.goalMeta}>
+                <div className={styles.goalMetaPrimary}>
+                  <span className={styles.goalSaved}>{money(goal.current || 0)} saved</span>
+                  <span>of {money(goal.target)}</span>
                 </div>
               </div>
-              <div style={{ height: 7, background: 'var(--surface3)', borderRadius: 4, overflow: 'hidden', marginBottom: 8 }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)', borderRadius: 4, transition: 'width 0.4s' }} />
-              </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input type="number" min="0" placeholder={`Add amount (${s})`} value={contribs[goal._id] || ''} onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
-                  style={{ flex: 1, padding: '7px 10px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, fontFamily: 'var(--font-body)', outline: 'none' }} />
-                <button onClick={() => handleGoalContrib(goal)} style={{ padding: '7px 14px', background: 'var(--accent-glow)', border: '1px solid var(--accent)', color: 'var(--accent)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 13, fontWeight: 600, fontFamily: 'var(--font-body)', whiteSpace: 'nowrap' }}>+ Add</button>
+              <div className={settStyles.goalContributionRow}>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={`Add amount (${s})`}
+                  value={contribs[goal._id] || ''}
+                  onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
+                  className={settStyles.goalContributionInput}
+                />
+                <button className={settStyles.btnExport} onClick={() => handleGoalContrib(goal)}>+ Add</button>
               </div>
             </div>
           )
         })}
-        {!data.goals.length && <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 8 }}>No savings goals yet. Add one above to start tracking progress.</div>}
+        {!data.goals.length && <div className={settStyles.emptyCopy} style={{ marginTop: 8 }}>No savings goals yet. Add one above to start tracking progress.</div>}
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Data access, export & restore</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, and profile settings.
-        </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <div className={`${styles.card} ${settStyles.fullSpanCard}`}>
+        <CardHeader
+          eyebrow="Recovery"
+          title="Data access, export & restore"
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, and profile settings."
+        />
+        <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
           <button className={settStyles.btnExport} onClick={exportJSON}>{jsonExportDone ? '✓ Backup downloaded' : '↓ Backup as JSON'}</button>
           <button
@@ -1040,9 +1103,9 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           </button>
         </div>
 
-        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem' }}>
-          <div className={styles.cardTitle} style={{ marginBottom: 8 }}>Restore backup</div>
-          <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
+        <div className={settStyles.subsection}>
+          <div className={settStyles.subsectionTitle}>Restore backup</div>
+          <p className={settStyles.subsectionCopy}>
             Load a Takda JSON backup, review what it contains, then merge it or replace your current app data.
           </p>
           <StatusBanner message={restoreMsg} />
@@ -1066,17 +1129,17 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
           {restorePreview && (
             <>
-              <div style={{ marginTop: 12, padding: '12px 14px', background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4 }}>Loaded backup</div>
-                <div style={{ fontSize: 13, color: 'var(--text)', fontWeight: 600 }}>{restorePreview.fileName}</div>
+              <div className={settStyles.restoreLoadedCard}>
+                <div className={settStyles.restoreLoadedLabel}>Loaded backup</div>
+                <div className={settStyles.restoreLoadedName}>{restorePreview.fileName}</div>
                 {restoreExportedAt && (
-                  <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
+                  <div className={settStyles.restoreLoadedMeta}>
                     Exported {restoreExportedAt}
                   </div>
                 )}
               </div>
 
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 12 }}>
+              <div className={settStyles.restoreModeRow}>
                 <ModeButton active={restoreMode === 'merge'} onClick={() => setRestoreMode('merge')}>
                   Merge with current data
                 </ModeButton>
@@ -1094,8 +1157,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
                 ))}
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 12 }}>
-                <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={handleRestoreBackup} disabled={restoreLoading}>
+              <div className={settStyles.actionRow} style={{ marginTop: 12 }}>
+                <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleRestoreBackup} disabled={restoreLoading}>
                   {restoreLoading ? 'Restoring...' : restoreMode === 'replace' ? 'Restore and replace' : 'Restore and merge'}
                 </button>
               </div>
@@ -1105,7 +1168,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Your data</div>
+        <CardHeader
+          eyebrow="Snapshot"
+          title="Your data"
+          description="A quick read of how much information is currently stored in Takda."
+        />
         <div className={settStyles.summaryGrid}>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.income.length}</div><div className={settStyles.summaryLabel}>Income entries</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.expenses.length}</div><div className={settStyles.summaryLabel}>Expenses</div></div>
@@ -1119,10 +1186,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Feedback & reviews</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Share ideas, report issues, rate the app, or opt in to a testimonial for the landing page.
-        </p>
+        <CardHeader
+          eyebrow="Product loop"
+          title="Feedback & reviews"
+          description="Share ideas, report issues, rate the app, or opt in to a testimonial for the landing page."
+        />
         {feedbackSaved && <div className={settStyles.feedbackSaved}>{feedbackSaved}</div>}
         <div className={settStyles.feedbackGrid}>
           <button className={settStyles.feedbackAction} onClick={() => openFeedback('feedback')}>
@@ -1145,7 +1213,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>About</div>
+        <CardHeader
+          eyebrow="App info"
+          title="About"
+          description="Version, brand details, and the account currently signed in."
+        />
         <div className={settStyles.aboutBlock}>
           <div className={settStyles.aboutLogo}>Takda</div>
           <div className={settStyles.aboutTagline}>Bawat piso, sinusubaybayan.</div>
@@ -1158,10 +1230,11 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       </div>
 
       <div className={styles.card}>
-        <div className={styles.cardTitle}>Support Takda</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          If Takda helps you, you can support the app with a coffee using the wallets below.
-        </p>
+        <CardHeader
+          eyebrow="Support"
+          title="Support Takda"
+          description="If Takda helps you, you can support the app with a coffee using the wallets below."
+        />
         <StatusBanner message={donationMsg} />
         <div className={settStyles.donateGrid}>
           {DONATION_WALLETS.map(wallet => (
@@ -1181,26 +1254,30 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.3)' }}>
-        <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete financial data</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          Permanently delete transactions, bills, savings goals, accounts, and budgets while keeping your login active. Use this if you want to clear your financial records without closing the whole account. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
-        </p>
+      <div className={`${styles.card} ${settStyles.dangerCard}`}>
+        <CardHeader
+          eyebrow="Danger zone"
+          title="Delete financial data"
+          description="Permanently delete transactions, bills, savings goals, accounts, and budgets while keeping your login active. Use this if you want to clear your financial records without closing the whole account."
+          badge="Irreversible"
+        />
         {resetDone && (
-          <div style={{ background: 'var(--accent-glow)', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', padding: '10px 14px', fontSize: 13, marginBottom: '1rem' }}>
+          <div className={`${settStyles.statusBanner} ${settStyles.statusBannerOk}`}>
             ✓ Financial data has been reset successfully.
           </div>
         )}
-        <button className={settStyles.btnReset} onClick={handleReset} disabled={resetting}>
+        <button className={`${settStyles.btnReset} ${settStyles.btnResetWide}`} onClick={handleReset} disabled={resetting}>
           {resetting ? 'Resetting...' : 'Reset financial data'}
         </button>
       </div>
 
-      <div className={styles.card} style={{ borderColor: 'rgba(255,83,112,0.36)' }}>
-        <div className={styles.cardTitle} style={{ color: 'var(--red)' }}>Delete account and all data</div>
-        <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: '1rem', lineHeight: 1.6 }}>
-          This fully removes your Takda account, tracked financial data, saved profile, and feedback records. Use this if you want to leave permanently or submit a full deletion request through the app. <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong>
-        </p>
+      <div className={`${styles.card} ${settStyles.dangerCard}`}>
+        <CardHeader
+          eyebrow="Danger zone"
+          title="Delete account and all data"
+          description="This fully removes your Takda account, tracked financial data, saved profile, and feedback records. Use this if you want to leave permanently or submit a full deletion request through the app."
+          badge="Irreversible"
+        />
         <StatusBanner message={deleteAccountMsg} />
         <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
           <div className={styles.formGroup}>
@@ -1222,22 +1299,23 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             />
           </div>
         </div>
-        <button className={settStyles.btnReset} onClick={handleDeleteAccount} disabled={deleteAccountLoading}>
+        <button className={`${settStyles.btnReset} ${settStyles.btnResetWide}`} onClick={handleDeleteAccount} disabled={deleteAccountLoading}>
           {deleteAccountLoading ? 'Deleting account...' : 'Delete account and all data'}
         </button>
       </div>
 
-      <div className={styles.card}>
+      <div className={`${styles.card} ${settStyles.fullSpanCard}`}>
         <button
+          className={settStyles.logoutButton}
           onClick={async () => {
             const { signOut } = await import('firebase/auth')
             const { auth: authRef } = await import('../lib/firebase')
             await signOut(authRef)
           }}
-          style={{ width: '100%', padding: '13px', background: 'var(--red-dim)', border: '1px solid var(--red)', color: 'var(--red)', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600 }}
         >
           Log out
         </button>
+      </div>
       </div>
 
       {feedbackModal && (

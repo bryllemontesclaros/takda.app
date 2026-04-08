@@ -1,12 +1,13 @@
 import { isSameMonth, normalizeDate, today } from './utils'
 
 const EXP_PER_LEVEL = 60
-const WEEKLY_CHECKIN_TARGET = 4
+const WEEKLY_CHECKIN_TARGET = 3
 const INCOME_CATS = new Set(['Salary', 'Bonus', 'Freelance', 'Business', 'Investment', '13th Month', 'Other'])
 const EXPENSE_EXCLUDED_CATS = new Set(['Bills'])
 const ONBOARDING_MATCH_WINDOW_MS = 120000
 const RECUR_BONUS_MULTIPLIER = 1.2
 const BILL_PAYMENT_BONUS_MULTIPLIER = 1.35
+const EXPENSE_TRACKING_DIVISOR = 450
 
 function toDateValue(date) {
   return new Date(`${normalizeDate(date)}T00:00:00`)
@@ -71,7 +72,8 @@ function getExpDelta(amount, sourceType, options = {}) {
   } else if (sourceType === 'bill') {
     delta = Math.max(4, Math.floor(value / 75))
   } else {
-    delta = Math.max(1, Math.floor(value / 160))
+    // Expense tracking should still feel rewarding, just lighter than income or paid bills.
+    delta = Math.max(2, Math.floor(value / EXPENSE_TRACKING_DIVISOR))
   }
   if (options.isRecurring) delta = Math.max(1, Math.round(delta * RECUR_BONUS_MULTIPLIER))
   if (sourceType === 'bill') delta = Math.max(1, Math.round(delta * BILL_PAYMENT_BONUS_MULTIPLIER))
@@ -139,12 +141,12 @@ function buildExpLedger(income = [], expenses = [], bills = [], profile = {}) {
       sourceType: 'income',
     }))
 
-  const losses = expenses
+  const expenseEntries = expenses
     .filter(tx => !isExcludedExpense(tx))
     .map(tx => ({
       ...tx,
       date: normalizeDate(tx?.date),
-      delta: -getExpDelta(tx?.amount, 'expense', { isRecurring: Boolean(tx?.recur) }),
+      delta: getExpDelta(tx?.amount, 'expense', { isRecurring: Boolean(tx?.recur) }),
       sourceType: 'expense',
     }))
 
@@ -157,7 +159,7 @@ function buildExpLedger(income = [], expenses = [], bills = [], profile = {}) {
       sourceType: 'bill',
     }))
 
-  return [...gains, ...losses, ...billPayments]
+  return [...gains, ...expenseEntries, ...billPayments]
     .filter(entry => entry.date)
     .sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date)

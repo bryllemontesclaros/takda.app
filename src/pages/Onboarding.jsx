@@ -221,7 +221,6 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   const startingBalance = getCurrentBalance(preparedAccounts)
   const fixedBillsEstimate = preparedBills.reduce((sum, bill) => sum + getMonthlyEquivalent(bill.amount, bill.freq), 0)
-  const projectedMonthEnd = startingBalance - fixedBillsEstimate
   const progressPercent = Math.round((step / (STEPS.length - 1)) * 100)
 
   function validateAccountsStep() {
@@ -332,18 +331,14 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
           <div className={styles.liveCard}>
             <div className={styles.liveKicker}>Live setup preview</div>
-            <div className={styles.liveValue}>{fmt(projectedMonthEnd, symbol)}</div>
+            <div className={styles.liveValue}>{fmt(startingBalance, symbol)}</div>
             <div className={styles.liveSub}>
-              A first month-end estimate based on what you have entered so far.
+              The real balance Takda will start from based on the accounts you have entered so far.
             </div>
             <div className={styles.liveMetrics}>
               <div className={styles.liveMetric}>
                 <div className={styles.liveMetricLabel}>Currency</div>
                 <div className={styles.liveMetricValue}>{curr?.code || 'PHP'}</div>
-              </div>
-              <div className={styles.liveMetric}>
-                <div className={styles.liveMetricLabel}>Starting balance</div>
-                <div className={styles.liveMetricValue}>{fmt(startingBalance, symbol)}</div>
               </div>
               <div className={styles.liveMetric}>
                 <div className={styles.liveMetricLabel}>Bills / month</div>
@@ -352,6 +347,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.liveMetric}>
                 <div className={styles.liveMetricLabel}>Accounts added</div>
                 <div className={styles.liveMetricValue}>{preparedAccounts.length}</div>
+              </div>
+              <div className={styles.liveMetric}>
+                <div className={styles.liveMetricLabel}>Bills added</div>
+                <div className={styles.liveMetricValue}>{preparedBills.length}</div>
               </div>
             </div>
           </div>
@@ -604,8 +603,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                       <span>{curr?.symbol} {curr?.code}</span>
                     </div>
                     <div className={styles.summaryRow}>
-                      <span>Starting estimate</span>
-                      <span>{fmt(projectedMonthEnd, symbol)}</span>
+                      <span>What gets saved</span>
+                      <span>{preparedAccounts.length} account{preparedAccounts.length === 1 ? '' : 's'}, {preparedBills.length} bill{preparedBills.length === 1 ? '' : 's'}</span>
                     </div>
                   </div>
                 </div>
@@ -634,10 +633,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               </div>
 
               <div className={styles.insightCard}>
-                <div className={styles.insightLabel}>Baseline month-end estimate</div>
-                <div className={styles.insightValue}>{fmt(projectedMonthEnd, symbol)}</div>
+                <div className={styles.insightLabel}>Starting balance</div>
+                <div className={styles.insightValue}>{fmt(startingBalance, symbol)}</div>
                 <div className={styles.insightSub}>
-                  Based on your starting balances and recurring bills. Real transactions will make this more accurate over time.
+                  Takda starts from your saved account balances. Recurring bills are saved separately and will shape your calendar after setup.
                 </div>
               </div>
 
