@@ -108,7 +108,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const isIncome = modalType === 'income'
   const cats = getTransactionCategories(modalType)
   const quickCats = getQuickItems(modalType)
-  const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
+  const maskFormattedBalance = value => String(value || '').replace(/\d/g, '•')
+  const money = value => {
+    const formatted = fmt(value, s)
+    return privacyMode ? maskFormattedBalance(formatted) : formatted
+  }
   const formatBalanceDate = value => {
     if (!value) return ''
     const parsed = new Date(`${value}T00:00:00`)
@@ -116,7 +120,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     return parsed.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
   }
   const formatCellBalance = value => {
-    if (privacyMode) return `${s}•••`
     const numericValue = Number(value) || 0
     const abs = Math.abs(numericValue)
     const hasDecimals = Math.round(abs * 100) !== Math.round(abs) * 100
@@ -124,7 +127,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       minimumFractionDigits: hasDecimals ? 2 : 0,
       maximumFractionDigits: hasDecimals ? 2 : 0,
     }).format(abs)
-    return `${numericValue < 0 ? '−' : ''}${exact}`
+    const visible = `${numericValue < 0 ? '−' : ''}${exact}`
+    return privacyMode ? maskFormattedBalance(visible) : visible
   }
 
   function bumpMonth(direction) {

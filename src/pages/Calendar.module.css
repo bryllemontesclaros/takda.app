@@ -118,6 +118,7 @@
 .balanceRail {
   margin-top: 12px;
   padding: 14px 16px;
+  min-height: 74px;
   border-radius: 14px;
   border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
   background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
@@ -422,6 +423,7 @@
   .balanceRail {
     margin-top: 10px;
     padding: 10px 14px;
+    min-height: 68px;
     border-radius: 12px;
   }
   .balanceRailLabel {
@@ -539,6 +541,7 @@
   .balanceRail {
     margin-top: 6px;
     padding: 8px 10px;
+    min-height: 58px;
     border-radius: 12px;
     align-items: center;
     gap: 10px;
