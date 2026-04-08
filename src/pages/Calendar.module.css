@@ -505,12 +505,13 @@
   }
   .grid {
     grid-template-rows: none;
-    grid-auto-rows: minmax(48px, auto);
+    grid-auto-rows: 58px;
     height: auto;
     align-content: start;
   }
   .cell {
-    min-height: 48px;
+    min-height: 58px;
+    height: 58px;
     padding: 4px 4px;
     gap: 2px;
     border-radius: 7px;
