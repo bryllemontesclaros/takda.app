@@ -84,6 +84,15 @@ export default function LandingPage() {
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
           <div className={styles.heroNote}>Full access. Works on phone and desktop.</div>
+          <div className={styles.heroCompanion}>
+            <img className={styles.heroCompanionArt} src="/mascot-takda.svg" alt="Takda mascot calendar companion" />
+            <div className={styles.heroCompanionCopy}>
+              <div className={styles.heroCompanionLabel}>Meet your month guide</div>
+              <div className={styles.heroCompanionText}>
+                Takda is built to feel calm, readable, and a little more human than a plain budget spreadsheet.
+              </div>
+            </div>
+          </div>
         </div>
         <div className={styles.heroPanel}>
           <div className={styles.heroPanelBar}>
