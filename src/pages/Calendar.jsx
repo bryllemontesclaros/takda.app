@@ -121,6 +121,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (Number.isNaN(parsed.getTime())) return value
     return parsed.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' })
   }
+  const formatDayPanelEyebrow = value => {
+    if (!value) return ''
+    const parsed = new Date(`${value}T00:00:00`)
+    if (Number.isNaN(parsed.getTime())) return ''
+    return parsed.toLocaleDateString('en-PH', { weekday: 'long' })
+  }
   const formatCellBalance = value => {
     const numericValue = Number(value) || 0
     const abs = Math.abs(numericValue)
@@ -448,6 +454,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
   const selectedIncome = selected ? allIncome.filter(tx => normalizeDate(tx.date) === selected) : []
   const selectedExpenses = selected ? allExpenses.filter(tx => normalizeDate(tx.date) === selected) : []
+  const selectedDayCount = selectedIncome.length + selectedExpenses.length
   const selectedDayIncome = selectedIncome.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const selectedDayExpense = selectedExpenses.reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const selectedDayNet = selectedDayIncome - selectedDayExpense
@@ -665,11 +672,32 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           <div className={calStyles.dayPanel} role="dialog" aria-modal="true" aria-labelledby="calendar-day-panel-title">
             <div className={calStyles.dayPanelHandle} />
             <div className={calStyles.dayPanelHeader}>
-              <div>
-                <span id="calendar-day-panel-title" style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{selected}</span>
+              <div className={calStyles.dayPanelHeaderMain}>
+                <div className={calStyles.dayPanelEyebrowRow}>
+                  <span className={calStyles.dayPanelEyebrow}>{formatDayPanelEyebrow(selected)}</span>
+                  {selected === todayStr && <span className={calStyles.dayPanelTodayBadge}>Today</span>}
+                </div>
+                <div id="calendar-day-panel-title" className={calStyles.dayPanelTitle}>{formatBalanceDate(selected)}</div>
               </div>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+              <div className={calStyles.dayPanelHeaderRight}>
                 <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close selected day">✕</button>
+              </div>
+            </div>
+
+            <div className={calStyles.dayPanelHeaderMeta}>
+              <div className={calStyles.dayPanelHeaderStat}>
+                <span className={calStyles.dayPanelHeaderStatLabel}>Entries</span>
+                <span className={calStyles.dayPanelHeaderStatValue}>{selectedDayCount}</span>
+              </div>
+              <div className={calStyles.dayPanelHeaderStat}>
+                <span className={calStyles.dayPanelHeaderStatLabel}>Net</span>
+                <span className={`${calStyles.dayPanelHeaderStatValue} ${selectedDayNet >= 0 ? calStyles.dayPanelHeaderStatPositive : calStyles.dayPanelHeaderStatNegative}`}>
+                  {displayValue(
+                    privacyMode,
+                    `${selectedDayNet >= 0 ? '+' : '−'}${fmt(Math.abs(selectedDayNet), s)}`,
+                    `${selectedDayNet >= 0 ? '+' : '−'}${maskMoney(s)}`,
+                  )}
+                </span>
               </div>
             </div>
 
@@ -740,7 +768,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
             {selectedIncome.length > 0 && (
               <div className={calStyles.daySection}>
-                <div className={calStyles.daySectionLabel} style={{ color: 'var(--accent)' }}>Income</div>
+                <div className={calStyles.daySectionHeader}>
+                  <div className={calStyles.daySectionLabel} style={{ color: 'var(--accent)' }}>Income</div>
+                  <div className={calStyles.daySectionCount}>{selectedIncome.length}</div>
+                </div>
                 {selectedIncome.map(tx => (
                   <DayTxRow
                     key={tx._id}
@@ -758,7 +789,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
             {selectedExpenses.length > 0 && (
               <div className={calStyles.daySection}>
-                <div className={calStyles.daySectionLabel} style={{ color: 'var(--red)' }}>Expenses</div>
+                <div className={calStyles.daySectionHeader}>
+                  <div className={calStyles.daySectionLabel} style={{ color: 'var(--red)' }}>Expenses</div>
+                  <div className={calStyles.daySectionCount}>{selectedExpenses.length}</div>
+                </div>
                 {selectedExpenses.map(tx => (
                   <DayTxRow
                     key={tx._id}
@@ -775,7 +809,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             )}
 
             {selectedIncome.length === 0 && selectedExpenses.length === 0 && (
-              <div className={styles.empty}>No transactions on this day yet. Add one here so the date context stays intact.</div>
+              <div className={calStyles.dayPanelEmpty}>No transactions on this day yet. Add one here so the date context stays intact.</div>
             )}
 
             {(selectedIncome.length > 0 || selectedExpenses.length > 0) && (

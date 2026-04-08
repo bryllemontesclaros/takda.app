@@ -288,13 +288,28 @@
 .dayPanelOverlay { display: none; }
 .dayPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; box-sizing: border-box; overflow-x: hidden; }
 .dayPanelHandle { display: none; }
-.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1rem; gap: 8px; }
-.dayPanelClose { background: none; border: none; color: var(--text3); font-size: 18px; cursor: pointer; min-width: 32px; min-height: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.dayPanelClose:hover { color: var(--red); }
+.dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; gap: 10px; }
+.dayPanelHeaderMain { min-width: 0; }
+.dayPanelEyebrowRow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+.dayPanelEyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); }
+.dayPanelTodayBadge { padding: 3px 8px; border-radius: 999px; background: var(--accent-glow); color: var(--accent); font-size: 10px; font-weight: 700; }
+.dayPanelTitle { font-family: var(--font-display); font-size: 20px; line-height: 1.05; color: var(--text); }
+.dayPanelHeaderRight { display: flex; align-items: flex-start; justify-content: flex-end; }
+.dayPanelClose { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); font-size: 16px; cursor: pointer; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; }
+.dayPanelClose:hover { border-color: var(--border2); color: var(--text); }
+.dayPanelHeaderMeta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+.dayPanelHeaderStat { border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%); padding: 10px 12px; min-width: 0; }
+.dayPanelHeaderStatLabel { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
+.dayPanelHeaderStatValue { display: block; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dayPanelHeaderStatPositive { color: var(--blue); }
+.dayPanelHeaderStatNegative { color: var(--red); }
 
 /* DAY PANEL SECTIONS */
 .daySection { margin-bottom: 12px; }
+.daySectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .daySectionLabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.daySectionHeader .daySectionLabel { margin-bottom: 0; }
+.daySectionCount { min-width: 24px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
 .daySummary { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; font-family: var(--font-mono); flex-wrap: wrap; }
 .dayPanelActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .dayPanelAction { min-height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: opacity 0.15s, transform 0.15s; }
@@ -332,6 +347,7 @@
 .delBtnSm:hover { color: var(--red); background: var(--red-dim); }
 .editBtn:disabled,
 .delBtnSm:disabled { opacity: 0.55; cursor: not-allowed; }
+.dayPanelEmpty { padding: 14px 16px; border-radius: var(--radius); border: 1px dashed var(--border2); background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); color: var(--text2); line-height: 1.55; }
 
 .inlineComposerCard { margin-top: 1rem; scroll-margin-top: 88px; }
 
@@ -588,6 +604,24 @@
   .dayPanelOverlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; }
   .dayPanel { position: fixed; bottom: 60px; left: 0; right: 0; z-index: 310; border-radius: var(--radius-lg) var(--radius-lg) 0 0; border-bottom: none; max-height: 75vh; overflow-y: auto; margin-top: 0; -webkit-overflow-scrolling: touch; }
   .dayPanelHandle { display: block; width: 40px; height: 4px; background: var(--border2); border-radius: 2px; margin: 0 auto 1rem; }
+  .dayPanelHeader {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), color-mix(in srgb, var(--surface) 94%, #ffffff 6%));
+  }
+  .dayPanelTitle {
+    font-size: 22px;
+  }
+  .dayPanelHeaderMeta {
+    margin-bottom: 14px;
+  }
+  .dayPanelHeaderStat {
+    padding: 10px;
+  }
   .modalOverlay { padding: 0; }
   .modal { width: 100%; max-height: calc(100dvh - 74px - env(safe-area-inset-bottom)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); }
   .modalActions {
