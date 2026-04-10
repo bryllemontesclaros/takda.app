@@ -1,8 +1,9 @@
-import { db } from './firebase'
+import { db, storage } from './firebase'
 import {
   collection, addDoc, deleteDoc, updateDoc, setDoc, deleteField,
   doc, query, orderBy, onSnapshot, getDoc, getDocs, writeBatch, increment
 } from 'firebase/firestore'
+import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { getAccountBalanceDelta, shouldAffectCurrentAccountBalance } from './finance'
 import { normalizeDate, today } from './utils'
 
@@ -177,6 +178,112 @@ export async function fsSyncDueLinkedTransactions(uid, transactions = [], accoun
   return dueTransactions.length
 }
 
+function getReceiptExtension(fileName = '', fallback = 'jpg') {
+  const match = String(fileName || '').match(/\.([a-z0-9]+)$/i)
+  return (match?.[1] || fallback).toLowerCase()
+}
+
+async function uploadReceiptAsset(uid, receiptId, label, blob, fileName = '') {
+  if (!blob) return null
+  const extension = label === 'original' ? getReceiptExtension(fileName, 'jpg') : 'jpg'
+  const path = `users/${uid}/receipts/${receiptId}/${label}.${extension}`
+  const target = storageRef(storage, path)
+  await uploadBytes(target, blob, {
+    contentType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+    cacheControl: 'public,max-age=3600',
+  })
+  const url = await getDownloadURL(target)
+  return { path, url }
+}
+
+async function deleteReceiptAsset(path) {
+  if (!path) return
+  try {
+    await deleteObject(storageRef(storage, path))
+  } catch {
+    // Ignore missing or already-deleted assets so the Firestore delete can still finish.
+  }
+}
+
+export async function fsSaveReceipt(uid, payload = {}) {
+  const receiptRef = doc(userCol(uid, 'receipts'))
+  const receiptId = receiptRef.id
+  let originalUpload = null
+  let cleanedUpload = null
+
+  try {
+    originalUpload = await uploadReceiptAsset(uid, receiptId, 'original', payload.originalBlob, payload.fileName)
+    cleanedUpload = await uploadReceiptAsset(uid, receiptId, 'cleaned', payload.cleanedBlob || payload.originalBlob, payload.fileName)
+    const normalizedDate = normalizeDate(payload.date) || today()
+    const total = Number(payload.total) || 0
+    const lineItems = Array.isArray(payload.lineItems) ? payload.lineItems : []
+    const merchant = String(payload.merchant || '').trim() || 'Receipt'
+    const rawText = String(payload.rawText || '')
+    const confidence = payload.confidence && typeof payload.confidence === 'object'
+      ? payload.confidence
+      : { overall: payload.confidence || '' }
+    const extractedData = {
+      merchant,
+      total,
+      currency: payload.currency || 'PHP',
+      date: normalizedDate,
+      category: payload.category || 'Other',
+      reference: payload.reference || '',
+      lineItems,
+      confidence,
+    }
+
+    const receiptDoc = {
+      userId: uid,
+      merchant,
+      total,
+      currency: payload.currency || 'PHP',
+      date: normalizedDate,
+      category: payload.category || 'Other',
+      reference: payload.reference || '',
+      notes: payload.notes || '',
+      source: payload.source || 'receipt',
+      imageUrl: originalUpload?.url || cleanedUpload?.url || '',
+      imagePath: originalUpload?.path || '',
+      cleanedImageUrl: cleanedUpload?.url || originalUpload?.url || '',
+      cleanedImagePath: cleanedUpload?.path || '',
+      thumbnailUrl: cleanedUpload?.url || originalUpload?.url || '',
+      cleanupSummary: payload.cleanupSummary || '',
+      confidence,
+      extractedData,
+      lineItems,
+      rawText,
+      rawTextPreview: rawText.slice(0, 2400),
+      stats: {
+        itemCount: lineItems.length,
+        imageWidth: Number(payload.imageWidth) || 0,
+        imageHeight: Number(payload.imageHeight) || 0,
+        cleanedWidth: Number(payload.cleanedWidth) || 0,
+        cleanedHeight: Number(payload.cleanedHeight) || 0,
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+
+    await setDoc(receiptRef, receiptDoc)
+    return { _id: receiptId, ...receiptDoc }
+  } catch (error) {
+    await Promise.all([
+      deleteReceiptAsset(originalUpload?.path),
+      deleteReceiptAsset(cleanedUpload?.path),
+    ])
+    throw error
+  }
+}
+
+export async function fsDeleteReceipt(uid, receipt = {}) {
+  await Promise.all([
+    deleteReceiptAsset(receipt.imagePath),
+    deleteReceiptAsset(receipt.cleanedImagePath),
+  ])
+  await deleteDoc(doc(db, 'users', uid, 'receipts', receipt._id))
+}
+
 export function listenCol(uid, col, callback) {
   const q = query(userCol(uid, col), orderBy('createdAt', 'asc'))
   return onSnapshot(q, snap => {
@@ -315,7 +422,7 @@ async function fsDeleteCollection(uid, col) {
 
 export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
   const clearExisting = mode === 'replace'
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts']
 
   for (const col of collections) {
     const rows = Array.isArray(backup[col]) ? backup[col] : []
@@ -330,7 +437,16 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
 }
 
 export async function fsDeleteAccountData(uid) {
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback']
+  const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
+  await Promise.all(receiptsSnapshot.docs.flatMap(snapshot => {
+    const data = snapshot.data() || {}
+    return [
+      deleteReceiptAsset(data.imagePath),
+      deleteReceiptAsset(data.cleanedImagePath),
+    ]
+  }))
+
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts']
 
   for (const col of collections) {
     await fsDeleteCollection(uid, col)

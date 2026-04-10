@@ -13,7 +13,7 @@ import {
 import { deleteField } from 'firebase/firestore'
 import GamificationCard from '../components/GamificationCard'
 import { auth } from '../lib/firebase'
-import { fsAdd, fsDel, fsDeleteAccountData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
+import { fsAdd, fsDel, fsDeleteAccountData, fsDeleteReceipt, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
@@ -72,6 +72,7 @@ const BACKUP_COLLECTIONS = [
   { key: 'goals', label: 'Savings goals' },
   { key: 'accounts', label: 'Accounts' },
   { key: 'budgets', label: 'Budgets' },
+  { key: 'receipts', label: 'Receipts' },
 ]
 
 const DONATION_WALLETS = [
@@ -139,6 +140,7 @@ function parseBackupPayload(raw) {
     goals: normalizeBackupArray(raw.goals),
     accounts: normalizeBackupArray(raw.accounts),
     budgets: normalizeBackupArray(raw.budgets),
+    receipts: normalizeBackupArray(raw.receipts),
     profile: sanitizeProfileBackup(raw.profile || {}),
   }
 }
@@ -518,6 +520,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       goals: data.goals,
       accounts: data.accounts,
       budgets: data.budgets,
+      receipts: data.receipts,
       profile: sanitizeProfileBackup(profile),
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
@@ -559,7 +562,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
     const confirmed = window.confirm(
       restoreMode === 'replace'
-        ? 'Replace current income, expenses, bills, goals, accounts, budgets, and profile data with this backup?'
+        ? 'Replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup?'
         : 'Merge this backup into your current Takda data? Matching document ids will be updated.',
     )
     if (!confirmed) return
@@ -582,7 +585,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   }
 
   async function handleReset() {
-    const confirmed = window.confirm('Reset ALL financial data? This permanently deletes transactions, bills, savings goals, accounts, and budgets. Cannot be undone.')
+    const confirmed = window.confirm('Reset ALL financial data? This permanently deletes transactions, bills, savings goals, accounts, budgets, and saved receipts. Cannot be undone.')
     if (!confirmed) return
     setResetting(true)
     try {
@@ -592,6 +595,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       for (const item of data.goals) await fsDel(user.uid, 'goals', item._id)
       for (const item of data.accounts) await fsDel(user.uid, 'accounts', item._id)
       for (const item of data.budgets) await fsDel(user.uid, 'budgets', item._id)
+      for (const item of data.receipts) await fsDeleteReceipt(user.uid, item)
       setResetDone(true)
       window.setTimeout(() => setResetDone(false), 4000)
     } catch {
@@ -702,7 +706,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     ? new Date(restorePreview.exportedAt).toLocaleString()
     : restorePreview?.exportedAt
   const enabledNotificationCount = NOTIFICATION_OPTIONS.filter(option => notificationPrefs[option.key]).length
-  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length
+  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length
   const goalDateSelected = Boolean(goalForm.date)
   return (
     <div className={styles.page}>
@@ -1087,7 +1091,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, receipt metadata and links, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
@@ -1180,6 +1184,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.goals.length}</div><div className={settStyles.summaryLabel}>Savings goals</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.accounts.length}</div><div className={settStyles.summaryLabel}>Accounts</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.budgets.length}</div><div className={settStyles.summaryLabel}>Budgets</div></div>
+          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.receipts.length}</div><div className={settStyles.summaryLabel}>Receipts</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal} style={{ color: 'var(--accent)' }}>{money(savingsTotal)}</div><div className={settStyles.summaryLabel}>Total saved</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{totalTx}</div><div className={settStyles.summaryLabel}>Total transactions</div></div>
         </div>

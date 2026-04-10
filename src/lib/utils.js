@@ -1,5 +1,6 @@
 export const CURRENCIES = [
   { code: 'PHP', symbol: '₱', label: 'Philippine Peso (PHP)' },
+  { code: 'HKD', symbol: 'HK$', label: 'Hong Kong Dollar (HKD)' },
   { code: 'USD', symbol: '$', label: 'US Dollar (USD)' },
   { code: 'EUR', symbol: '€', label: 'Euro (EUR)' },
   { code: 'GBP', symbol: '£', label: 'British Pound (GBP)' },

@@ -10,6 +10,7 @@ import Savings from './Savings'
 import Accounts from './Accounts'
 import Breakdown from './Breakdown'
 import Budget from './Budget'
+import Receipts from './Receipts'
 import Settings from './Settings'
 import History from './History'
 import QuickAdd from './QuickAdd'
@@ -70,6 +71,14 @@ const NAV_ICONS = {
       <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
     </svg>
   ),
+  receipts: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 3.5h10.5A2.5 2.5 0 0 1 19 6v14l-2.5-1.5L14 20l-2.5-1.5L9 20l-2.5-1.5L4 20V6a2.5 2.5 0 0 1 2-2.45z"/>
+      <path d="M8 8h7"/>
+      <path d="M8 12h8"/>
+      <path d="M8 16h5"/>
+    </svg>
+  ),
   more: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>
@@ -102,7 +111,7 @@ function getEmailActionSettings() {
 
 export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
-  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [] })
+  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [], receipts: [] })
   const [profile, setProfile] = useState({})
   const [gamificationReady, setGamificationReady] = useState(false)
   const [celebrationToast, setCelebrationToast] = useState(null)
@@ -123,10 +132,11 @@ export default function AppShell({ user }) {
     expenses: false,
     bills: false,
     goals: false,
-    accounts: false,
-    budgets: false,
-    profile: false,
-  })
+      accounts: false,
+      budgets: false,
+      receipts: false,
+      profile: false,
+    })
 
   function markLoaded(key) {
     if (loadFlagsRef.current[key]) return
@@ -186,6 +196,7 @@ export default function AppShell({ user }) {
       goals: false,
       accounts: false,
       budgets: false,
+      receipts: false,
       profile: false,
     }
     const uid = user.uid
@@ -213,6 +224,10 @@ export default function AppShell({ user }) {
       listenCol(uid, 'budgets', rows => {
         setData(d => ({ ...d, budgets: rows }))
         markLoaded('budgets')
+      }),
+      listenCol(uid, 'receipts', rows => {
+        setData(d => ({ ...d, receipts: rows }))
+        markLoaded('receipts')
       }),
       listenProfile(uid, p => {
         setProfile(p)
@@ -330,12 +345,13 @@ export default function AppShell({ user }) {
     { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
     { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
+    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: null },
     { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
     { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
   const PageComponent = pages[page] || Dashboard
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
 
@@ -346,10 +362,10 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
   const mobileMoreNav = nav
-    .filter(item => ['history', 'breakdown', 'budget', 'settings'].includes(item.id))
+    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
-      iconKey: item.id === 'history' ? 'history' : item.id,
+      iconKey: item.id,
     }))
   const isMorePage = mobileMoreNav.some(item => item.id === page)
 

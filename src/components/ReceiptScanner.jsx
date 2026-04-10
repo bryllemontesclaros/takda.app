@@ -7,6 +7,7 @@ import {
   sanitizeTransactionCategory,
   sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
+import { detectReceiptCurrency, preprocessReceiptImage } from '../lib/receiptUtils'
 import { formatDisplayDate, today } from '../lib/utils'
 import rStyles from './ReceiptScanner.module.css'
 
@@ -22,6 +23,34 @@ const EMPTY_FORM = {
   desc: '',
   cat: 'Other',
   reference: '',
+}
+
+function getCameraErrorMessage(error) {
+  const name = String(error?.name || '')
+
+  if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return 'Camera access was blocked. Allow camera permission, or use quick photo or gallery upload instead.'
+  }
+
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    return 'We could not find the preferred rear camera. Try switching cameras or use gallery upload instead.'
+  }
+
+  if (name === 'NotReadableError' || name === 'AbortError') {
+    return 'The camera is busy in another app or tab. Close it there, then try again.'
+  }
+
+  return 'Could not start the live camera preview. Use quick photo or gallery upload instead.'
+}
+
+function buildCapturedImageFile(blob, fileName = 'receipt.jpg') {
+  if (typeof File === 'function') {
+    return new File([blob], fileName, { type: blob.type || 'image/jpeg' })
+  }
+
+  const fallbackBlob = blob
+  fallbackBlob.name = fileName
+  return fallbackBlob
 }
 
 function getCategoryOptions(type) {
@@ -74,9 +103,17 @@ function getBlankDraft(context = 'transaction') {
   }
 }
 
-export default function ReceiptScanner({ onResult, onClose, defaultMode = 'wallet', context = 'transaction', embedded = false }) {
+export default function ReceiptScanner({
+  onResult,
+  onClose,
+  defaultMode = 'wallet',
+  context = 'transaction',
+  embedded = false,
+  receiptOnly = false,
+  submitLabel = '',
+}) {
   const isGrocery = context === 'grocery'
-  const [mode, setMode] = useState(isGrocery ? 'receipt' : defaultMode)
+  const [mode, setMode] = useState(isGrocery || receiptOnly ? 'receipt' : defaultMode)
   const [status, setStatus] = useState('idle')
   const [preview, setPreview] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -84,29 +121,137 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
   const [notice, setNotice] = useState({ text: '', tone: 'info' })
   const [rawText, setRawText] = useState('')
   const [sourceLabel, setSourceLabel] = useState('')
+  const [scanCurrency, setScanCurrency] = useState('')
+  const [parsedMeta, setParsedMeta] = useState(null)
+  const [captureArtifacts, setCaptureArtifacts] = useState(null)
+  const [cameraOpen, setCameraOpen] = useState(false)
+  const [cameraStatus, setCameraStatus] = useState('idle')
+  const [cameraError, setCameraError] = useState('')
+  const [cameraFacing, setCameraFacing] = useState('environment')
   const fileRef = useRef(null)
   const cameraRef = useRef(null)
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const liveCameraSupported = typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia)
+  const canCapturePhoto = mode !== 'wallet' || receiptOnly || isGrocery
 
   useEffect(() => {
     return () => {
-      if (preview) URL.revokeObjectURL(preview)
+      if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview)
     }
   }, [preview])
+
+  function stopLiveCamera() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject = null
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      stopLiveCamera()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!cameraOpen) {
+      stopLiveCamera()
+      return undefined
+    }
+
+    if (!canCapturePhoto || !liveCameraSupported) {
+      setCameraStatus('error')
+      setCameraError('Live camera preview is not available here. Use quick photo or gallery upload instead.')
+      return undefined
+    }
+
+    let cancelled = false
+
+    async function startLiveCamera() {
+      setCameraStatus('starting')
+      setCameraError('')
+      stopLiveCamera()
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: {
+            facingMode: { ideal: cameraFacing },
+            width: { ideal: 1600 },
+            height: { ideal: 2200 },
+            aspectRatio: { ideal: 0.72 },
+          },
+        })
+
+        if (cancelled) {
+          stream.getTracks().forEach(track => track.stop())
+          return
+        }
+
+        streamRef.current = stream
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+          videoRef.current.muted = true
+          videoRef.current.setAttribute('playsinline', 'true')
+          await videoRef.current.play().catch(() => {})
+        }
+
+        setCameraStatus('ready')
+      } catch (error) {
+        if (cancelled) return
+        stopLiveCamera()
+        setCameraStatus('error')
+        setCameraError(getCameraErrorMessage(error))
+      }
+    }
+
+    startLiveCamera()
+
+    return () => {
+      cancelled = true
+      stopLiveCamera()
+    }
+  }, [cameraFacing, cameraOpen, canCapturePhoto, liveCameraSupported])
 
   function setField(key, value) {
     setForm(current => ({ ...current, [key]: value }))
   }
 
   function resetState(nextMode = mode) {
+    setCameraOpen(false)
+    setCameraStatus('idle')
+    setCameraError('')
+    setCameraFacing('environment')
     setStatus('idle')
     setNotice({ text: '', tone: 'info' })
     setRawText('')
     setSourceLabel('')
+    setScanCurrency('')
+    setParsedMeta(null)
+    setCaptureArtifacts(null)
     setForm(getBlankDraft(context))
     setShowDetails(false)
-    setMode(isGrocery ? 'receipt' : nextMode)
-    if (preview) URL.revokeObjectURL(preview)
+    setMode(isGrocery || receiptOnly ? 'receipt' : nextMode)
+    if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview)
     setPreview(null)
+  }
+
+  function openGuidedCamera() {
+    setNotice({ text: '', tone: 'info' })
+    setCameraError('')
+    setCameraOpen(true)
+  }
+
+  function closeGuidedCamera() {
+    setCameraOpen(false)
+    setCameraStatus('idle')
+    setCameraError('')
   }
 
   function applyParsed(parsed) {
@@ -141,16 +286,29 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
   async function processImage(file) {
     if (!file) return
 
-    if (preview) URL.revokeObjectURL(preview)
-    setPreview(URL.createObjectURL(file))
     setStatus('loading')
     setNotice({ text: '', tone: 'info' })
     setSourceLabel(isGrocery ? 'Imported price tag' : mode === 'wallet' ? 'Imported wallet screenshot' : 'Imported receipt image')
+    setScanCurrency('')
+
+    let prepared = null
+
+    try {
+      prepared = await preprocessReceiptImage(file)
+      if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview)
+      setPreview(prepared.cleanedDataUrl || prepared.originalDataUrl || null)
+      setCaptureArtifacts(prepared)
+    } catch {
+      if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview)
+      setPreview(URL.createObjectURL(file))
+      setCaptureArtifacts(null)
+    }
 
     if (!OCR_KEY) {
       setRawText('')
       setForm(getManualDraft(mode, file.name, context))
       setShowDetails(false)
+      setParsedMeta(null)
       setStatus('done')
       setNotice({
         text: isGrocery
@@ -165,7 +323,7 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
 
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', prepared?.cleanedBlob || file, file.name || 'receipt.jpg')
       formData.append('apikey', OCR_KEY)
       formData.append('language', 'eng')
       formData.append('isOverlayRequired', 'false')
@@ -186,6 +344,8 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
       const parsed = mode === 'wallet' ? parseWalletText(text) : parseReceiptText(text)
 
       setRawText(text)
+      setScanCurrency(parsed.currency || detectReceiptCurrency(text, ''))
+      setParsedMeta(parsed)
       setSourceLabel(
         isGrocery
           ? (parsed.desc || 'Imported grocery item')
@@ -225,6 +385,7 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
       setRawText('')
       setForm(getManualDraft(mode, file.name, context))
       setShowDetails(false)
+      setParsedMeta(null)
       setStatus('done')
       setNotice({
         text: isGrocery
@@ -239,8 +400,49 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
 
   function handleFile(event) {
     const file = event.target.files?.[0]
+    if (cameraOpen) closeGuidedCamera()
     if (file) processImage(file)
     event.target.value = ''
+  }
+
+  async function handleGuidedCapture() {
+    const video = videoRef.current
+
+    if (!video || cameraStatus !== 'ready' || !video.videoWidth || !video.videoHeight) {
+      setCameraError('The camera is still getting ready. Wait a moment, then try again.')
+      return
+    }
+
+    setCameraStatus('capturing')
+    setCameraError('')
+
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+
+      const context2d = canvas.getContext('2d')
+      if (!context2d) {
+        throw new Error('Canvas capture is unavailable.')
+      }
+      context2d.drawImage(video, 0, 0, canvas.width, canvas.height)
+
+      const capturedBlob = await new Promise((resolve, reject) => {
+        canvas.toBlob(blob => {
+          if (blob) resolve(blob)
+          else reject(new Error('Could not capture the current frame.'))
+        }, 'image/jpeg', 0.92)
+      })
+
+      const sourceName = isGrocery ? 'grocery' : mode === 'wallet' ? 'wallet' : 'receipt'
+      const capturedFile = buildCapturedImageFile(capturedBlob, `takda-${sourceName}-${Date.now()}.jpg`)
+
+      closeGuidedCamera()
+      await processImage(capturedFile)
+    } catch {
+      setCameraStatus('ready')
+      setCameraError('Could not capture the current frame. Try again, or use quick photo instead.')
+    }
   }
 
   function handleConfirm() {
@@ -276,31 +478,72 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
       presetKey: nextPreset?.key || '',
       reference: form.reference,
       source: mode,
+      currency: parsedMeta?.currency || scanCurrency,
+      confidence: mode === 'receipt'
+        ? {
+            overall: parsedMeta?.overallConfidence || 'low',
+            amount: parsedMeta?.amountConfidence || 'none',
+            merchant: parsedMeta?.merchantConfidence || 'none',
+            date: parsedMeta?.dateConfidence || 'none',
+            lineItems: parsedMeta?.lineItemsConfidence || 'none',
+          }
+        : '',
+      amountConfidence: parsedMeta?.amountConfidence || 'none',
+      merchantConfidence: parsedMeta?.merchantConfidence || 'none',
+      dateConfidence: parsedMeta?.dateConfidence || 'none',
+      lineItemsConfidence: parsedMeta?.lineItemsConfidence || 'none',
+      lineItems: parsedMeta?.lineItems || [],
       rawText,
+      originalBlob: captureArtifacts?.originalBlob || null,
+      cleanedBlob: captureArtifacts?.cleanedBlob || null,
+      originalImageDataUrl: captureArtifacts?.originalDataUrl || preview || '',
+      cleanedImageDataUrl: captureArtifacts?.cleanedDataUrl || preview || '',
+      cleanupSummary: captureArtifacts?.cleanupSummary || '',
+      imageWidth: captureArtifacts?.width || 0,
+      imageHeight: captureArtifacts?.height || 0,
+      cleanedWidth: captureArtifacts?.cleanedWidth || 0,
+      cleanedHeight: captureArtifacts?.cleanedHeight || 0,
     })
   }
 
-  const categoryOptions = getCategoryOptions(form.type === 'income' ? 'income' : 'expense')
-  const headerTitle = isGrocery ? 'Import grocery item' : 'Import transaction'
+  const categoryOptions = getCategoryOptions((receiptOnly ? 'expense' : form.type) === 'income' ? 'income' : 'expense')
+  const headerTitle = isGrocery ? 'Import grocery item' : receiptOnly ? 'Scan receipt' : 'Import transaction'
   const headerSub = isGrocery
     ? 'Import a photo of a price tag or shelf label, then confirm the item before adding it to this trip.'
-    : 'Import from a screenshot or receipt photo, then review before saving.'
+    : receiptOnly
+      ? 'Capture or upload a receipt, review the details, then save it to your receipt box.'
+      : 'Import from a screenshot or receipt photo, then review before saving.'
   const uploadTitle = isGrocery
     ? 'Import a grocery price tag photo'
-    : mode === 'wallet'
+    : receiptOnly
+      ? 'Capture a receipt'
+      : mode === 'wallet'
       ? 'Import a GCash or Maya screenshot'
       : 'Import a receipt photo or image'
   const uploadSub = isGrocery
     ? 'We will try to prefill the item name and price from the photo. Review before adding it to the list.'
-    : mode === 'wallet'
+    : receiptOnly
+      ? 'We will clean the image locally first, then try to prefill merchant, date, total, and category.'
+      : mode === 'wallet'
       ? 'We will prefill amount, date, recipient, and type when possible.'
       : 'We will prefill total, date, merchant, and category when possible from the imported image.'
-  const resultTitle = isGrocery ? 'Grocery item review' : sourceLabel || 'Imported transaction'
+  const resultTitle = isGrocery ? 'Grocery item review' : receiptOnly ? 'Receipt review' : sourceLabel || 'Imported transaction'
   const resultNote = isGrocery
     ? 'Price-tag OCR is assistive only, so confirm the name and price before adding the item.'
-    : mode === 'wallet'
+    : receiptOnly
+      ? 'We cleaned the image locally before OCR. Confirm the total, date, and merchant before saving.'
+      : mode === 'wallet'
       ? 'We classified this from the screenshot. Confirm the type before saving.'
       : 'Receipt OCR is assistive only, so review the details before saving.'
+  const actionLabel = submitLabel || (isGrocery ? 'Add item →' : receiptOnly ? 'Use receipt details →' : 'Continue with these details →')
+  const confidenceLabel = parsedMeta?.overallConfidence
+    ? `${parsedMeta.overallConfidence.charAt(0).toUpperCase()}${parsedMeta.overallConfidence.slice(1)} confidence`
+    : ''
+  const cameraTitle = isGrocery ? 'Center the price tag inside the frame' : 'Align the receipt inside the frame'
+  const cameraHint = isGrocery
+    ? 'Keep the full label visible, avoid reflections, and hold steady before capture.'
+    : 'Keep all four edges visible, fill most of the frame, and avoid glare for the cleanest scan.'
+  const cameraLiveLabel = cameraFacing === 'environment' ? 'Rear camera preferred' : 'Front camera active'
 
   return (
     <div className={`${rStyles.wrap} ${embedded ? rStyles.embedded : ''}`}>
@@ -316,7 +559,7 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
         </div>
       )}
 
-      {!isGrocery && (
+      {!isGrocery && !receiptOnly && (
         <div className={rStyles.modeRow}>
           <button
             type="button"
@@ -336,26 +579,134 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
       )}
 
       {status === 'idle' && (
-        <div className={rStyles.uploadArea}>
-          <div className={rStyles.uploadIcon}>{isGrocery ? '🛒' : mode === 'wallet' ? '📲' : '🧾'}</div>
-          <div className={rStyles.uploadTitle}>{uploadTitle}</div>
-          <div className={rStyles.uploadSub}>{uploadSub}</div>
-          {notice.text && (
-            <div className={`${rStyles.noticeMsg} ${notice.tone === 'warning' ? rStyles.noticeWarn : rStyles.noticeInfo}`}>
-              {notice.tone === 'warning' ? '⚠ ' : 'ℹ '}
-              {notice.text}
+        <div className={rStyles.idleStack}>
+          {!cameraOpen ? (
+            <div className={rStyles.uploadArea}>
+              <div className={rStyles.uploadVisual}>
+                <div className={rStyles.guideCard}>
+                  <div className={rStyles.guidePill}>Guided capture</div>
+                  <div className={rStyles.guideScreen}>
+                    <div className={rStyles.guideGlow} />
+                    <div className={rStyles.guideFrame}>
+                      <div className={rStyles.guideCorners} />
+                      <div className={rStyles.guideReceipt} />
+                    </div>
+                  </div>
+                  <div className={rStyles.guideCaption}>{cameraHint}</div>
+                </div>
+              </div>
+
+              <div className={rStyles.uploadBody}>
+                <div className={rStyles.uploadIcon}>{isGrocery ? '🛒' : mode === 'wallet' ? '📲' : '🧾'}</div>
+                <div className={rStyles.uploadTitle}>{uploadTitle}</div>
+                <div className={rStyles.uploadSub}>{uploadSub}</div>
+                {notice.text && (
+                  <div className={`${rStyles.noticeMsg} ${notice.tone === 'warning' ? rStyles.noticeWarn : rStyles.noticeInfo}`}>
+                    {notice.tone === 'warning' ? '⚠ ' : 'ℹ '}
+                    {notice.text}
+                  </div>
+                )}
+                {!!captureArtifacts?.cleanupSummary && (
+                  <div className={rStyles.captureMeta}>
+                    {captureArtifacts.cleanupSummary}
+                  </div>
+                )}
+                <div className={rStyles.tipRow}>
+                  {canCapturePhoto && <span className={rStyles.tipPill}>Rear camera preferred</span>}
+                  <span className={rStyles.tipPill}>{isGrocery ? 'Keep the whole label visible' : 'Fill the frame with the receipt'}</span>
+                  <span className={rStyles.tipPill}>Darker background helps auto-trim</span>
+                </div>
+                <div className={rStyles.btnRow}>
+                  {canCapturePhoto && liveCameraSupported && (
+                    <button className={rStyles.btnUse} onClick={openGuidedCamera}>
+                      Open guided camera
+                    </button>
+                  )}
+                  {canCapturePhoto && (
+                    <button className={rStyles.btnCamera} onClick={() => cameraRef.current?.click()}>
+                      📷 {liveCameraSupported ? 'Quick photo' : 'Take photo'}
+                    </button>
+                  )}
+                  <button className={rStyles.btnUpload} onClick={() => fileRef.current?.click()}>
+                    📂 {isGrocery ? 'Upload photo' : mode === 'wallet' ? 'Upload screenshot' : 'Upload image'}
+                  </button>
+                </div>
+                {canCapturePhoto && !liveCameraSupported && (
+                  <div className={rStyles.resultNote}>
+                    Live preview is not available in this browser, but quick camera capture and gallery upload still work.
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={rStyles.cameraStage}>
+              <div className={rStyles.cameraTopRow}>
+                <span className={rStyles.liveBadge}>{cameraLiveLabel}</span>
+                <button type="button" className={rStyles.inlineBtn} onClick={closeGuidedCamera}>
+                  Close camera
+                </button>
+              </div>
+
+              <div className={rStyles.cameraViewport}>
+                <video ref={videoRef} className={rStyles.cameraVideo} autoPlay muted playsInline />
+                <div className={rStyles.cameraOverlay}>
+                  <div className={rStyles.cameraOverlayTop}>{cameraTitle}</div>
+                  <div className={rStyles.cameraGuideFrame}>
+                    <div className={rStyles.cameraGuideCorners} />
+                  </div>
+                  <div className={rStyles.cameraOverlayBottom}>{cameraHint}</div>
+                </div>
+
+                {cameraStatus !== 'ready' && (
+                  <div className={rStyles.cameraStateCard}>
+                    {cameraStatus === 'starting' || cameraStatus === 'capturing' ? <div className={rStyles.spinner} /> : null}
+                    <div>
+                      <div className={rStyles.cameraStateTitle}>
+                        {cameraStatus === 'capturing'
+                          ? 'Capturing photo...'
+                          : cameraStatus === 'starting'
+                            ? 'Starting camera...'
+                            : 'Camera preview unavailable'}
+                      </div>
+                      <div className={rStyles.cameraStateText}>
+                        {cameraStatus === 'error' ? cameraError : 'Hold steady while Takda gets the camera ready.'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className={rStyles.cameraActionRow}>
+                <button
+                  type="button"
+                  className={rStyles.btnRetry}
+                  onClick={() => setCameraFacing(current => current === 'environment' ? 'user' : 'environment')}
+                  disabled={cameraStatus === 'starting' || cameraStatus === 'capturing'}
+                >
+                  Switch camera
+                </button>
+                <button
+                  type="button"
+                  className={rStyles.btnUpload}
+                  onClick={() => {
+                    closeGuidedCamera()
+                    fileRef.current?.click()
+                  }}
+                >
+                  Use gallery
+                </button>
+                <button
+                  type="button"
+                  className={rStyles.btnUse}
+                  onClick={handleGuidedCapture}
+                  disabled={cameraStatus !== 'ready'}
+                >
+                  Take photo
+                </button>
+              </div>
             </div>
           )}
-          <div className={rStyles.btnRow}>
-            {mode !== 'wallet' && (
-              <button className={rStyles.btnCamera} onClick={() => cameraRef.current?.click()}>
-                📷 Take photo
-              </button>
-            )}
-            <button className={rStyles.btnUpload} onClick={() => fileRef.current?.click()}>
-              📂 {isGrocery ? 'Upload photo' : mode === 'wallet' ? 'Upload screenshot' : 'Upload image'}
-            </button>
-          </div>
+
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFile} style={{ display: 'none' }} />
           <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
         </div>
@@ -382,6 +733,14 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
             </div>
           )}
           <div className={rStyles.resultNote}>{resultNote}</div>
+          {!!captureArtifacts?.cleanupSummary && (
+            <div className={rStyles.captureMeta}>
+              {captureArtifacts.cleanupSummary}
+              {scanCurrency ? ` · ${scanCurrency} detected` : ''}
+              {confidenceLabel ? ` · ${confidenceLabel}` : ''}
+              {parsedMeta?.lineItems?.length ? ` · ${parsedMeta.lineItems.length} items found` : ''}
+            </div>
+          )}
 
           {isGrocery ? (
             <div className={rStyles.formGrid}>
@@ -396,16 +755,18 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
             </div>
           ) : (
             <div className={rStyles.formGrid}>
+              {!receiptOnly && (
+                <label className={rStyles.formField}>
+                  <span>Type</span>
+                  <select value={form.type} onChange={event => setField('type', event.target.value)}>
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="transfer">Transfer / other</option>
+                  </select>
+                </label>
+              )}
               <label className={rStyles.formField}>
-                <span>Type</span>
-                <select value={form.type} onChange={event => setField('type', event.target.value)}>
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                  <option value="transfer">Transfer / other</option>
-                </select>
-              </label>
-              <label className={rStyles.formField}>
-                <span>Amount</span>
+                <span>{receiptOnly ? 'Total' : 'Amount'}</span>
                 <input type="number" min="0" step="0.01" value={form.amount} onChange={event => setField('amount', event.target.value)} />
               </label>
               <label className={rStyles.formField}>
@@ -430,19 +791,19 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
                 </select>
               </label>
               <label className={`${rStyles.formField} ${rStyles.fullWidth}`}>
-                <span>Merchant / description</span>
-                <input value={form.desc} onChange={event => setField('desc', event.target.value)} placeholder="Describe this transaction" />
+                <span>{receiptOnly ? 'Merchant' : 'Merchant / description'}</span>
+                <input value={form.desc} onChange={event => setField('desc', event.target.value)} placeholder={receiptOnly ? 'Store or merchant name' : 'Describe this transaction'} />
               </label>
-              {mode === 'wallet' && (
+              {(mode === 'wallet' || receiptOnly) && (
                 <div className={`${rStyles.detailSection} ${rStyles.fullWidth}`}>
                   <button type="button" className={rStyles.detailToggle} onClick={() => setShowDetails(current => !current)}>
-                    <span>{showDetails ? 'Hide more details' : 'More details'}</span>
+                    <span>{showDetails ? 'Hide more details' : receiptOnly ? 'Receipt details' : 'More details'}</span>
                     {!showDetails && form.reference && <span className={rStyles.detailMeta}>Reference captured</span>}
                   </button>
                   {showDetails && (
                     <label className={`${rStyles.formField} ${rStyles.fullWidth}`}>
-                      <span>Reference</span>
-                      <input value={form.reference} onChange={event => setField('reference', event.target.value)} placeholder="Optional reference number" />
+                      <span>{receiptOnly ? 'Reference / note' : 'Reference'}</span>
+                      <input value={form.reference} onChange={event => setField('reference', event.target.value)} placeholder={receiptOnly ? 'Optional receipt or invoice number' : 'Optional reference number'} />
                     </label>
                   )}
                 </div>
@@ -450,7 +811,7 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
             </div>
           )}
 
-          {!isGrocery && form.type === 'transfer' && (
+          {!isGrocery && !receiptOnly && form.type === 'transfer' && (
             <div className={rStyles.transferNote}>
               Transfers are not stored separately yet. Pick Income or Expense before adding this entry.
             </div>
@@ -463,9 +824,9 @@ export default function ReceiptScanner({ onResult, onClose, defaultMode = 'walle
             <button
               className={rStyles.btnUse}
               onClick={handleConfirm}
-              disabled={isGrocery ? !form.amount : !form.amount || !form.date || !form.desc || form.type === 'transfer'}
+              disabled={isGrocery ? !form.amount : !form.amount || !form.date || !form.desc || (!receiptOnly && form.type === 'transfer')}
             >
-              {isGrocery ? 'Add item →' : 'Continue with these details →'}
+              {actionLabel}
             </button>
           </div>
         </div>
