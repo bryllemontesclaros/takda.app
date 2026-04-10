@@ -424,6 +424,24 @@ export default function AppShell({ user }) {
     const matchedPreset = findPresetByLabel(nextType, parsed.desc || '')
     const nextPreset = matchedPreset && !matchedPreset.isCustom && matchedPreset.cat === nextCat ? matchedPreset : null
     const nextSubcat = sanitizeTransactionSubcategory(nextType, nextCat, parsed.subcat || nextPreset?.subcat || nextDraft.subcat)
+    const receiptDraft = parsed.source === 'receipt'
+      ? {
+          merchant: parsed.desc || '',
+          currency: parsed.currency || profile.currency || 'PHP',
+          reference: parsed.reference || '',
+          rawText: parsed.rawText || '',
+          confidence: parsed.confidence || '',
+          lineItems: Array.isArray(parsed.lineItems) ? parsed.lineItems : [],
+          originalBlob: parsed.originalBlob || null,
+          cleanedBlob: parsed.cleanedBlob || null,
+          cleanupSummary: parsed.cleanupSummary || '',
+          imageWidth: parsed.imageWidth || 0,
+          imageHeight: parsed.imageHeight || 0,
+          cleanedWidth: parsed.cleanedWidth || 0,
+          cleanedHeight: parsed.cleanedHeight || 0,
+          fileName: parsed.fileName || 'receipt.jpg',
+        }
+      : null
     setQuickAddSheet({
       open: true,
       mode: 'manual',
@@ -437,6 +455,7 @@ export default function AppShell({ user }) {
         subcat: nextSubcat,
         presetKey: nextPreset?.key || '',
         source: parsed.source || 'receipt',
+        receiptDraft,
       },
     })
   }
