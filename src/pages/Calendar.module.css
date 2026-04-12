@@ -26,7 +26,56 @@
 /* CALENDAR HEADER */
 .calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
 .nav { display: flex; align-items: center; gap: 0.5rem; }
-.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: 180px; text-align: center; }
+.monthJumpWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 180px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface2) 92%, #ffffff 8%);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.monthJumpWrap:hover {
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--surface3) 92%, #ffffff 8%);
+}
+.monthJumpWrap:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: auto; text-align: center; line-height: 1.05; pointer-events: none; }
+.monthJumpMeta {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: var(--text3);
+  pointer-events: none;
+}
+.monthJumpInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.monthJumpInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
 .navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 15px; min-width: 40px; min-height: 40px; flex-shrink: 0; }
 .navBtn:hover { border-color: var(--border2); color: var(--text); }
 
@@ -467,9 +516,16 @@
   .calHeader {
     margin-bottom: 0.75rem;
   }
-  .monthLabel {
+  .monthJumpWrap {
     width: 168px;
+    min-height: 44px;
+    padding: 7px 12px;
+  }
+  .monthLabel {
     font-size: 17px;
+  }
+  .monthJumpMeta {
+    font-size: 9px;
   }
   .dayNames {
     margin-bottom: 1px;
@@ -570,13 +626,24 @@
     min-height: 38px;
   }
   .monthLabel {
-    width: 170px;
     flex: 1;
-    font-size: 17px;
+    font-size: 16px;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .monthJumpWrap {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+    min-height: 42px;
+    padding: 6px 10px;
+    border-radius: 12px;
+  }
+  .monthJumpMeta {
+    font-size: 9px;
+    letter-spacing: 0.5px;
   }
   .navBtn {
     min-width: 38px;

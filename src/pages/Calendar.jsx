@@ -185,6 +185,18 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     bumpMonth(1)
   }
 
+  function handleJumpToDate(event) {
+    const nextDateKey = normalizeDate(event.target.value)
+    if (!nextDateKey) return
+    const nextDate = new Date(`${nextDateKey}T00:00:00`)
+    if (Number.isNaN(nextDate.getTime())) return
+    setYear(nextDate.getFullYear())
+    setMonth(nextDate.getMonth())
+    setSelected(nextDateKey)
+    setEditingDayBalance(false)
+    setDayBalanceDraft('')
+  }
+
   function set(key, value) {
     if (key === 'desc') setDescTouched(true)
     setFormError('')
@@ -656,7 +668,17 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         <div className={calStyles.calHeader}>
           <div className={calStyles.nav}>
             <button type="button" className={calStyles.navBtn} onClick={prev} aria-label="Previous month">←</button>
-            <div className={calStyles.monthLabel} id="calendar-month-label">{label}</div>
+            <label className={calStyles.monthJumpWrap} aria-label={`Jump to another date. Currently showing ${label}.`}>
+              <span className={calStyles.monthLabel} id="calendar-month-label">{label}</span>
+              <span className={calStyles.monthJumpMeta}>Tap or click to jump</span>
+              <input
+                type="date"
+                className={calStyles.monthJumpInput}
+                value={selected || balanceFocusDate || todayStr}
+                onChange={handleJumpToDate}
+                aria-label="Jump to any date"
+              />
+            </label>
             <button type="button" className={calStyles.navBtn} onClick={next} aria-label="Next month">→</button>
           </div>
         </div>
