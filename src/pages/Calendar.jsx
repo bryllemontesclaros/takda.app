@@ -73,6 +73,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const touchStartX = useRef(null)
   const navLock = useRef(false)
   const feedbackTimerRef = useRef(null)
+  const selectedDayRef = useRef(null)
 
   const todayStr = today()
   const accountLookup = useMemo(
@@ -628,13 +629,16 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (onSelectedDateChange) onSelectedDateChange(selected || '')
   }, [selected, onSelectedDateChange])
 
+  useEffect(() => {
+    if (!selected || !selectedDayRef.current) return undefined
+    const frameId = window.requestAnimationFrame(() => {
+      selectedDayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    })
+    return () => window.cancelAnimationFrame(frameId)
+  }, [selected])
+
   return (
     <div className={`${styles.page} ${calStyles.page}`}>
-      <div className={`${styles.header} ${calStyles.pageHeader}`}>
-        <div className={styles.title}>Calendar</div>
-        <div className={`${styles.sub} ${calStyles.pageSub}`}>Swipe or scroll sideways to move month by month</div>
-      </div>
-
       {entryFeedback && (
         <div className={`${styles.card} ${calStyles.feedbackBanner} ${calStyles.feedbackDock}`} style={{ '--feedback-tone': entryFeedback.tone }}>
           <div className={calStyles.feedbackEyebrow}>{entryFeedback.eyebrow || 'Entry saved'}</div>
@@ -686,7 +690,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   type="button"
                   key={day}
                   className={`${calStyles.cell} ${isToday ? calStyles.today : ''} ${isSelected ? calStyles.selectedCell : ''} ${(hasIncome || hasExpense) ? calStyles.hasData : ''}`}
-                  onClick={() => setSelected(ds === selected ? null : ds)}
+                  onClick={() => setSelected(ds)}
                   aria-pressed={isSelected}
                   aria-label={dayAriaLabel}
                 >
@@ -731,14 +735,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
           <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
         </button>
-      </div>
 
-      {selected && (
-        <>
-          <div className={calStyles.dayPanelOverlay} onClick={closeSelectedDay} aria-hidden="true" />
-          <div className={calStyles.dayPanel} role="dialog" aria-modal="true" aria-labelledby="calendar-day-panel-title">
+        {selected && (
+          <section ref={selectedDayRef} className={calStyles.dayPanel} aria-labelledby="calendar-day-panel-title">
             <div className={calStyles.dayPanelTop}>
-              <div className={calStyles.dayPanelHandle} />
               <div className={calStyles.dayPanelHeader}>
                 <div className={calStyles.dayPanelHeaderMain}>
                   <div className={calStyles.dayPanelEyebrowRow}>
@@ -960,9 +960,9 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               </div>
             )}
           </div>
-          </div>
-        </>
-      )}
+          </section>
+        )}
+      </div>
 
       {showModal && (
         <div className={calStyles.modalOverlay} onClick={closeTransactionEditor}>
