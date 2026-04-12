@@ -548,21 +548,13 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const balanceFocusValue = balanceFocusDate
     ? (forecastMap[balanceFocusDate]?.runningBalance ?? getBalanceAtDateWithOverrides(data.accounts, data.income, data.expenses, balanceFocusDate, balanceOverrides))
     : 0
-  const balanceRailLabel = selected
-    ? `Closing balance for ${formatBalanceDate(balanceFocusDate)}`
-    : isCurrentMonthView
-      ? `Today’s closing balance for ${formatBalanceDate(balanceFocusDate)}`
-      : `Month-end closing balance for ${formatBalanceDate(balanceFocusDate)}`
-  const balanceRailCompactLabel = selected
-    ? `Closing balance · ${formatBalanceDate(balanceFocusDate)}`
-    : isCurrentMonthView
-      ? `Today · ${formatBalanceDate(balanceFocusDate)}`
-      : `Month-end · ${formatBalanceDate(balanceFocusDate)}`
+  const balanceRailLabel = formatBalanceDate(balanceFocusDate)
+  const balanceRailCompactLabel = balanceRailLabel
   const balanceRailMeta = selected
-    ? 'Selected day closing balance.'
+    ? 'Closing balance'
     : isCurrentMonthView
-      ? 'Showing today by default. Tap any day to compare its exact closing balance.'
-      : 'Showing the last day of this viewed month by default. Tap any day to compare its exact closing balance.'
+      ? 'Today closing balance'
+      : 'Month-end closing balance'
   const balanceRailHint = privacyMode ? 'Tap to show balances.' : 'Tap to hide balances.'
   const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
@@ -666,7 +658,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             <button type="button" className={calStyles.navBtn} onClick={prev} aria-label="Previous month">←</button>
             <label className={calStyles.monthJumpWrap} aria-label={`Jump to another date. Currently showing ${label}.`}>
               <span className={calStyles.monthLabel} id="calendar-month-label">{label}</span>
-              <span className={calStyles.monthJumpMeta}>Tap or click to jump</span>
               <input
                 type="date"
                 className={calStyles.monthJumpInput}
@@ -752,7 +743,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
             <div className={calStyles.balanceRailLabelCompact}>{balanceRailCompactLabel}</div>
             <div className={calStyles.balanceRailMeta}>
-              {privacyMode ? `Privacy mode is on. ${balanceRailHint}` : `${balanceRailMeta} ${balanceRailHint}`}
+              {privacyMode ? 'Privacy mode on' : balanceRailMeta}
             </div>
           </div>
           <div className={`${calStyles.balanceRailValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(balanceFocusValue)}</div>
@@ -770,7 +761,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   <div id="calendar-day-panel-title" className={calStyles.dayPanelTitle}>{formatBalanceDate(selected)}</div>
                 </div>
                 <div className={calStyles.dayPanelHeaderRight}>
-                  <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close selected day">✕</button>
+                  <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Clear selected day">Clear</button>
                 </div>
               </div>
             </div>
@@ -780,7 +771,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 {!editingDayBalance ? (
                   <>
                     <div className={calStyles.dayBalanceHeader}>
-                      <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Manual closing balance on this day' : 'Closing balance on this day'}</span>
+                      <span className={calStyles.dayBalanceLabel}>{hasManualBalanceOnSelectedDay ? 'Pinned closing balance' : 'Closing balance'}</span>
                       <button type="button" className={calStyles.dayBalanceEditBtn} onClick={openDayBalanceEditor} aria-label={`Edit closing balance for ${selected}`} disabled={selectedDateLocked}>
                         Edit
                       </button>
@@ -812,8 +803,8 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                     </div>
                     <div className={calStyles.dayBalanceMeta}>
                       {hasManualBalanceOnSelectedDay
-                        ? 'Pinned day balance.'
-                        : 'Auto-calculated from balances and transactions.'}
+                        ? 'Pinned from this day forward.'
+                        : 'Calculated from balances and entries.'}
                     </div>
                     <div className={calStyles.dayPanelActions}>
                       <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')} disabled={selectedDateLocked}>
@@ -907,7 +898,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               )}
 
               {selectedIncome.length === 0 && selectedExpenses.length === 0 && (
-                <div className={calStyles.dayPanelEmpty}>No transactions on this day yet. Add one here so the date context stays intact.</div>
+                <div className={calStyles.dayPanelEmpty}>No transactions on this day yet.</div>
               )}
 
               {(selectedIncome.length > 0 || selectedExpenses.length > 0) && (
@@ -933,52 +924,57 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               )}
 
               {data.goals.length > 0 && (
-                <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border)' }}>
-                  <div className={calStyles.daySectionLabel} style={{ color: 'var(--blue)', marginBottom: 10 }}>Savings Goals</div>
-                  {data.goals.map(goal => {
-                    const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
-                    const isEditing = editGoalId === goal._id
+                <details className={calStyles.goalDisclosure}>
+                  <summary className={calStyles.goalDisclosureSummary}>
+                    <span>Savings goals</span>
+                    <span className={calStyles.goalDisclosureCount}>{data.goals.length}</span>
+                  </summary>
+                  <div className={calStyles.goalDisclosureBody}>
+                    {data.goals.map(goal => {
+                      const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
+                      const isEditing = editGoalId === goal._id
 
-                    return (
-                      <div key={goal._id} style={{ marginBottom: 14 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                          <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{goal.name}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>{money(goal.current || 0)}</span>
-                            <span style={{ fontSize: 11, color: 'var(--text3)' }}>/ {money(goal.target)}</span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditGoalId(isEditing ? null : goal._id)
-                                setGoalInput(String(goal.current || 0))
-                              }}
-                              style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-body)' }}
-                            >
-                              {isEditing ? 'Cancel' : 'Edit'}
-                            </button>
+                      return (
+                        <div key={goal._id} style={{ marginBottom: 14 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                            <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{goal.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>{money(goal.current || 0)}</span>
+                              <span style={{ fontSize: 11, color: 'var(--text3)' }}>/ {money(goal.target)}</span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditGoalId(isEditing ? null : goal._id)
+                                  setGoalInput(String(goal.current || 0))
+                                }}
+                                style={{ background: 'var(--surface2)', border: '1px solid var(--border)', color: 'var(--text2)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-body)' }}
+                              >
+                                {isEditing ? 'Cancel' : 'Edit'}
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        <div style={{ height: 5, background: 'var(--surface3)', borderRadius: 3, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${pct}%`, background: pct >= 80 ? 'var(--amber)' : 'var(--accent)', borderRadius: 3, transition: 'width 0.4s' }} />
-                        </div>
-                        {isEditing && (
-                          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-                            <input
-                              type="number"
-                              min="0"
-                              value={goalInput}
-                              onChange={event => setGoalInput(event.target.value)}
-                              placeholder="New total saved"
-                              style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
-                            />
-                            <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                          <div style={{ height: 5, background: 'var(--surface3)', borderRadius: 3, overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${pct}%`, background: pct >= 80 ? 'var(--amber)' : 'var(--accent)', borderRadius: 3, transition: 'width 0.4s' }} />
                           </div>
-                        )}
-                      </div>
-                    )
-                  })}
-              </div>
-            )}
+                          {isEditing && (
+                            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                              <input
+                                type="number"
+                                min="0"
+                                value={goalInput}
+                                onChange={event => setGoalInput(event.target.value)}
+                                placeholder="New total saved"
+                                style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
+                              />
+                              <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </details>
+              )}
           </div>
           </section>
         )}

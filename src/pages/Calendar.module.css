@@ -21,45 +21,45 @@
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   margin-bottom: 0;
+  padding: 1rem;
 }
 
 /* CALENDAR HEADER */
-.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 8px; }
-.nav { display: flex; align-items: center; gap: 0.5rem; }
+.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px; }
+.nav { display: flex; align-items: center; gap: 0.75rem; }
 .monthJumpWrap {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 180px;
-  min-height: 48px;
-  padding: 8px 14px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--surface2) 92%, #ffffff 8%);
+  gap: 6px;
+  width: auto;
+  min-height: 36px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: color 0.15s ease, opacity 0.15s ease;
 }
-.monthJumpWrap:hover {
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
-  background: color-mix(in srgb, var(--surface3) 92%, #ffffff 8%);
-}
-.monthJumpWrap:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
-}
-.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: auto; text-align: center; line-height: 1.05; pointer-events: none; }
-.monthJumpMeta {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.7px;
-  text-transform: uppercase;
+.monthJumpWrap::after {
+  content: '▾';
+  font-size: 11px;
+  line-height: 1;
   color: var(--text3);
-  pointer-events: none;
+  transform: translateY(1px);
 }
+.monthJumpWrap:hover { opacity: 0.86; }
+.monthJumpWrap:focus-within {
+  color: var(--accent);
+}
+.monthJumpWrap:focus-within .monthLabel,
+.monthJumpWrap:focus-within::after {
+  color: var(--accent);
+}
+.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: auto; text-align: center; line-height: 1.05; pointer-events: none; letter-spacing: -0.02em; }
+.monthJumpMeta { display: none; }
 .monthJumpInput {
   position: absolute;
   inset: 0;
@@ -76,8 +76,8 @@
   margin: 0;
   cursor: pointer;
 }
-.navBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 6px 14px; cursor: pointer; font-size: 15px; min-width: 40px; min-height: 40px; flex-shrink: 0; }
-.navBtn:hover { border-color: var(--border2); color: var(--text); }
+.navBtn { background: transparent; border: 1px solid color-mix(in srgb, var(--border) 76%, transparent); color: var(--text2); border-radius: 999px; padding: 0; cursor: pointer; font-size: 15px; min-width: 34px; min-height: 34px; flex-shrink: 0; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
+.navBtn:hover { border-color: color-mix(in srgb, var(--accent) 24%, var(--border)); color: var(--text); background: color-mix(in srgb, var(--surface2) 82%, transparent); }
 
 /* ADD BUTTONS */
 .addBtns { display: flex; gap: 6px; }
@@ -96,14 +96,14 @@
   height: 100%;
   overflow: hidden;
 }
-.dayNames { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 2px; margin-bottom: 2px; }
-.dayName { text-align: center; font-size: 10px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; padding: 4px 0; }
+.dayNames { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; margin-bottom: 4px; }
+.dayName { text-align: center; font-size: 10px; color: color-mix(in srgb, var(--text3) 82%, transparent); font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; padding: 2px 0; }
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   grid-template-rows: repeat(6, minmax(0, 1fr));
   grid-auto-rows: minmax(0, 1fr);
-  gap: 2px;
+  gap: 4px;
   min-height: 0;
   height: 100%;
   align-content: stretch;
@@ -112,51 +112,51 @@
 /* CELL — clean, no text overflow */
 .cell {
   appearance: none;
-  min-height: 92px;
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 7px;
+  min-height: 88px;
+  background: color-mix(in srgb, var(--surface) 98%, #ffffff 2%);
+  border: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
+  border-radius: 14px;
+  padding: 8px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
   overflow: hidden;
   position: relative;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   text-align: left;
   font-family: var(--font-body);
 }
-.cell:hover { border-color: var(--border2); background: var(--surface3); }
-.today { border-color: var(--accent) !important; background: color-mix(in srgb, var(--accent-glow) 68%, var(--surface) 32%) !important; }
+.cell:hover { border-color: color-mix(in srgb, var(--border2) 88%, transparent); background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); }
+.today { border-color: color-mix(in srgb, var(--accent) 56%, var(--border)) !important; background: color-mix(in srgb, var(--accent-glow) 18%, var(--surface) 82%) !important; }
 .otherMonth { opacity: 0.2; pointer-events: none; }
-.selectedCell { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent-glow) 38%, var(--surface) 62%); }
-.hasData { background: color-mix(in srgb, var(--surface3) 88%, #ffffff 12%); }
+.selectedCell { border-color: color-mix(in srgb, var(--accent) 76%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent); background: color-mix(in srgb, var(--accent-glow) 12%, var(--surface) 88%); }
+.hasData { border-color: color-mix(in srgb, var(--border2) 88%, transparent); }
 
 .cellTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; min-width: 0; }
-.dateNum { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.dateNum { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.2; letter-spacing: -0.02em; }
 .today .dateNum { color: var(--accent); }
 .cellBalance {
-  font-size: 11px;
-  line-height: 1.2;
-  color: var(--text);
+  font-size: 10px;
+  line-height: 1.18;
+  color: var(--text3);
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 600;
   min-width: 0;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   word-break: normal;
   overflow-wrap: anywhere;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 /* DOTS ONLY — no amount text in cells */
-.dots { display: flex; gap: 2px; flex-wrap: wrap; justify-content: flex-end; }
-.dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dots { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+.dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; opacity: 0.92; }
 .dotBalance { background: var(--blue); }
 .dotIncome { background: var(--accent); }
 .dotExpense { background: var(--red); }
@@ -165,16 +165,16 @@
 .forecastBal { display: none; }
 
 .balanceRail {
-  margin-top: 12px;
-  padding: 14px 16px;
-  min-height: 74px;
-  border-radius: 14px;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  margin-top: 10px;
+  padding: 10px 12px;
+  min-height: 62px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
   flex-shrink: 0;
   width: 100%;
   text-align: left;
@@ -184,8 +184,8 @@
 }
 
 .balanceRail:hover {
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
-  background: color-mix(in srgb, var(--surface3) 92%, #ffffff 8%);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
 }
 
 .balanceRail:focus-visible {
@@ -196,10 +196,11 @@
 .balanceRailCopy { min-width: 0; }
 
 .balanceRailLabel {
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 16px;
+  line-height: 1.05;
   font-weight: 700;
   color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .balanceRailLabelCompact {
@@ -207,15 +208,17 @@
 }
 
 .balanceRailMeta {
-  margin-top: 4px;
-  font-size: 11px;
-  line-height: 1.45;
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.3;
   color: var(--text3);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .balanceRailValue {
   font-family: var(--font-mono);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1;
   font-weight: 700;
   color: var(--text);
@@ -256,95 +259,96 @@
 }
 
 .dayBalanceCard {
-  padding: 12px 14px;
+  padding: 0 0 14px;
   margin-bottom: 14px;
-  border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 12%, transparent), transparent 42%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), var(--surface));
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background: none;
 }
 .dayBalanceHeader { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .dayBalanceLabel {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text3);
 }
 .dayBalanceValue {
-  margin-top: 6px;
+  margin-top: 8px;
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 32px;
   line-height: 1;
   color: var(--text);
 }
 .dayBalanceStats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
   margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 68%, transparent);
 }
 .dayBalanceStat {
   min-width: 0;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  border: none;
 }
 .dayBalanceStatLabel {
   display: block;
-  margin-bottom: 4px;
-  font-size: 10px;
+  margin-bottom: 2px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.7px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text3);
 }
 .dayBalanceStatValue {
   display: block;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text);
-  white-space: nowrap;
+  white-space: normal;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .dayBalanceStatPositive { color: var(--accent); }
 .dayBalanceStatNegative { color: var(--red); }
 .dayBalanceMeta {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--text2);
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text3);
 }
 .dayBalanceEditBtn,
 .dayBalanceGhostBtn,
 .dayBalanceSaveBtn {
-  min-height: 34px;
-  padding: 6px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   font-family: var(--font-body);
 }
 .dayBalanceEditBtn,
 .dayBalanceGhostBtn {
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: transparent;
   color: var(--text2);
 }
 .dayBalanceEditBtn:hover,
 .dayBalanceGhostBtn:hover {
-  border-color: var(--border2);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
   color: var(--text);
 }
 .dayBalanceSaveBtn {
   border: none;
-  background: var(--blue);
-  color: #081018;
+  background: color-mix(in srgb, var(--blue) 12%, var(--surface));
+  color: var(--blue);
 }
 .dayBalanceEditBtn:disabled,
 .dayBalanceSaveBtn:disabled,
@@ -406,36 +410,34 @@
   margin-top: 14px;
   width: 100%;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, #ffffff 3%), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--surface) 98%, #ffffff 2%);
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 18px;
   box-sizing: border-box;
   scroll-margin-top: 18px;
-  box-shadow: 0 20px 40px rgba(8, 12, 18, 0.12);
+  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.08);
 }
 .dayPanelHandle {
   display: none;
 }
 .dayPanelTop {
   position: relative;
-  padding: 14px 18px 12px;
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 74%, transparent);
+  padding: 12px 16px 10px;
+  background: transparent;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 66%, transparent);
 }
 .dayPanelBody {
-  padding: 12px 18px 20px;
+  padding: 12px 16px 18px;
 }
 .dayPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .dayPanelHeaderMain { min-width: 0; }
 .dayPanelEyebrowRow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
-.dayPanelEyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text3); }
-.dayPanelTodayBadge { padding: 3px 8px; border-radius: 999px; background: var(--accent-glow); color: var(--accent); font-size: 10px; font-weight: 700; }
-.dayPanelTitle { font-family: var(--font-display); font-size: 20px; line-height: 1.05; color: var(--text); }
+.dayPanelEyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text3); }
+.dayPanelTodayBadge { padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.dayPanelTitle { font-family: var(--font-display); font-size: 18px; line-height: 1.05; color: var(--text); }
 .dayPanelHeaderRight { display: flex; align-items: flex-start; justify-content: flex-end; }
-.dayPanelClose { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); font-size: 16px; cursor: pointer; min-width: 36px; min-height: 36px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; }
-.dayPanelClose:hover { border-color: var(--border2); color: var(--text); }
+.dayPanelClose { background: transparent; border: 1px solid color-mix(in srgb, var(--border) 76%, transparent); color: var(--text3); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; min-width: 0; min-height: 28px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; }
+.dayPanelClose:hover { border-color: color-mix(in srgb, var(--accent) 22%, var(--border)); color: var(--text); }
 .dayPanelHeaderMeta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
 .dayPanelHeaderStat { border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%); padding: 10px 12px; min-width: 0; }
 .dayPanelHeaderStatLabel { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
@@ -445,17 +447,17 @@
 
 /* DAY PANEL SECTIONS */
 .daySection { margin-bottom: 12px; }
-.daySectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
-.daySectionLabel { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; }
+.daySectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.daySectionLabel { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; margin-bottom: 6px; }
 .daySectionHeader .daySectionLabel { margin-bottom: 0; }
-.daySectionCount { min-width: 24px; height: 24px; padding: 0 8px; border-radius: 999px; background: var(--surface2); border: 1px solid var(--border); color: var(--text2); font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
-.daySummary { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; font-family: var(--font-mono); flex-wrap: wrap; }
-.dayPanelActions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
-.dayPanelAction { min-height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: opacity 0.15s, transform 0.15s; }
-.dayPanelAction:hover { opacity: 0.92; transform: translateY(-1px); }
+.daySectionCount { min-width: 22px; height: 22px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--surface2) 88%, transparent); border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); color: var(--text3); font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+.daySummary { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--border) 66%, transparent); font-size: 12px; font-family: var(--font-mono); flex-wrap: wrap; }
+.dayPanelActions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.dayPanelAction { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
+.dayPanelAction:hover { opacity: 1; transform: none; }
 .dayPanelAction:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.dayPanelActionIncome { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
-.dayPanelActionExpense { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.dayPanelActionIncome { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); color: var(--accent); }
+.dayPanelActionExpense { background: color-mix(in srgb, var(--red) 9%, var(--surface)); border-color: color-mix(in srgb, var(--red) 24%, var(--border)); color: var(--red); }
 .planNote {
   margin: -2px 0 14px;
   padding: 10px 12px;
@@ -468,25 +470,72 @@
 }
 
 /* TX ROWS */
-.txRow { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.txRow { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 66%, transparent); }
 .txRow:last-child { border-bottom: none; }
 .txLeft { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.txIcon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
-.txDesc { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-.txMeta { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-.accountBadge { background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--blue); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
-.recurBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
-.projBadge { background: var(--purple-dim); color: var(--purple); border-radius: 20px; padding: 1px 7px; font-size: 10px; font-weight: 600; }
+.txIcon { width: 24px; height: 24px; border-radius: 999px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+.txDesc { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.txMeta { font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+.accountBadge { background: transparent; color: var(--blue); border-radius: 999px; padding: 1px 7px; font-size: 10px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--blue) 20%, var(--border)); }
+.recurBadge { background: transparent; color: var(--purple); border-radius: 999px; padding: 1px 7px; font-size: 10px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--purple) 22%, var(--border)); }
+.projBadge { background: transparent; color: var(--purple); border-radius: 999px; padding: 1px 7px; font-size: 10px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--purple) 22%, var(--border)); }
 .txRight { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .txAmount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
 .txActions { display: flex; align-items: center; gap: 3px; }
-.editBtn { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); padding: 3px 8px; font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 28px; }
-.editBtn:hover { border-color: var(--accent); color: var(--accent); }
-.delBtnSm { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 13px; padding: 3px 6px; border-radius: 4px; min-height: 28px; min-width: 28px; }
-.delBtnSm:hover { color: var(--red); background: var(--red-dim); }
+.editBtn { background: transparent; border: 1px solid color-mix(in srgb, var(--border) 76%, transparent); color: var(--text3); border-radius: 999px; padding: 0 8px; font-size: 10px; cursor: pointer; font-family: var(--font-body); min-height: 26px; }
+.editBtn:hover { border-color: color-mix(in srgb, var(--accent) 20%, var(--border)); color: var(--accent); }
+.delBtnSm { background: transparent; border: 1px solid transparent; color: var(--text3); cursor: pointer; font-size: 12px; padding: 0 7px; border-radius: 999px; min-height: 26px; min-width: 26px; }
+.delBtnSm:hover { color: var(--red); background: color-mix(in srgb, var(--red) 8%, transparent); border-color: color-mix(in srgb, var(--red) 16%, transparent); }
 .editBtn:disabled,
 .delBtnSm:disabled { opacity: 0.55; cursor: not-allowed; }
-.dayPanelEmpty { padding: 14px 16px; border-radius: var(--radius); border: 1px dashed var(--border2); background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); color: var(--text2); line-height: 1.55; }
+.dayPanelEmpty { padding: 12px 0; border-radius: 0; border: none; color: var(--text3); line-height: 1.55; }
+
+.goalDisclosure {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 66%, transparent);
+}
+.goalDisclosureSummary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.goalDisclosureSummary::-webkit-details-marker { display: none; }
+.goalDisclosureSummary::after {
+  content: '▾';
+  margin-left: auto;
+  font-size: 11px;
+  letter-spacing: 0;
+  transition: transform 0.15s ease;
+}
+.goalDisclosure[open] .goalDisclosureSummary::after {
+  transform: rotate(180deg);
+}
+.goalDisclosureCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface2) 86%, transparent);
+  color: var(--text2);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+.goalDisclosureBody {
+  margin-top: 12px;
+}
 
 .inlineComposerCard { margin-top: 1rem; scroll-margin-top: 88px; }
 
@@ -550,31 +599,26 @@
     margin-bottom: 0.75rem;
   }
   .monthJumpWrap {
-    width: 168px;
-    min-height: 44px;
-    padding: 7px 12px;
+    min-height: 34px;
   }
   .monthLabel {
     font-size: 17px;
   }
-  .monthJumpMeta {
-    font-size: 9px;
-  }
   .dayNames {
-    margin-bottom: 1px;
+    margin-bottom: 4px;
   }
   .dayName {
-    padding: 2px 0;
+    padding: 1px 0;
     font-size: 9px;
   }
   .grid {
-    gap: 1px;
+    gap: 4px;
   }
   .cell {
-    min-height: 76px;
-    padding: 6px;
+    min-height: 72px;
+    padding: 7px;
     gap: 4px;
-    border-radius: 7px;
+    border-radius: 12px;
   }
   .dateNum {
     font-size: 11px;
@@ -584,28 +628,20 @@
     line-height: 1.1;
     -webkit-line-clamp: 2;
   }
-  .dots {
-    gap: 1px;
-  }
-  .dot {
-    width: 5px;
-    height: 5px;
-  }
   .balanceRail {
-    margin-top: 10px;
-    padding: 10px 14px;
-    min-height: 68px;
-    border-radius: 12px;
+    padding: 10px 12px;
+    min-height: 58px;
+    border-radius: 14px;
   }
   .balanceRailLabel {
-    font-size: 12px;
+    font-size: 15px;
   }
   .balanceRailLabelCompact {
     display: none;
   }
   .balanceRailMeta {
-    margin-top: 2px;
-    font-size: 10px;
+    margin-top: 3px;
+    font-size: 9px;
   }
   .balanceRailValue {
     font-size: 18px;
@@ -649,22 +685,20 @@
     height: auto;
     min-height: 0;
     padding: 10px;
-    border-radius: 18px;
+    border-radius: 16px;
     grid-template-rows: auto auto auto;
     align-content: start;
   }
-  .calHeader { flex-direction: column; align-items: stretch; }
   .calHeader {
     margin-bottom: 8px;
-    gap: 6px;
+    gap: 8px;
   }
   .nav {
     justify-content: space-between;
     align-items: center;
-    min-height: 38px;
+    min-height: 34px;
   }
   .monthLabel {
-    flex: 1;
     font-size: 16px;
     min-width: 0;
     white-space: nowrap;
@@ -675,23 +709,20 @@
     flex: 1;
     width: auto;
     min-width: 0;
-    min-height: 42px;
-    padding: 6px 10px;
-    border-radius: 12px;
-  }
-  .monthJumpMeta {
-    font-size: 9px;
-    letter-spacing: 0.5px;
+    min-height: 32px;
+    padding: 0;
+    border-radius: 0;
   }
   .navBtn {
-    min-width: 38px;
-    min-height: 38px;
-    padding: 6px 12px;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    font-size: 13px;
   }
   .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
   .monthBoard {
-    gap: 2px;
+    gap: 4px;
     height: auto;
     overflow: visible;
   }
@@ -699,7 +730,7 @@
     margin-bottom: 0;
   }
   .dayName {
-    padding: 2px 0;
+    padding: 1px 0;
     font-size: 9px;
   }
   .grid {
@@ -709,11 +740,11 @@
     align-content: stretch;
   }
   .cell {
-    min-height: 58px;
+    min-height: 54px;
     height: auto;
-    padding: 4px 4px;
+    padding: 5px;
     gap: 2px;
-    border-radius: 7px;
+    border-radius: 10px;
     justify-content: flex-start;
   }
   .cellTop {
@@ -729,7 +760,7 @@
     min-height: 17px;
   }
   .dots {
-    gap: 1px;
+    gap: 2px;
   }
   .dot {
     width: 4px;
@@ -737,8 +768,8 @@
   }
   .balanceRail {
     margin-top: 6px;
-    padding: 8px 10px;
-    min-height: 58px;
+    padding: 9px 10px;
+    min-height: 54px;
     border-radius: 12px;
     align-items: center;
     gap: 10px;
@@ -748,8 +779,8 @@
   }
   .balanceRailLabelCompact {
     display: block;
-    font-size: 12px;
-    line-height: 1.2;
+    font-size: 13px;
+    line-height: 1.1;
     font-weight: 700;
     color: var(--text);
     white-space: nowrap;
@@ -760,7 +791,7 @@
     display: none;
   }
   .balanceRailValue {
-    font-size: 17px;
+    font-size: 16px;
     white-space: nowrap;
   }
   .privacyValuePill {
@@ -775,33 +806,32 @@
   .privacySummary {
     font-size: 11px;
   }
-  .dayPanelActions { grid-template-columns: 1fr; }
   .modalFields { grid-template-columns: 1fr; }
 
   .dayPanel {
     margin-top: 10px;
     border-radius: 16px;
-    box-shadow: 0 18px 36px rgba(8, 12, 18, 0.14);
+    box-shadow: 0 10px 24px rgba(8, 12, 18, 0.08);
   }
   .dayPanelTop {
-    padding: 14px 14px 10px;
+    padding: 12px 14px 9px;
   }
   .dayPanelBody {
     padding: 10px 14px 16px;
   }
   .dayPanelTitle {
-    font-size: 20px;
+    font-size: 17px;
   }
   .dayPanelEyebrowRow {
     margin-bottom: 3px;
   }
   .dayPanelClose {
-    min-width: 32px;
-    min-height: 32px;
-    font-size: 14px;
+    min-height: 24px;
+    padding: 0 8px;
+    font-size: 9px;
   }
   .dayBalanceCard {
-    padding: 10px 12px;
+    padding: 0 0 12px;
     margin-bottom: 10px;
   }
   .dayBalanceHeader {
@@ -809,25 +839,19 @@
   }
   .dayBalanceValue {
     margin-top: 4px;
-    font-size: 24px;
+    font-size: 26px;
   }
   .dayBalanceStats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 10px;
     margin-top: 10px;
   }
-  .dayBalanceStat {
-    padding: 8px 9px;
-  }
   .dayBalanceStatLabel {
-    margin-bottom: 3px;
     font-size: 9px;
   }
   .dayBalanceStatValue {
     font-size: 11px;
   }
   .dayBalanceMeta {
-    margin-top: 8px;
     font-size: 11px;
     line-height: 1.4;
   }
@@ -843,13 +867,12 @@
     gap: 6px;
   }
   .dayPanelActions {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 10px;
   }
   .dayPanelAction {
-    min-height: 36px;
-    font-size: 12px;
+    min-height: 32px;
+    font-size: 11px;
     padding: 0 10px;
   }
   .daySection {
@@ -859,15 +882,15 @@
     margin-bottom: 4px;
   }
   .txRow {
-    padding: 6px 0;
+    padding: 8px 0;
   }
   .txLeft {
     gap: 8px;
   }
   .txIcon {
-    width: 26px;
-    height: 26px;
-    font-size: 13px;
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
   .txDesc {
     font-size: 12px;
@@ -880,7 +903,7 @@
   }
   .editBtn {
     min-height: 26px;
-    padding: 2px 8px;
+    padding: 0 8px;
     font-size: 10px;
   }
   .delBtnSm {
@@ -888,7 +911,7 @@
     min-width: 26px;
   }
   .dayPanelEmpty {
-    padding: 12px 14px;
+    padding: 10px 0;
     font-size: 12px;
   }
   .modalOverlay { padding: 0; }
