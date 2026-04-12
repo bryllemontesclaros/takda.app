@@ -15,7 +15,7 @@ import {
   sanitizeTransactionCategory,
   sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
-import { displayValue, fmt, maskMoney, normalizeDate, RECUR_OPTIONS, today } from '../lib/utils'
+import { fmt, normalizeDate, RECUR_OPTIONS, today } from '../lib/utils'
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
 
@@ -123,11 +123,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (!selectedPreset || selectedPreset.isCustom || limited.some(item => item.key === selectedPreset.key)) return limited
     return [...limited.slice(0, 5), selectedPreset]
   }, [quickPresets, selectedPreset])
-  const maskFormattedBalance = value => String(value || '').replace(/\d/g, '•')
-  const money = value => {
-    const formatted = fmt(value, s)
-    return privacyMode ? maskFormattedBalance(formatted) : formatted
-  }
+  const money = value => (privacyMode ? 'Hidden' : fmt(value, s))
   const formatBalanceDate = value => {
     if (!value) return ''
     const parsed = new Date(`${value}T00:00:00`)
@@ -141,6 +137,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     return parsed.toLocaleDateString('en-PH', { weekday: 'long' })
   }
   const formatCellBalance = value => {
+    if (privacyMode) return ''
     const numericValue = Number(value) || 0
     const abs = Math.abs(numericValue)
     const hasDecimals = Math.round(abs * 100) !== Math.round(abs) * 100
@@ -148,8 +145,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       minimumFractionDigits: hasDecimals ? 2 : 0,
       maximumFractionDigits: hasDecimals ? 2 : 0,
     }).format(abs)
-    const visible = `${numericValue < 0 ? '−' : ''}${exact}`
-    return privacyMode ? maskFormattedBalance(visible) : visible
+    return `${numericValue < 0 ? '−' : ''}${exact}`
   }
 
   function bumpMonth(direction) {
@@ -726,12 +722,14 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                       </div>
                     )}
                   </div>
-                  <div
-                    className={calStyles.cellBalance}
-                    title={privacyMode ? 'Balance hidden' : fmt(forecast?.runningBalance || 0, s)}
-                  >
-                    {balanceLabel}
-                  </div>
+                  {!privacyMode && (
+                    <div
+                      className={calStyles.cellBalance}
+                      title={fmt(forecast?.runningBalance || 0, s)}
+                    >
+                      {balanceLabel}
+                    </div>
+                  )}
                 </button>
               )
             })}
@@ -753,9 +751,11 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           <div className={calStyles.balanceRailCopy}>
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
             <div className={calStyles.balanceRailLabelCompact}>{balanceRailCompactLabel}</div>
-            <div className={calStyles.balanceRailMeta}>{`${balanceRailMeta} ${balanceRailHint}`}</div>
+            <div className={calStyles.balanceRailMeta}>
+              {privacyMode ? `Privacy mode is on. ${balanceRailHint}` : `${balanceRailMeta} ${balanceRailHint}`}
+            </div>
           </div>
-          <div className={calStyles.balanceRailValue}>{money(balanceFocusValue)}</div>
+          <div className={`${calStyles.balanceRailValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(balanceFocusValue)}</div>
         </button>
 
         {selected && (
@@ -785,7 +785,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                         Edit
                       </button>
                     </div>
-                    <div className={calStyles.dayBalanceValue}>{money(selectedDayBalance)}</div>
+                    <div className={`${calStyles.dayBalanceValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(selectedDayBalance)}</div>
                     <div className={calStyles.dayBalanceStats}>
                       <div className={calStyles.dayBalanceStat}>
                         <span className={calStyles.dayBalanceStatLabel}>Entries</span>
@@ -793,24 +793,20 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                       </div>
                       <div className={calStyles.dayBalanceStat}>
                         <span className={calStyles.dayBalanceStatLabel}>Income</span>
-                        <span className={`${calStyles.dayBalanceStatValue} ${calStyles.dayBalanceStatPositive}`}>
-                          {displayValue(privacyMode, `+${fmt(selectedDayIncome, s)}`, `+${maskMoney(s)}`)}
+                        <span className={`${calStyles.dayBalanceStatValue} ${privacyMode ? calStyles.privacyValueInline : calStyles.dayBalanceStatPositive}`}>
+                          {privacyMode ? 'Hidden' : `+${fmt(selectedDayIncome, s)}`}
                         </span>
                       </div>
                       <div className={calStyles.dayBalanceStat}>
                         <span className={calStyles.dayBalanceStatLabel}>Expenses</span>
-                        <span className={`${calStyles.dayBalanceStatValue} ${calStyles.dayBalanceStatNegative}`}>
-                          {displayValue(privacyMode, `−${fmt(selectedDayExpense, s)}`, `−${maskMoney(s)}`)}
+                        <span className={`${calStyles.dayBalanceStatValue} ${privacyMode ? calStyles.privacyValueInline : calStyles.dayBalanceStatNegative}`}>
+                          {privacyMode ? 'Hidden' : `−${fmt(selectedDayExpense, s)}`}
                         </span>
                       </div>
                       <div className={calStyles.dayBalanceStat}>
                         <span className={calStyles.dayBalanceStatLabel}>Net</span>
-                        <span className={`${calStyles.dayBalanceStatValue} ${selectedDayNet >= 0 ? calStyles.dayBalanceStatPositive : calStyles.dayBalanceStatNegative}`}>
-                          {displayValue(
-                            privacyMode,
-                            `${selectedDayNet >= 0 ? '+' : '−'}${fmt(Math.abs(selectedDayNet), s)}`,
-                            `${selectedDayNet >= 0 ? '+' : '−'}${maskMoney(s)}`,
-                          )}
+                        <span className={`${calStyles.dayBalanceStatValue} ${privacyMode ? calStyles.privacyValueInline : (selectedDayNet >= 0 ? calStyles.dayBalanceStatPositive : calStyles.dayBalanceStatNegative)}`}>
+                          {privacyMode ? 'Hidden' : `${selectedDayNet >= 0 ? '+' : '−'}${fmt(Math.abs(selectedDayNet), s)}`}
                         </span>
                       </div>
                     </div>
@@ -915,23 +911,25 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               )}
 
               {(selectedIncome.length > 0 || selectedExpenses.length > 0) && (
-                <div className={calStyles.daySummary}>
-                  <span style={{ color: 'var(--accent)' }}>
-                    {displayValue(privacyMode, `+${fmt(selectedDayIncome, s)}`, `+${maskMoney(s)}`)}
-                  </span>
-                  <span style={{ color: 'var(--text3)' }}>·</span>
-                  <span style={{ color: 'var(--red)' }}>
-                    {displayValue(privacyMode, `−${fmt(selectedDayExpense, s)}`, `−${maskMoney(s)}`)}
-                  </span>
-                  <span style={{ color: 'var(--text3)' }}>·</span>
-                  <span style={{ color: selectedDayNet >= 0 ? 'var(--blue)' : 'var(--red)', fontWeight: 600 }}>
-                    {displayValue(
-                      privacyMode,
-                      `Net ${fmt(selectedDayNet, s)}`,
-                      'Net hidden',
-                    )}
-                  </span>
-                </div>
+                privacyMode ? (
+                  <div className={`${calStyles.daySummary} ${calStyles.privacySummary}`}>
+                    Totals are hidden while privacy mode is on.
+                  </div>
+                ) : (
+                  <div className={calStyles.daySummary}>
+                    <span style={{ color: 'var(--accent)' }}>
+                      {`+${fmt(selectedDayIncome, s)}`}
+                    </span>
+                    <span style={{ color: 'var(--text3)' }}>·</span>
+                    <span style={{ color: 'var(--red)' }}>
+                      {`−${fmt(selectedDayExpense, s)}`}
+                    </span>
+                    <span style={{ color: 'var(--text3)' }}>·</span>
+                    <span style={{ color: selectedDayNet >= 0 ? 'var(--blue)' : 'var(--red)', fontWeight: 600 }}>
+                      {`Net ${fmt(selectedDayNet, s)}`}
+                    </span>
+                  </div>
+                )
               )}
 
               {data.goals.length > 0 && (
@@ -1196,8 +1194,8 @@ function DayTxRow({ t, s, privacyMode, onEdit, onDelete, locked = false, account
         </div>
       </div>
       <div className={calStyles.txRight}>
-        <div className={calStyles.txAmount} style={{ color: isIncome ? 'var(--accent)' : 'var(--red)' }}>
-          {displayValue(privacyMode, `${isIncome ? '+' : '−'}${fmt(t.amount, s)}`, `${isIncome ? '+' : '−'}${maskMoney(s)}`)}
+        <div className={`${calStyles.txAmount} ${privacyMode ? calStyles.privacyValueInline : ''}`} style={{ color: privacyMode ? 'var(--text3)' : (isIncome ? 'var(--accent)' : 'var(--red)') }}>
+          {privacyMode ? 'Hidden' : `${isIncome ? '+' : '−'}${fmt(t.amount, s)}`}
         </div>
         <div className={calStyles.txActions}>
           {!t._projected && <button type="button" className={calStyles.editBtn} onClick={() => onEdit(t)} aria-label={`Edit ${t.desc || t.cat}`} disabled={locked}>Edit</button>}

@@ -221,6 +221,39 @@
   color: var(--text);
   white-space: nowrap;
 }
+.privacyValuePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border2) 84%, transparent);
+  background: color-mix(in srgb, var(--surface3) 90%, #ffffff 10%);
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: 11px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.privacyValueInline {
+  color: var(--text3);
+  font-family: var(--font-body);
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.privacySummary {
+  color: var(--text3);
+  font-family: var(--font-body);
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 600;
+}
 
 .dayBalanceCard {
   padding: 12px 14px;
@@ -577,6 +610,11 @@
   .balanceRailValue {
     font-size: 18px;
   }
+  .privacyValuePill {
+    min-height: 32px;
+    padding: 0 11px;
+    font-size: 10px;
+  }
   .dayPanelTop {
     padding-top: 10px;
   }
@@ -724,6 +762,18 @@
   .balanceRailValue {
     font-size: 17px;
     white-space: nowrap;
+  }
+  .privacyValuePill {
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+  .privacyValueInline {
+    font-size: 9px;
+  }
+  .privacySummary {
+    font-size: 11px;
   }
   .dayPanelActions { grid-template-columns: 1fr; }
   .modalFields { grid-template-columns: 1fr; }
