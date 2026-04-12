@@ -3,6 +3,7 @@ import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { confirmDelete, displayValue, fmt, formatDisplayDate, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
+import sStyles from './Savings.module.css'
 
 export default function Savings({ user, data, profile = {}, symbol, privacyMode = false, gamification }) {
   const s = symbol || '₱'
@@ -34,117 +35,238 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const hasTargetDate = Boolean(form.date)
+  const goals = data.goals.map(goal => {
+    const current = Number(goal.current) || 0
+    const target = Number(goal.target) || 0
+    const pct = target > 0 ? Math.min(100, Math.round((current / target) * 100)) : 0
+    const remaining = Math.max(0, target - current)
+    return { ...goal, current, target, pct, remaining }
+  })
+  const totalSaved = goals.reduce((sum, goal) => sum + goal.current, 0)
+  const totalTarget = goals.reduce((sum, goal) => sum + goal.target, 0)
+  const totalRemaining = Math.max(0, totalTarget - totalSaved)
+  const overallPct = totalTarget > 0 ? Math.min(100, Math.round((totalSaved / totalTarget) * 100)) : 0
+  const completedGoals = goals.filter(goal => goal.pct >= 100).length
+  const nextGoal = goals
+    .filter(goal => goal.pct < 100)
+    .sort((a, b) => {
+      if (b.pct !== a.pct) return b.pct - a.pct
+      return a.remaining - b.remaining
+    })[0] || null
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>Savings Goals</div>
-        <div className={styles.sub}>Give your savings a clear finish line.</div>
+    <div className={`${styles.page} ${sStyles.savingsPage}`}>
+      <div className={sStyles.heroSection}>
+        <div className={sStyles.heroCopy}>
+          <div className={sStyles.pageEyebrow}>Savings</div>
+          <div className={sStyles.pageTitle}>Build goals with a clearer finish line.</div>
+          <div className={sStyles.pageSub}>
+            Keep the target, remaining gap, and next contribution easy to scan on desktop and mobile.
+          </div>
+        </div>
+
+        <div className={sStyles.heroAside}>
+          <div className={sStyles.heroAsideLabel}>{nextGoal ? 'Closest next win' : 'Overall progress'}</div>
+          <div className={sStyles.heroAsideValue}>
+            {nextGoal ? nextGoal.name : displayValue(privacyMode, `${overallPct}%`, '•••')}
+          </div>
+          <div className={sStyles.heroAsideTrack}>
+            <div
+              className={sStyles.heroAsideFill}
+              style={{ width: `${nextGoal ? nextGoal.pct : overallPct}%` }}
+            />
+          </div>
+          <div className={sStyles.heroAsideMeta}>
+            {nextGoal
+              ? `${displayValue(privacyMode, `${nextGoal.pct}% funded`, 'Progress hidden')} · ${displayValue(privacyMode, `${fmt(nextGoal.remaining, s)} left`, `${maskMoney(s)} left`)}`
+              : goals.length
+                ? `${completedGoals} completed · ${goals.length} active`
+                : 'Create your first goal below'}
+          </div>
+        </div>
       </div>
 
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        compact
-        title="Savings progress"
-        message="Goals work better when the finish line and the remaining gap stay visible."
-      />
+      <div className={sStyles.summaryGrid}>
+        <div className={sStyles.summaryCard}>
+          <div className={sStyles.summaryLabel}>Saved total</div>
+          <div className={`${sStyles.summaryValue} ${sStyles.summaryValueAccent}`}>{money(totalSaved)}</div>
+          <div className={sStyles.summaryMeta}>Across all savings goals</div>
+        </div>
+        <div className={sStyles.summaryCard}>
+          <div className={sStyles.summaryLabel}>Remaining gap</div>
+          <div className={`${sStyles.summaryValue} ${sStyles.summaryValueBlue}`}>{money(totalRemaining)}</div>
+          <div className={sStyles.summaryMeta}>
+            {goals.length ? displayValue(privacyMode, `${overallPct}% funded overall`, 'Progress hidden') : 'Nothing to fund yet'}
+          </div>
+        </div>
+        <div className={sStyles.summaryCard}>
+          <div className={sStyles.summaryLabel}>Goals</div>
+          <div className={sStyles.summaryValue}>{goals.length}</div>
+          <div className={sStyles.summaryMeta}>
+            {completedGoals ? `${completedGoals} completed` : goals.length ? 'All still in progress' : 'Start with one clear target'}
+          </div>
+        </div>
+      </div>
 
-      <div className={styles.formCard}>
-        <div className={styles.cardTitle}>New savings goal</div>
-        <div className={`${styles.formRow} ${styles.col3}`}>
-          <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={form.name} onChange={event => set('name', event.target.value)} /></div>
-          <div className={styles.formGroup}><label>Target amount ({s})</label><input type="number" min="0" placeholder="0.00" value={form.target} onChange={event => set('target', event.target.value)} /></div>
-          <div className={styles.formGroup}>
-            <div className={styles.fieldLabelRow}>
-              <label htmlFor="savings-target-date">Target date</label>
-              <span className={styles.fieldLabelNote}>Optional</span>
+      <div className={sStyles.composerCard}>
+        <div className={sStyles.sectionHeader}>
+          <div>
+            <div className={sStyles.sectionTitle}>New goal</div>
+            <div className={sStyles.sectionSub}>Start simple. You can add the amount first and fine-tune later.</div>
+          </div>
+        </div>
+
+        <div className={sStyles.composerGrid}>
+          <div className={sStyles.field}>
+            <label className={sStyles.fieldLabel} htmlFor="savings-goal-name">Goal name</label>
+            <input
+              id="savings-goal-name"
+              className={sStyles.fieldInput}
+              placeholder="e.g. Emergency fund"
+              value={form.name}
+              onChange={event => set('name', event.target.value)}
+            />
+          </div>
+
+          <div className={sStyles.field}>
+            <label className={sStyles.fieldLabel} htmlFor="savings-goal-target">Target amount ({s})</label>
+            <input
+              id="savings-goal-target"
+              className={sStyles.fieldInput}
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={form.target}
+              onChange={event => set('target', event.target.value)}
+            />
+          </div>
+
+          <div className={sStyles.field}>
+            <div className={sStyles.fieldLabelRow}>
+              <label className={sStyles.fieldLabel} htmlFor="savings-target-date">Target date</label>
+              <span className={sStyles.fieldNote}>Optional</span>
             </div>
-            <div className={styles.dateFieldWrap}>
-              <div className={`${styles.dateFieldDisplay} ${!hasTargetDate ? styles.dateFieldPlaceholder : ''}`}>
+            <div className={sStyles.dateFieldWrap}>
+              <div className={`${sStyles.dateFieldDisplay} ${!hasTargetDate ? sStyles.dateFieldPlaceholder : ''}`}>
                 {formatDisplayDate(form.date)}
               </div>
               <input
                 id="savings-target-date"
                 type="date"
-                className={styles.dateFieldNative}
+                className={sStyles.dateFieldNative}
                 value={form.date}
                 aria-label="Target date"
                 onChange={event => set('date', event.target.value)}
               />
             </div>
-            <div className={styles.formHint}>Set a finish line so this goal stays easier to pace.</div>
+          </div>
+
+          <div className={sStyles.field}>
+            <label className={sStyles.fieldLabel} htmlFor="savings-goal-current">Current saved ({s})</label>
+            <input
+              id="savings-goal-current"
+              className={sStyles.fieldInput}
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder="0.00"
+              value={form.current}
+              onChange={event => set('current', event.target.value)}
+            />
           </div>
         </div>
-        <div className={`${styles.formRow} ${styles.col2}`}>
-          <div className={styles.formGroup}><label>Current saved ({s})</label><input type="number" min="0" placeholder="0.00" value={form.current} onChange={event => set('current', event.target.value)} /></div>
-          <div className={styles.formGroup} style={{ justifyContent: 'flex-end' }}>
-            <button className={styles.btnAdd} onClick={handleAdd}>Add goal</button>
+
+        <div className={sStyles.composerFooter}>
+          <div className={sStyles.composerHint}>
+            Set a target date only when it helps pacing. The goal still works fine without one.
           </div>
+          <button type="button" className={sStyles.primaryButton} onClick={handleAdd}>Add goal</button>
         </div>
       </div>
 
-      {!data.goals.length ? (
-        <div className={styles.empty}>No savings goals yet. Add one above to create a clear target.</div>
-      ) : data.goals.map(goal => {
-        const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
-        return (
-          <div key={goal._id} className={styles.goalCard}>
-            <div className={styles.goalHeader}>
-              <div className={styles.goalName}>{goal.name}</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 12, color: 'var(--text3)' }}>{displayValue(privacyMode, `${pct}%`, '•••')}</span>
-                <button className={styles.delBtn} onClick={() => confirmDelete(goal.name) && fsDel(user.uid, 'goals', goal._id)}>✕</button>
+      <div className={sStyles.gamificationWrap}>
+        <GamificationCard
+          gamification={gamification}
+          privacyMode={privacyMode}
+          compact
+          title="Savings progress"
+          message="Goals work better when the finish line and the remaining gap stay visible."
+        />
+      </div>
+
+      {!goals.length ? (
+        <div className={sStyles.emptyCard}>
+          <div className={sStyles.emptyTitle}>No savings goals yet</div>
+          <div className={sStyles.emptyBody}>Add one above to create a clear target and make progress easier to judge at a glance.</div>
+        </div>
+      ) : (
+        <div className={sStyles.goalList}>
+          {goals.map(goal => (
+            <div key={goal._id} className={sStyles.goalCard}>
+              <div className={sStyles.goalCardTop}>
+                <div className={sStyles.goalCopy}>
+                  <div className={sStyles.goalNameRow}>
+                    <div className={sStyles.goalName}>{goal.name}</div>
+                    {goal.date && <span className={sStyles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
+                  </div>
+                  <div className={sStyles.goalValueRow}>
+                    <span className={sStyles.goalSaved}>{displayValue(privacyMode, `${fmt(goal.current, s)} saved`, `${maskMoney(s)} saved`)}</span>
+                    <span className={sStyles.goalTarget}>of {money(goal.target)}</span>
+                  </div>
+                </div>
+
+                <div className={sStyles.goalActions}>
+                  <span className={sStyles.goalPct}>{displayValue(privacyMode, `${goal.pct}%`, '•••')}</span>
+                  <button
+                    type="button"
+                    className={sStyles.goalDelete}
+                    onClick={() => confirmDelete(goal.name) && fsDel(user.uid, 'goals', goal._id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              <div className={sStyles.goalTrack}>
+                <div
+                  className={`${sStyles.goalTrackFill} ${goal.pct >= 100 ? sStyles.goalTrackFillComplete : ''}`}
+                  style={{ width: `${goal.pct}%` }}
+                />
+              </div>
+
+              <div className={sStyles.goalMetaRow}>
+                <span className={sStyles.goalRemaining}>{displayValue(privacyMode, `${fmt(goal.remaining, s)} left`, `${maskMoney(s)} left`)}</span>
+                <span className={sStyles.goalState}>
+                  {goal.pct >= 100 ? 'Completed' : goal.date ? `Finish by ${formatDisplayDate(goal.date)}` : 'No target date set'}
+                </span>
+              </div>
+
+              <div className={sStyles.contributionRow}>
+                <input
+                  className={sStyles.contributionInput}
+                  type="number"
+                  min="0"
+                  inputMode="decimal"
+                  placeholder={`Add contribution (${s})`}
+                  value={contribs[goal._id] || ''}
+                  onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter') handleContrib(goal)
+                  }}
+                />
+                <button
+                  type="button"
+                  className={sStyles.contributionBtn}
+                  onClick={() => handleContrib(goal)}
+                >
+                  Add funds
+                </button>
               </div>
             </div>
-            <div className={styles.progressTrack}>
-              <div className={`${styles.progressFill} ${pct >= 80 ? styles.almost : ''}`} style={{ width: `${pct}%` }} />
-            </div>
-            <div className={styles.goalMeta}>
-              <div className={styles.goalMetaPrimary}>
-                <span className={styles.goalSaved}>{displayValue(privacyMode, `${fmt(goal.current || 0, s)} saved`, `${maskMoney(s)} saved`)}</span>
-                <span>of {money(goal.target)}</span>
-              </div>
-              {goal.date && <span className={styles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
-            </div>
-            <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-              <input
-                type="number"
-                min="0"
-                placeholder={`Add contribution (${s})`}
-                value={contribs[goal._id] || ''}
-                onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
-                style={{
-                  flex: 1,
-                  padding: '7px 10px',
-                  background: 'var(--surface2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text)',
-                  fontSize: 16,
-                  outline: 'none',
-                  fontFamily: 'var(--font-body)',
-                }}
-              />
-              <button
-                onClick={() => handleContrib(goal)}
-                style={{
-                  padding: '7px 14px',
-                  background: 'var(--accent)',
-                  color: '#0a0a0f',
-                  border: 'none',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
-                Add
-              </button>
-            </div>
-          </div>
-        )
-      })}
+          ))}
+        </div>
+      )}
     </div>
   )
 }

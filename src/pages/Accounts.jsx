@@ -68,7 +68,32 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
     await fsDel(user.uid, 'accounts', id)
   }
 
+  const accountsWithMeta = accounts.map(account => {
+    const signedBalance = getAccountSignedBalance(account)
+    const tone = account.color || '#22d87a'
+    return {
+      ...account,
+      signedBalance,
+      tone,
+      isDebt: signedBalance < 0,
+    }
+  })
   const totalBalance = getCurrentBalance(accounts)
+  const liquidTotal = accountsWithMeta
+    .filter(account => ['Cash', 'Bank', 'E-wallet'].includes(account.type))
+    .reduce((sum, account) => sum + account.signedBalance, 0)
+  const debtTotal = Math.abs(
+    accountsWithMeta
+      .filter(account => account.signedBalance < 0)
+      .reduce((sum, account) => sum + account.signedBalance, 0),
+  )
+  const accountTypeCount = new Set(accountsWithMeta.map(account => account.type)).size
+  const primaryAccount = [...accountsWithMeta]
+    .sort((a, b) => Math.abs(b.signedBalance) - Math.abs(a.signedBalance))[0] || null
+  const portfolioBase = accountsWithMeta.reduce((sum, account) => sum + Math.abs(account.signedBalance), 0)
+  const primaryShare = primaryAccount && portfolioBase > 0
+    ? Math.max(8, Math.min(100, Math.round((Math.abs(primaryAccount.signedBalance) / portfolioBase) * 100)))
+    : 0
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
   const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
@@ -81,10 +106,33 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
   }, [showModal, editAccount?._id])
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>Accounts</div>
-        <div className={styles.sub}>Keep your cash, bank, and e-wallet balances in one clear view.</div>
+    <div className={`${styles.page} ${accStyles.accountsPage}`}>
+      <div className={accStyles.heroSection}>
+        <div className={accStyles.heroCopy}>
+          <div className={accStyles.pageEyebrow}>Accounts</div>
+          <div className={accStyles.pageTitle}>Keep every balance in one calmer view.</div>
+          <div className={accStyles.pageSub}>
+            Cash, bank, e-wallet, and credit accounts stay easier to trust when the totals are clean and visible.
+          </div>
+        </div>
+
+        <div
+          className={accStyles.heroAside}
+          style={{ '--account-tone': primaryAccount?.tone || 'var(--accent)' }}
+        >
+          <div className={accStyles.heroAsideLabel}>{primaryAccount ? 'Largest account' : 'Accounts snapshot'}</div>
+          <div className={accStyles.heroAsideValue}>
+            {primaryAccount ? primaryAccount.name : 'No accounts yet'}
+          </div>
+          <div className={accStyles.heroAsideTrack}>
+            <div className={accStyles.heroAsideFill} style={{ width: `${primaryShare}%` }} />
+          </div>
+          <div className={accStyles.heroAsideMeta}>
+            {primaryAccount
+              ? `${primaryAccount.type} · ${money(primaryAccount.signedBalance)} · ${displayValue(privacyMode, `${primaryShare}% of balances`, 'Share hidden')}`
+              : 'Add your first real balance below'}
+          </div>
+        </div>
       </div>
 
       <button
@@ -100,87 +148,171 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
         <div className={accStyles.privacyHint}>{privacyHint}</div>
       </button>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
-        <button className={styles.btnAdd} style={{ width: 'auto', padding: '9px 20px' }} onClick={openAdd}>+ Add account</button>
+      <div className={accStyles.summaryGrid}>
+        <div className={accStyles.summaryCard}>
+          <div className={accStyles.summaryLabel}>Liquid funds</div>
+          <div className={`${accStyles.summaryValue} ${accStyles.summaryValueAccent}`}>{money(liquidTotal)}</div>
+          <div className={accStyles.summaryMeta}>Cash, bank, and e-wallet balances</div>
+        </div>
+        <div className={accStyles.summaryCard}>
+          <div className={accStyles.summaryLabel}>Debt to cover</div>
+          <div className={`${accStyles.summaryValue} ${accStyles.summaryValueRed}`}>{money(debtTotal)}</div>
+          <div className={accStyles.summaryMeta}>
+            {debtTotal > 0 ? 'Negative or credit balances' : 'No debt balances right now'}
+          </div>
+        </div>
+        <div className={accStyles.summaryCard}>
+          <div className={accStyles.summaryLabel}>Account mix</div>
+          <div className={accStyles.summaryValue}>{accountTypeCount}</div>
+          <div className={accStyles.summaryMeta}>
+            {accountTypeCount ? `${accountTypeCount} type${accountTypeCount !== 1 ? 's' : ''} in use` : 'No account types yet'}
+          </div>
+        </div>
+      </div>
+
+      <div className={accStyles.toolbar}>
+        <div className={accStyles.toolbarCopy}>
+          <div className={accStyles.toolbarTitle}>Account list</div>
+          <div className={accStyles.toolbarMeta}>
+            {accounts.length
+              ? 'Edit any account inline without leaving the tab.'
+              : 'Start with your main wallet, bank, or e-wallet so the app has a real balance base.'}
+          </div>
+        </div>
+        <button type="button" className={accStyles.primaryButton} onClick={openAdd}>Add account</button>
       </div>
 
       {showModal && (
-        <div ref={editorRef} className={`${styles.card} ${accStyles.inlineEditorCard}`}>
-          <div className={accStyles.modalHeader}>
+        <div ref={editorRef} className={accStyles.editorCard}>
+          <div className={accStyles.editorHeader}>
             <div>
-              <div className={accStyles.modalTitle}>{editAccount ? 'Edit account' : 'Add account'}</div>
+              <div className={accStyles.editorEyebrow}>{editAccount ? 'Editing account' : 'New account'}</div>
+              <div className={accStyles.editorTitle}>{editAccount ? 'Update this account' : 'Add an account'}</div>
               <div className={accStyles.editorSub}>
-                {editAccount ? `Updating ${editAccount.name}` : 'Add an account without leaving this page.'}
+                {editAccount ? `Updating ${editAccount.name}` : 'Create an account without leaving this page.'}
               </div>
             </div>
-            <button onClick={closeEditor} className={accStyles.modalClose}>✕</button>
+            <button type="button" onClick={closeEditor} className={accStyles.editorClose}>Close</button>
           </div>
 
-          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
-            <div className={styles.formGroup}>
-              <label>Account name</label>
-              <input placeholder="e.g. BDO Savings" value={form.name} onChange={event => set('name', event.target.value)} />
+          <div className={accStyles.editorGrid}>
+            <div className={accStyles.field}>
+              <label className={accStyles.fieldLabel} htmlFor="account-name">Account name</label>
+              <input
+                id="account-name"
+                className={accStyles.fieldInput}
+                placeholder="e.g. BDO Savings"
+                value={form.name}
+                onChange={event => set('name', event.target.value)}
+              />
             </div>
-            <div className={styles.formGroup}>
-              <label>Type</label>
-              <select value={form.type} onChange={event => set('type', event.target.value)}>
+
+            <div className={accStyles.field}>
+              <label className={accStyles.fieldLabel} htmlFor="account-type">Type</label>
+              <select
+                id="account-type"
+                className={accStyles.fieldInput}
+                value={form.type}
+                onChange={event => set('type', event.target.value)}
+              >
                 {ACCOUNT_TYPES.map(type => <option key={type}>{type}</option>)}
               </select>
             </div>
+
+            <div className={accStyles.field}>
+              <label className={accStyles.fieldLabel} htmlFor="account-balance">{balanceFieldLabel}</label>
+              <input
+                id="account-balance"
+                className={accStyles.fieldInput}
+                type="number"
+                min="0"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={form.balance}
+                onChange={event => set('balance', event.target.value)}
+              />
+            </div>
+
+            <div className={accStyles.field}>
+              <label className={accStyles.fieldLabel} htmlFor="account-notes">Notes</label>
+              <input
+                id="account-notes"
+                className={accStyles.fieldInput}
+                placeholder="e.g. Emergency only"
+                value={form.notes}
+                onChange={event => set('notes', event.target.value)}
+              />
+            </div>
           </div>
 
-          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
-            <div className={styles.formGroup}>
-              <label>{balanceFieldLabel}</label>
-              <input type="number" min="0" placeholder="0.00" value={form.balance} onChange={event => set('balance', event.target.value)} />
-            </div>
-            <div className={styles.formGroup}>
-              <label>Notes (optional)</label>
-              <input placeholder="e.g. Emergency only" value={form.notes} onChange={event => set('notes', event.target.value)} />
-            </div>
-          </div>
-
-          <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
-            <label>Color</label>
+          <div className={accStyles.colorSection}>
+            <div className={accStyles.fieldLabel}>Color</div>
             <div className={accStyles.colorGrid}>
               {COLORS.map(color => (
-                <button key={color.value} onClick={() => set('color', color.value)} className={`${accStyles.colorBtn} ${form.color === color.value ? accStyles.colorBtnActive : ''}`} style={{ background: color.value }} title={color.name} />
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => set('color', color.value)}
+                  className={`${accStyles.colorBtn} ${form.color === color.value ? accStyles.colorBtnActive : ''}`}
+                  style={{ '--swatch': color.value }}
+                  title={color.name}
+                  aria-pressed={form.color === color.value}
+                />
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={closeEditor} className={accStyles.btnCancel}>Cancel</button>
-            <button onClick={handleSave} className={styles.btnAdd} style={{ flex: 2 }}>{editAccount ? 'Save changes' : 'Add account'}</button>
+          <div className={accStyles.editorActions}>
+            <button type="button" onClick={closeEditor} className={accStyles.secondaryButton}>Cancel</button>
+            <button type="button" onClick={handleSave} className={accStyles.primaryButton}>
+              {editAccount ? 'Save changes' : 'Add account'}
+            </button>
           </div>
         </div>
       )}
 
       {!accounts.length ? (
-        <div className={styles.empty} style={{ padding: '3rem 0' }}>No accounts yet. Add one above to give Takda a real starting balance.</div>
+        <div className={accStyles.emptyCard}>
+          <div className={accStyles.emptyTitle}>No accounts yet</div>
+          <div className={accStyles.emptyBody}>Add one above to give Takda a real starting balance and make the rest of the app more trustworthy.</div>
+        </div>
       ) : (
         <div className={accStyles.accountsGrid}>
-          {accounts.map(account => (
-            <div key={account._id} className={`${accStyles.accountCard} ${editAccount?._id === account._id ? accStyles.accountCardEditing : ''}`}>
+          {accountsWithMeta.map(account => (
+            <div
+              key={account._id}
+              className={`${accStyles.accountCard} ${editAccount?._id === account._id ? accStyles.accountCardEditing : ''}`}
+              style={{ '--account-tone': account.tone }}
+            >
               <div className={accStyles.accountTop}>
-                <div className={accStyles.accountIcon} style={{ background: `${account.color || '#22d87a'}22`, color: account.color || '#22d87a' }}>
-                  {ACCOUNT_ICONS[account.type] || '🏷'}
-                </div>
-                <div className={accStyles.accountInfo}>
-                  <div className={accStyles.accountName}>{account.name}</div>
-                  <div className={accStyles.accountType}>
-                    <span className={accStyles.typeDot} style={{ background: account.color || '#22d87a' }} />
-                    {account.type}
+                <div className={accStyles.accountLeading}>
+                  <div className={accStyles.accountIcon}>
+                    {ACCOUNT_ICONS[account.type] || '🏷'}
+                  </div>
+                  <div className={accStyles.accountInfo}>
+                    <div className={accStyles.accountName}>{account.name}</div>
+                    <div className={accStyles.accountType}>
+                      <span className={accStyles.typeDot} />
+                      {account.type}
+                    </div>
                   </div>
                 </div>
                 <div className={accStyles.accountActions}>
-                  <button className={accStyles.editBtn} onClick={() => openEdit(account)}>Edit</button>
-                  <button className={accStyles.delBtn} onClick={() => handleDel(account._id, account.name)}>✕</button>
+                  <button type="button" className={accStyles.cardAction} onClick={() => openEdit(account)}>Edit</button>
+                  <button type="button" className={`${accStyles.cardAction} ${accStyles.cardActionDanger}`} onClick={() => handleDel(account._id, account.name)}>Delete</button>
                 </div>
               </div>
 
-              <div className={accStyles.accountBalance} style={{ color: account.color || 'var(--accent)' }}>
-                {money(getAccountSignedBalance(account))}
+              <div className={accStyles.accountBalanceLabel}>{account.isDebt ? 'Current owed' : 'Available balance'}</div>
+              <div className={`${accStyles.accountBalance} ${account.isDebt ? accStyles.accountBalanceDebt : ''}`}>
+                {money(account.signedBalance)}
+              </div>
+
+              <div className={accStyles.accountFooter}>
+                <div className={accStyles.accountState}>
+                  {account.isDebt ? 'Debt account' : 'Asset account'}
+                </div>
+                {editAccount?._id === account._id && <div className={accStyles.editingPill}>Editing</div>}
               </div>
 
               {account.notes && <div className={accStyles.accountNotes}>{account.notes}</div>}

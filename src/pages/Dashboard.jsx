@@ -187,7 +187,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
   }
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} ${dStyles.dashboardPage}`}>
       <div className={dStyles.greeting}>
         <div className={dStyles.greetingText}>
           <span className={dStyles.greetingHi}>{greeting}, {name}</span>
@@ -285,33 +285,33 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       </div>
 
       {data.goals.length > 0 && (
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>
-            Savings goals
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--accent)' }}>
+        <div className={dStyles.sectionCard}>
+          <div className={dStyles.sectionHeader}>
+            <span className={dStyles.sectionTitle}>Savings goals</span>
+            <span className={dStyles.sectionMeta}>
               {displayValue(privacyMode, `${savingsPct}% funded`, 'Progress hidden')}
             </span>
           </div>
-          <div style={{ marginBottom: 8 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5, color: 'var(--text3)' }}>
+          <div className={dStyles.goalSummary}>
+            <div className={dStyles.goalSummaryMeta}>
               <span>{displayValue(privacyMode, `${fmt(savingsTotal, s)} saved`, `${maskMoney(s)} saved`)}</span>
               <span>{displayValue(privacyMode, `${fmt(savingsTarget, s)} target`, `${maskMoney(s)} target`)}</span>
             </div>
-            <div style={{ height: 8, background: 'var(--surface3)', borderRadius: 4, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: `${savingsPct}%`, background: 'var(--accent)', borderRadius: 4, transition: 'width 0.5s' }} />
+            <div className={dStyles.goalSummaryTrack}>
+              <div className={dStyles.goalSummaryFill} style={{ width: `${savingsPct}%` }} />
             </div>
           </div>
           {data.goals.slice(0, 3).map(goal => {
             const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
             return (
-              <div key={goal._id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderTop: '1px solid var(--border)' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)', marginBottom: 3 }}>{goal.name}</div>
-                  <div style={{ height: 4, background: 'var(--surface3)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)', borderRadius: 2 }} />
+              <div key={goal._id} className={dStyles.goalRow}>
+                <div className={dStyles.goalRowMain}>
+                  <div className={dStyles.goalRowName}>{goal.name}</div>
+                  <div className={dStyles.goalRowTrack}>
+                    <div className={dStyles.goalRowFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
                   </div>
                 </div>
-                <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text3)', flexShrink: 0 }}>
+                <div className={dStyles.goalRowPct}>
                   {displayValue(privacyMode, `${pct}%`, '•••')}
                 </div>
               </div>
@@ -320,23 +320,26 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         </div>
       )}
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Recent transactions</div>
+      <div className={dStyles.sectionCard}>
+        <div className={dStyles.sectionHeader}>
+          <span className={dStyles.sectionTitle}>Recent transactions</span>
+        </div>
         {!recent.length ? (
-          <div className={styles.empty}>No transactions yet. Add your first one to start the month view.</div>
+          <div className={dStyles.sectionEmpty}>No transactions yet. Add your first one to start the month view.</div>
         ) : recent.map((tx, index) => (
           <div
             key={tx._id + index}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: index < recent.length - 1 ? '1px solid var(--border)' : 'none' }}
+            className={dStyles.txRow}
+            style={{ borderBottom: index < recent.length - 1 ? '1px solid color-mix(in srgb, var(--border) 66%, transparent)' : 'none' }}
           >
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: TYPE_BG[tx.txType], color: TYPE_COLOR[tx.txType], display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
+            <div className={dStyles.txIcon} style={{ background: TYPE_BG[tx.txType], color: TYPE_COLOR[tx.txType] }}>
               {TYPE_SIGN[tx.txType]}
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tx.desc}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 1 }}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')} · {tx.date}</div>
+            <div className={dStyles.txContent}>
+              <div className={dStyles.txDesc}>{tx.desc}</div>
+              <div className={dStyles.txMeta}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')} · {tx.date}</div>
             </div>
-            <div style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: TYPE_COLOR[tx.txType], flexShrink: 0 }}>
+            <div className={dStyles.txAmount} style={{ color: TYPE_COLOR[tx.txType] }}>
               {displayValue(privacyMode, `${TYPE_SIGN[tx.txType]}${fmt(tx.amount, s)}`, `${TYPE_SIGN[tx.txType]}${maskMoney(s)}`)}
             </div>
           </div>
