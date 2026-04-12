@@ -374,6 +374,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   }, [profile.currency, receipts, selectedReceipt])
 
   const hasActiveFilters = Boolean(searchQuery.trim()) || range !== 'all' || currencyFilter !== 'all' || categoryFilter !== 'all'
+  const viewCoverage = allStats.total ? Math.round((viewStats.total / allStats.total) * 100) : 0
 
   function money(value, currency = profile.currency || 'PHP') {
     const symbol = getCurrencySymbol(currency)
@@ -486,34 +487,54 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   const draftCurrencyOptions = CURRENCIES.map(currency => currency.code)
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>Receipts</div>
-        <div className={styles.sub}>Scan, save, and revisit receipt images without mixing them into your transaction history.</div>
+    <div className={`${styles.page} ${receiptStyles.receiptsPage}`}>
+      <div className={receiptStyles.heroSection}>
+        <div className={receiptStyles.heroCopy}>
+          <div className={receiptStyles.pageEyebrow}>Receipts</div>
+          <div className={receiptStyles.pageTitle}>Scan, save, and revisit receipts without visual clutter.</div>
+          <div className={receiptStyles.pageSub}>
+            Capture receipts, review the extracted details, and keep the receipt box searchable without mixing it into transaction history.
+          </div>
+        </div>
+
+        <div className={receiptStyles.heroAside}>
+          <div className={receiptStyles.heroAsideLabel}>Receipt box</div>
+          <div className={receiptStyles.heroAsideValue}>{allStats.total ? `${allStats.total} saved` : 'Start scanning'}</div>
+          <div className={receiptStyles.heroAsideTrack}>
+            <div className={receiptStyles.heroAsideFill} style={{ width: `${viewCoverage}%` }} />
+          </div>
+          <div className={receiptStyles.heroAsideMeta}>
+            {hasActiveFilters
+              ? `${viewStats.total} receipts match the current filters.`
+              : allStats.total
+                ? `${allStats.monthCount} saved this month across ${allStats.currencies || 0} currencies.`
+                : 'Scan a receipt to build a searchable box.'}
+          </div>
+        </div>
       </div>
 
       <DraftBanner message={message} />
 
-      <div className={styles.statsGrid}>
-        <div className={styles.stat}>
-          <div className={styles.statLabel}>Saved receipts</div>
-          <div className={styles.statVal}>{allStats.total}</div>
-          <div className={styles.statChange}>Your saved receipt box</div>
+      <div className={receiptStyles.topSummaryGrid}>
+        <div className={receiptStyles.topSummaryCard}>
+          <div className={receiptStyles.topSummaryLabel}>Saved receipts</div>
+          <div className={receiptStyles.topSummaryValue}>{allStats.total}</div>
+          <div className={receiptStyles.topSummaryMeta}>Everything currently stored in your receipt box</div>
         </div>
-        <div className={styles.stat}>
-          <div className={styles.statLabel}>In view</div>
-          <div className={styles.statVal}>{viewStats.total}</div>
-          <div className={styles.statChange}>Receipts matching your current filters</div>
+        <div className={receiptStyles.topSummaryCard}>
+          <div className={receiptStyles.topSummaryLabel}>In view</div>
+          <div className={`${receiptStyles.topSummaryValue} ${receiptStyles.topSummaryValueAccent}`}>{viewStats.total}</div>
+          <div className={receiptStyles.topSummaryMeta}>Receipts matching the current filters</div>
         </div>
-        <div className={styles.stat}>
-          <div className={styles.statLabel}>This month</div>
-          <div className={styles.statVal}>{viewStats.monthCount}</div>
-          <div className={styles.statChange}>Filtered receipts captured this month</div>
+        <div className={receiptStyles.topSummaryCard}>
+          <div className={receiptStyles.topSummaryLabel}>This month</div>
+          <div className={`${receiptStyles.topSummaryValue} ${receiptStyles.topSummaryValueBlue}`}>{viewStats.monthCount}</div>
+          <div className={receiptStyles.topSummaryMeta}>Filtered receipts captured this month</div>
         </div>
-        <div className={styles.stat}>
-          <div className={styles.statLabel}>Merchants in view</div>
-          <div className={styles.statVal}>{viewStats.merchants}</div>
-          <div className={styles.statChange}>{viewStats.currencies || 0} currencies across the current results</div>
+        <div className={receiptStyles.topSummaryCard}>
+          <div className={receiptStyles.topSummaryLabel}>Merchants in view</div>
+          <div className={receiptStyles.topSummaryValue}>{viewStats.merchants}</div>
+          <div className={receiptStyles.topSummaryMeta}>{viewStats.currencies || 0} currencies across the current results</div>
         </div>
       </div>
 

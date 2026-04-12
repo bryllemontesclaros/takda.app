@@ -708,61 +708,76 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   const enabledNotificationCount = NOTIFICATION_OPTIONS.filter(option => notificationPrefs[option.key]).length
   const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length
   const goalDateSelected = Boolean(goalForm.date)
+  const settingsReadiness = Math.max(
+    0,
+    Math.min(
+      100,
+      Math.round((((emailVerified ? 1 : 0) + Number(Boolean(profileForm.currency)) + (enabledNotificationCount / NOTIFICATION_OPTIONS.length)) / 3) * 100),
+    ),
+  )
+  const settingsCardClass = `${styles.card} ${settStyles.surfaceCard}`
+  const settingsWideCardClass = `${styles.card} ${settStyles.surfaceCard} ${settStyles.fullSpanCard}`
+  const settingsDangerCardClass = `${styles.card} ${settStyles.surfaceCard} ${settStyles.dangerCard}`
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>Settings</div>
-        <div className={styles.sub}>Manage your account, exports, and app preferences</div>
-      </div>
-
-      <div className={settStyles.overviewCard}>
-        <div className={settStyles.overviewHeader}>
-          <div>
-            <div className={settStyles.overviewEyebrow}>Settings center</div>
-            <div className={settStyles.overviewTitle}>Keep Takda secure, personal, and easy to recover.</div>
-            <div className={settStyles.overviewCopy}>
-              Everything sensitive lives here: account identity, notifications, backups, legal controls, and the tools you need if something goes wrong.
-            </div>
-          </div>
-          <div className={settStyles.accountBadge}>
-            <span className={settStyles.accountBadgeName}>{currentDisplayName || 'Takda account'}</span>
-            <span className={settStyles.accountBadgeMeta}>{currentEmail}</span>
+    <div className={`${styles.page} ${settStyles.settingsPage}`}>
+      <div className={settStyles.heroSection}>
+        <div className={settStyles.heroCopy}>
+          <div className={settStyles.pageEyebrow}>Settings</div>
+          <div className={settStyles.pageTitle}>Keep Takda secure, personal, and easy to recover.</div>
+          <div className={settStyles.pageSub}>
+            Everything sensitive lives here: account identity, notifications, backups, legal controls, and the tools you need if something goes wrong.
           </div>
         </div>
 
-        <div className={settStyles.overviewGrid}>
-          <div className={settStyles.overviewStat}>
-            <div className={settStyles.overviewStatLabel}>Email status</div>
-            <div className={settStyles.overviewStatValue}>{emailVerified ? 'Verified' : 'Needs verification'}</div>
-            <div className={settStyles.overviewStatMeta}>{emailVerified ? 'Recovery-ready account' : 'Verify for smoother recovery'}</div>
+        <div className={settStyles.heroAside}>
+          <div className={settStyles.heroAsideLabel}>Account profile</div>
+          <div className={settStyles.heroAsideValue}>{currentDisplayName || 'Takda account'}</div>
+          <div className={settStyles.heroAsideTrack}>
+            <div className={settStyles.heroAsideFill} style={{ width: `${settingsReadiness}%` }} />
           </div>
-          <div className={settStyles.overviewStat}>
-            <div className={settStyles.overviewStatLabel}>Currency</div>
-            <div className={settStyles.overviewStatValue}>{profileForm.currency || 'PHP'}</div>
-            <div className={settStyles.overviewStatMeta}>Used across balances, goals, and reports</div>
-          </div>
-          <div className={settStyles.overviewStat}>
-            <div className={settStyles.overviewStatLabel}>Notifications</div>
-            <div className={settStyles.overviewStatValue}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length}</div>
-            <div className={settStyles.overviewStatMeta}>In-app alert categories enabled</div>
-          </div>
-          <div className={settStyles.overviewStat}>
-            <div className={settStyles.overviewStatLabel}>Tracked records</div>
-            <div className={settStyles.overviewStatValue}>{trackedRecords}</div>
-            <div className={settStyles.overviewStatMeta}>Transactions, goals, bills, accounts, and budgets</div>
+          <div className={settStyles.heroAsideMeta}>
+            {currentEmail || 'Signed in'}
+            {' · '}
+            {emailVerified ? 'Verified and recovery-ready' : 'Verify email for smoother recovery'}
           </div>
         </div>
       </div>
 
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        title="Profile progress"
-        message="Settings shape the experience. Consistent logging keeps the numbers useful."
-      />
+      <div className={settStyles.heroStatsGrid}>
+        <div className={settStyles.heroStatCard}>
+          <div className={settStyles.heroStatLabel}>Email status</div>
+          <div className={settStyles.heroStatValue}>{emailVerified ? 'Verified' : 'Needs verification'}</div>
+          <div className={settStyles.heroStatMeta}>{emailVerified ? 'Recovery-ready account' : 'Verify for smoother recovery'}</div>
+        </div>
+        <div className={settStyles.heroStatCard}>
+          <div className={settStyles.heroStatLabel}>Currency</div>
+          <div className={`${settStyles.heroStatValue} ${settStyles.heroStatValueBlue}`}>{profileForm.currency || 'PHP'}</div>
+          <div className={settStyles.heroStatMeta}>Used across balances, goals, and reports</div>
+        </div>
+        <div className={settStyles.heroStatCard}>
+          <div className={settStyles.heroStatLabel}>Notifications</div>
+          <div className={`${settStyles.heroStatValue} ${settStyles.heroStatValueAccent}`}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length}</div>
+          <div className={settStyles.heroStatMeta}>In-app alert categories enabled</div>
+        </div>
+        <div className={settStyles.heroStatCard}>
+          <div className={settStyles.heroStatLabel}>Tracked records</div>
+          <div className={settStyles.heroStatValue}>{trackedRecords}</div>
+          <div className={settStyles.heroStatMeta}>Transactions, goals, bills, accounts, budgets, and receipts</div>
+        </div>
+      </div>
+
+      <div className={settStyles.gamificationWrap}>
+        <GamificationCard
+          gamification={gamification}
+          privacyMode={privacyMode}
+          compact
+          title="Profile progress"
+          message="Settings shape the experience. Consistent logging keeps the numbers useful."
+        />
+      </div>
 
       <div className={settStyles.settingsGrid}>
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Identity"
           title="Account & security"
@@ -825,7 +840,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Security"
           title="Change password"
@@ -855,7 +870,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </button>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Alerts"
           title="Notifications"
@@ -909,7 +924,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         ))}
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Trust"
           title="Legal & privacy"
@@ -951,7 +966,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Formatting"
           title="Currency & rates"
@@ -1009,7 +1024,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </button>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Planning"
           title="Savings goals"
@@ -1087,7 +1102,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         {!data.goals.length && <div className={settStyles.emptyCopy} style={{ marginTop: 8 }}>No savings goals yet. Add one above to start tracking progress.</div>}
       </div>
 
-      <div className={`${styles.card} ${settStyles.fullSpanCard}`}>
+      <div className={settingsWideCardClass}>
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
@@ -1171,7 +1186,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Snapshot"
           title="Your data"
@@ -1190,7 +1205,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Product loop"
           title="Feedback & reviews"
@@ -1217,7 +1232,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="App info"
           title="About"
@@ -1234,7 +1249,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={styles.card}>
+      <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Support"
           title="Support Takda"
@@ -1259,7 +1274,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </div>
       </div>
 
-      <div className={`${styles.card} ${settStyles.dangerCard}`}>
+      <div className={settingsDangerCardClass}>
         <CardHeader
           eyebrow="Danger zone"
           title="Delete financial data"
@@ -1276,7 +1291,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </button>
       </div>
 
-      <div className={`${styles.card} ${settStyles.dangerCard}`}>
+      <div className={settingsDangerCardClass}>
         <CardHeader
           eyebrow="Danger zone"
           title="Delete account and all data"
@@ -1309,7 +1324,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         </button>
       </div>
 
-      <div className={`${styles.card} ${settStyles.fullSpanCard}`}>
+      <div className={settingsWideCardClass}>
         <button
           className={settStyles.logoutButton}
           onClick={async () => {

@@ -81,6 +81,8 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   const totalExpense = filtered.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + (tx.amount || 0), 0)
   const net = totalIncome - totalExpense
   const transactionCountLabel = `${filtered.length} transaction${filtered.length === 1 ? '' : 's'}`
+  const flowTotal = totalIncome + totalExpense
+  const incomeShare = flowTotal > 0 ? Math.max(8, Math.min(100, Math.round((totalIncome / flowTotal) * 100))) : 0
 
   function clearFilters() {
     setFilterType('All types')
@@ -174,91 +176,133 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   }
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>History</div>
-        <div className={styles.sub}>{transactionCountLabel}</div>
-      </div>
-
-      <GamificationCard
-        gamification={gamification}
-        privacyMode={privacyMode}
-        compact
-        title="Ledger review"
-        message="A clean history makes your reports, trends, and forecasts easier to trust."
-      />
-
-      <div className={hStyles.searchRow}>
-        <input className={hStyles.searchInput} placeholder="Search description, category, or subcategory" value={search} onChange={event => setSearch(event.target.value)} />
-        {search && <button className={hStyles.clearSearch} onClick={() => setSearch('')}>✕</button>}
-        <button className={`${hStyles.filterBtn} ${hasActiveFilters ? hStyles.filterBtnActive : ''}`} onClick={() => setShowFilters(value => !value)}>
-          {hasActiveFilters ? '● Filters' : 'Filters'}
-        </button>
-      </div>
-
-      {showFilters && (
-        <div className={hStyles.filterPanel}>
-          <div className={hStyles.filterGrid}>
-            <div className={hStyles.filterGroup}>
-              <label>Type</label>
-              <select value={filterType} onChange={event => setFilterType(event.target.value)}>
-                {TYPES.map(type => <option key={type}>{type}</option>)}
-              </select>
-            </div>
-            <div className={hStyles.filterGroup}>
-              <label>Category</label>
-              <select value={filterCat} onChange={event => setFilterCat(event.target.value)}>
-                {ALL_CATS.map(cat => <option key={cat}>{cat}</option>)}
-              </select>
-            </div>
-            <div className={hStyles.filterGroup}>
-              <label>Month</label>
-              <input type="month" value={filterMonth} onChange={event => setFilterMonth(event.target.value)} />
-            </div>
-            <div className={hStyles.filterGroup}>
-              <label>Sort by</label>
-              <select value={sortBy} onChange={event => setSortBy(event.target.value)}>
-                <option value="date-desc">Newest first</option>
-                <option value="date-asc">Oldest first</option>
-                <option value="amount-desc">Highest amount</option>
-                <option value="amount-asc">Lowest amount</option>
-              </select>
-            </div>
-          </div>
-          {hasActiveFilters && (
-            <button className={hStyles.clearFiltersBtn} onClick={clearFilters}>✕ Clear all filters</button>
-          )}
-        </div>
-      )}
-
-      {filtered.length > 0 && (
-        <div className={hStyles.totalsBar}>
-          <div className={hStyles.totalItem}>
-            <div className={hStyles.totalLabel}>Income</div>
-            <div className={hStyles.totalVal} style={{ color: 'var(--accent)' }}>{displayValue(privacyMode, `+${fmt(totalIncome, s)}`, `+${maskMoney(s)}`)}</div>
-          </div>
-          <div className={hStyles.totalDivider} />
-          <div className={hStyles.totalItem}>
-            <div className={hStyles.totalLabel}>Expenses</div>
-            <div className={hStyles.totalVal} style={{ color: 'var(--red)' }}>{displayValue(privacyMode, `−${fmt(totalExpense, s)}`, `−${maskMoney(s)}`)}</div>
-          </div>
-          <div className={hStyles.totalDivider} />
-          <div className={hStyles.totalItem}>
-            <div className={hStyles.totalLabel}>Net</div>
-            <div className={hStyles.totalVal} style={{ color: net >= 0 ? 'var(--blue)' : 'var(--red)', fontWeight: 700 }}>
-              {displayValue(privacyMode, `${net >= 0 ? '+' : ''}${fmt(net, s)}`, `${net >= 0 ? '+' : ''}${maskMoney(s)}`)}
-            </div>
+    <div className={`${styles.page} ${hStyles.historyPage}`}>
+      <div className={hStyles.heroSection}>
+        <div className={hStyles.heroCopy}>
+          <div className={hStyles.pageEyebrow}>History</div>
+          <div className={hStyles.pageTitle}>Review the ledger without the noise.</div>
+          <div className={hStyles.pageSub}>
+            Search faster, isolate what matters, and keep recent income and expense activity easy to trust.
           </div>
         </div>
-      )}
+
+        <div className={hStyles.heroAside}>
+          <div className={hStyles.heroAsideLabel}>View scope</div>
+          <div className={hStyles.heroAsideValue}>{transactionCountLabel}</div>
+          <div className={hStyles.heroAsideTrack}>
+            <div className={hStyles.heroAsideFill} style={{ width: `${incomeShare}%` }} />
+          </div>
+          <div className={hStyles.heroAsideMeta}>
+            {hasActiveFilters || search
+              ? 'Filters are shaping this ledger view.'
+              : 'Showing all recorded transaction activity.'}
+          </div>
+        </div>
+      </div>
+
+      <div className={hStyles.summaryGrid}>
+        <div className={hStyles.summaryCard}>
+          <div className={hStyles.summaryLabel}>In view</div>
+          <div className={hStyles.summaryValue}>{filtered.length}</div>
+          <div className={hStyles.summaryMeta}>{grouped.length} day group{grouped.length === 1 ? '' : 's'}</div>
+        </div>
+        <div className={hStyles.summaryCard}>
+          <div className={hStyles.summaryLabel}>Income</div>
+          <div className={`${hStyles.summaryValue} ${hStyles.summaryValueAccent}`}>
+            {displayValue(privacyMode, `+${fmt(totalIncome, s)}`, `+${maskMoney(s)}`)}
+          </div>
+          <div className={hStyles.summaryMeta}>Filtered receipts and income entries</div>
+        </div>
+        <div className={hStyles.summaryCard}>
+          <div className={hStyles.summaryLabel}>Expenses</div>
+          <div className={`${hStyles.summaryValue} ${hStyles.summaryValueRed}`}>
+            {displayValue(privacyMode, `−${fmt(totalExpense, s)}`, `−${maskMoney(s)}`)}
+          </div>
+          <div className={hStyles.summaryMeta}>Filtered outflows and spending</div>
+        </div>
+        <div className={hStyles.summaryCard}>
+          <div className={hStyles.summaryLabel}>Net</div>
+          <div className={`${hStyles.summaryValue} ${net >= 0 ? hStyles.summaryValueBlue : hStyles.summaryValueRed}`}>
+            {displayValue(privacyMode, `${net >= 0 ? '+' : ''}${fmt(net, s)}`, `${net >= 0 ? '+' : ''}${maskMoney(s)}`)}
+          </div>
+          <div className={hStyles.summaryMeta}>{net >= 0 ? 'Net positive in this view' : 'Net negative in this view'}</div>
+        </div>
+      </div>
+
+      <div className={hStyles.gamificationWrap}>
+        <GamificationCard
+          gamification={gamification}
+          privacyMode={privacyMode}
+          compact
+          title="Ledger review"
+          message="A clean history makes your reports, trends, and forecasts easier to trust."
+        />
+      </div>
+
+      <div className={hStyles.searchShell}>
+        <div className={hStyles.searchRow}>
+          <input className={hStyles.searchInput} placeholder="Search description, category, or subcategory" value={search} onChange={event => setSearch(event.target.value)} />
+          {search && <button type="button" className={hStyles.clearSearch} onClick={() => setSearch('')}>✕</button>}
+          <button type="button" className={`${hStyles.filterBtn} ${hasActiveFilters ? hStyles.filterBtnActive : ''}`} onClick={() => setShowFilters(value => !value)}>
+            {hasActiveFilters ? 'Filters on' : 'Filters'}
+          </button>
+        </div>
+
+        {showFilters && (
+          <div className={hStyles.filterPanel}>
+            <div className={hStyles.filterGrid}>
+              <div className={hStyles.filterGroup}>
+                <label>Type</label>
+                <select value={filterType} onChange={event => setFilterType(event.target.value)}>
+                  {TYPES.map(type => <option key={type}>{type}</option>)}
+                </select>
+              </div>
+              <div className={hStyles.filterGroup}>
+                <label>Category</label>
+                <select value={filterCat} onChange={event => setFilterCat(event.target.value)}>
+                  {ALL_CATS.map(cat => <option key={cat}>{cat}</option>)}
+                </select>
+              </div>
+              <div className={hStyles.filterGroup}>
+                <label>Month</label>
+                <input type="month" value={filterMonth} onChange={event => setFilterMonth(event.target.value)} />
+              </div>
+              <div className={hStyles.filterGroup}>
+                <label>Sort by</label>
+                <select value={sortBy} onChange={event => setSortBy(event.target.value)}>
+                  <option value="date-desc">Newest first</option>
+                  <option value="date-asc">Oldest first</option>
+                  <option value="amount-desc">Highest amount</option>
+                  <option value="amount-asc">Lowest amount</option>
+                </select>
+              </div>
+            </div>
+            {hasActiveFilters && (
+              <button type="button" className={hStyles.clearFiltersBtn} onClick={clearFilters}>Clear all filters</button>
+            )}
+          </div>
+        )}
+      </div>
 
       {!filtered.length ? (
-        <div className={styles.card}>
-          <div className={styles.empty}>
-            {hasActiveFilters || search
-              ? <><div>No entries match those filters.</div><button className={hStyles.clearFiltersBtn} style={{ marginTop: 12 }} onClick={() => { clearFilters(); setSearch('') }}>Clear filters</button></>
-              : 'No transactions yet. Add your first income or expense to start the ledger.'}
+        <div className={hStyles.emptyCard}>
+          <div className={hStyles.emptyTitle}>
+            {hasActiveFilters || search ? 'No entries match this view' : 'No transactions yet'}
           </div>
+          <div className={hStyles.emptyBody}>
+            {hasActiveFilters || search
+              ? 'Try clearing your filters or search terms to widen the ledger view.'
+              : 'Add your first income or expense and this page will turn into your running ledger.'}
+          </div>
+          {(hasActiveFilters || search) && (
+            <button
+              type="button"
+              className={hStyles.clearFiltersBtn}
+              onClick={() => { clearFilters(); setSearch('') }}
+            >
+              Clear filters
+            </button>
+          )}
         </div>
       ) : grouped.map(([date, txs]) => {
         const dayIncome = txs.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + (tx.amount || 0), 0)
@@ -273,7 +317,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
                 {displayValue(privacyMode, `${dayNet >= 0 ? '+' : ''}${fmt(dayNet, s)}`, `${dayNet >= 0 ? '+' : ''}${maskMoney(s)}`)}
               </span>
             </div>
-            <div className={styles.card} style={{ padding: 0, overflow: 'hidden', marginBottom: 0 }}>
+            <div className={hStyles.dateGroupCard}>
               {txs.map((tx, index) => (
                 <div key={tx._id + index} className={hStyles.txRow}>
                   <div className={hStyles.txIcon} style={{ background: typeBg[tx.type], color: typeColor[tx.type] }}>
@@ -294,8 +338,8 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
                       {displayValue(privacyMode, `${typeSign[tx.type]}${fmt(tx.amount, s)}`, `${typeSign[tx.type]}${maskMoney(s)}`)}
                     </div>
                     <div className={hStyles.txActions}>
-                      <button className={hStyles.editBtn} onClick={() => openEdit(tx)}>Edit</button>
-                      <button className={hStyles.delBtn} onClick={() => handleDelete(tx)}>✕</button>
+                      <button type="button" className={hStyles.editBtn} onClick={() => openEdit(tx)}>Edit</button>
+                      <button type="button" className={hStyles.delBtn} onClick={() => handleDelete(tx)}>Delete</button>
                     </div>
                   </div>
                 </div>

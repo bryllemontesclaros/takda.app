@@ -140,7 +140,11 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
 
   const cats = tab === 'expenses' ? expenseCats : incomeCats
   const total = cats.reduce((sum, item) => sum + item.value, 0)
+  const incomeTotal = incomeCats.reduce((sum, item) => sum + item.value, 0)
   const expenseTotal = expenseCats.reduce((sum, item) => sum + item.value, 0)
+  const monthNet = incomeTotal - expenseTotal
+  const flowTotal = incomeTotal + expenseTotal
+  const expenseShare = flowTotal > 0 ? Math.max(8, Math.min(100, Math.round((expenseTotal / flowTotal) * 100))) : 0
 
   const last6 = useMemo(() => {
     return Array.from({ length: 6 }, (_, index) => {
@@ -191,32 +195,68 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
 
   return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <div className={styles.title}>Breakdown</div>
-        <div className={styles.sub}>See where money comes in and where it goes.</div>
+    <div className={`${styles.page} ${bStyles.breakdownPage}`}>
+      <div className={bStyles.heroSection}>
+        <div className={bStyles.heroCopy}>
+          <div className={bStyles.pageEyebrow}>Breakdown</div>
+          <div className={bStyles.pageTitle}>See where money comes in and where it goes.</div>
+          <div className={bStyles.pageSub}>
+            Compare category mix, month flow, and recent trends without the older dashboard clutter.
+          </div>
+        </div>
+
+        <div className={bStyles.heroAside}>
+          <div className={bStyles.heroAsideLabel}>Current month</div>
+          <div className={bStyles.heroAsideValue}>{monthLabel}</div>
+          <div className={bStyles.heroAsideTrack}>
+            <div className={bStyles.heroAsideFill} style={{ width: `${expenseShare}%` }} />
+          </div>
+          <div className={bStyles.heroAsideMeta}>
+            {tab === 'expenses' ? 'Reading expense categories right now.' : 'Reading income sources right now.'}
+          </div>
+        </div>
       </div>
 
-      <div className={bStyles.monthNav}>
-        <button className={bStyles.navBtn} onClick={prevMonth}>←</button>
-        <div className={bStyles.monthLabel}>{monthLabel}</div>
-        <button className={bStyles.navBtn} onClick={nextMonth}>→</button>
+      <div className={bStyles.summaryGrid}>
+        <div className={bStyles.summaryCard}>
+          <div className={bStyles.summaryLabel}>Income</div>
+          <div className={`${bStyles.summaryValue} ${bStyles.summaryValueAccent}`}>{money(incomeTotal)}</div>
+          <div className={bStyles.summaryMeta}>This month across all sources</div>
+        </div>
+        <div className={bStyles.summaryCard}>
+          <div className={bStyles.summaryLabel}>Expenses</div>
+          <div className={`${bStyles.summaryValue} ${bStyles.summaryValueRed}`}>{money(expenseTotal)}</div>
+          <div className={bStyles.summaryMeta}>This month across all categories</div>
+        </div>
+        <div className={bStyles.summaryCard}>
+          <div className={bStyles.summaryLabel}>Net</div>
+          <div className={`${bStyles.summaryValue} ${monthNet >= 0 ? bStyles.summaryValueBlue : bStyles.summaryValueRed}`}>{money(monthNet)}</div>
+          <div className={bStyles.summaryMeta}>{monthNet >= 0 ? 'Positive month so far' : 'Negative month so far'}</div>
+        </div>
       </div>
 
-      <div className={bStyles.tabRow}>
-        <button className={`${bStyles.tabBtn} ${tab === 'expenses' ? bStyles.tabBtnActive : ''}`} onClick={() => setTab('expenses')}>Expenses</button>
-        <button className={`${bStyles.tabBtn} ${tab === 'income' ? bStyles.tabBtnActive : ''}`} onClick={() => setTab('income')}>Income</button>
+      <div className={bStyles.toolbar}>
+        <div className={bStyles.monthNav}>
+          <button type="button" className={bStyles.navBtn} onClick={prevMonth}>←</button>
+          <div className={bStyles.monthLabel}>{monthLabel}</div>
+          <button type="button" className={bStyles.navBtn} onClick={nextMonth}>→</button>
+        </div>
+
+        <div className={bStyles.tabRow}>
+          <button type="button" className={`${bStyles.tabBtn} ${tab === 'expenses' ? bStyles.tabBtnActive : ''}`} onClick={() => setTab('expenses')}>Expenses</button>
+          <button type="button" className={`${bStyles.tabBtn} ${tab === 'income' ? bStyles.tabBtnActive : ''}`} onClick={() => setTab('income')}>Income</button>
+        </div>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>
-          {tab === 'expenses' ? 'Expense breakdown' : 'Income sources'}
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: tab === 'expenses' ? 'var(--red)' : 'var(--accent)' }}>
+      <div className={bStyles.surfaceCard}>
+        <div className={bStyles.sectionHeader}>
+          <div className={bStyles.sectionTitle}>{tab === 'expenses' ? 'Expense breakdown' : 'Income sources'}</div>
+          <span className={bStyles.sectionMeta} style={{ color: tab === 'expenses' ? 'var(--red)' : 'var(--accent)' }}>
             {displayValue(privacyMode, `${tab === 'expenses' ? '−' : '+'}${fmt(total, s)}`, `${tab === 'expenses' ? '−' : '+'}${maskMoney(s)}`)}
           </span>
         </div>
         {!cats.length ? (
-          <div className={styles.empty}>No {tab} data yet for this month.</div>
+          <div className={bStyles.emptyState}>No {tab} data yet for this month.</div>
         ) : (
           <div className={bStyles.pieSection}>
             <PieChart data={cats} size={160} />
@@ -234,12 +274,12 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
         )}
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>
-          Last 6 months
-          <div style={{ display: 'flex', gap: 12, fontSize: 11 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: 'var(--accent)', borderRadius: 2, display: 'inline-block' }} />Income</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><span style={{ width: 10, height: 10, background: 'var(--red)', borderRadius: 2, display: 'inline-block' }} />Expenses</span>
+      <div className={bStyles.surfaceCard}>
+        <div className={bStyles.sectionHeader}>
+          <div className={bStyles.sectionTitle}>Last 6 months</div>
+          <div className={bStyles.legendInline}>
+            <span className={bStyles.legendInlineItem}><span className={`${bStyles.legendInlineMark} ${bStyles.legendInlineIncome}`} />Income</span>
+            <span className={bStyles.legendInlineItem}><span className={`${bStyles.legendInlineMark} ${bStyles.legendInlineExpense}`} />Expenses</span>
           </div>
         </div>
         <BarChart
@@ -262,24 +302,26 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
       </div>
 
       {expenseCats.length > 0 && (
-        <div className={styles.card}>
-          <div className={styles.cardTitle}>Top spending categories</div>
+        <div className={bStyles.surfaceCard}>
+          <div className={bStyles.sectionHeader}>
+            <div className={bStyles.sectionTitle}>Top spending categories</div>
+          </div>
           {expenseCats.slice(0, 5).map((cat, index) => {
             const pct = expenseTotal ? Math.round((cat.value / expenseTotal) * 100) : 0
             return (
-              <div key={index} style={{ marginBottom: 12 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: cat.color, flexShrink: 0 }} />
-                    <span style={{ color: 'var(--text)' }}>{cat.cat}</span>
+              <div key={index} className={bStyles.rankItem}>
+                <div className={bStyles.rankRow}>
+                  <div className={bStyles.rankLabelWrap}>
+                    <div className={bStyles.rankDot} style={{ background: cat.color }} />
+                    <span className={bStyles.rankLabel}>{cat.cat}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                    <span style={{ color: 'var(--text3)', fontSize: 12 }}>{displayValue(privacyMode, `${pct}%`, '•••')}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--red)', fontSize: 13 }}>{money(cat.value)}</span>
+                  <div className={bStyles.rankValueWrap}>
+                    <span className={bStyles.rankPct}>{displayValue(privacyMode, `${pct}%`, '•••')}</span>
+                    <span className={bStyles.rankValue}>{money(cat.value)}</span>
                   </div>
                 </div>
-                <div style={{ height: 5, background: 'var(--surface3)', borderRadius: 3, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${pct}%`, background: cat.color, borderRadius: 3, transition: 'width 0.4s' }} />
+                <div className={bStyles.rankTrack}>
+                  <div className={bStyles.rankFill} style={{ width: `${pct}%`, background: cat.color }} />
                 </div>
               </div>
             )

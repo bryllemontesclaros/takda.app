@@ -1,3 +1,146 @@
+.settingsPage {
+  padding-bottom: 1rem;
+}
+
+.heroSection {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.heroCopy,
+.heroAside,
+.heroStatCard {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 74%, transparent 26%), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, white 3%), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 16px 28px rgba(8, 12, 18, 0.06);
+}
+
+.heroCopy {
+  padding: 1.25rem;
+}
+
+.heroAside,
+.heroStatCard {
+  padding: 1rem 1.1rem;
+}
+
+.pageEyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.52px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.pageTitle {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: -0.6px;
+  color: var(--text);
+}
+
+.pageSub {
+  margin-top: 10px;
+  max-width: 720px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text2);
+}
+
+.heroAside {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.heroAsideLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.heroAsideValue {
+  font-family: var(--font-display);
+  font-size: 25px;
+  line-height: 1.08;
+  color: var(--text);
+}
+
+.heroAsideTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface2) 85%, white 15%);
+  overflow: hidden;
+}
+
+.heroAsideFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--blue) 70%, white 30%));
+}
+
+.heroAsideMeta {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text3);
+}
+
+.heroStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.heroStatLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.42px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 8px;
+}
+
+.heroStatValue {
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.heroStatValueAccent {
+  color: var(--accent);
+}
+
+.heroStatValueBlue {
+  color: var(--blue);
+}
+
+.heroStatMeta {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text3);
+}
+
+.gamificationWrap {
+  margin-bottom: 1rem;
+}
+
+.surfaceCard {
+  margin-bottom: 0;
+}
+
 .overviewCard {
   margin-bottom: 1rem;
   padding: 1.25rem;
@@ -880,6 +1023,11 @@
 }
 
 @media (max-width: 1040px) {
+  .heroSection {
+    grid-template-columns: 1fr;
+  }
+
+  .heroStatsGrid,
   .overviewGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -896,6 +1044,19 @@
 }
 
 @media (max-width: 640px) {
+  .heroCopy,
+  .heroAside {
+    padding: 1rem;
+  }
+
+  .pageTitle {
+    font-size: 24px;
+  }
+
+  .heroStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
   .overviewCard {
     padding: 1rem;
   }
