@@ -9,16 +9,59 @@
 .greetingHi { font-family: var(--font-display); font-size: 22px; color: var(--text); letter-spacing: -0.03em; }
 .greetingDate { font-size: 12px; color: var(--text3); letter-spacing: 0.01em; }
 
-/* HERO NET WORTH */
-.heroCard {
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  border-radius: 18px;
-  padding: 1.35rem 1.25rem;
-  margin-bottom: 0.85rem;
+/* Glass card base — matches Page.module.css */
+.heroCard,
+.focusCard,
+.missionCard,
+.statBox,
+.miniCard,
+.sectionCard {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.08);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
+  border-radius: var(--radius);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  transition:
+    transform var(--motion-duration) var(--motion-ease-out),
+    box-shadow var(--motion-duration) var(--motion-ease-standard),
+    border-color var(--motion-duration) var(--motion-ease-standard),
+    background var(--motion-duration) var(--motion-ease-standard);
+}
+
+@media (hover: hover) {
+  .focusCard:hover,
+  .missionCard:hover,
+  .statBox:hover,
+  .miniCard:hover,
+  .sectionCard:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow);
+  }
+}
+
+.heroCard::after,
+.focusCard::after,
+.missionCard::after,
+.statBox::after,
+.miniCard::after,
+.sectionCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 28%, transparent), transparent 18%, transparent 86%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
+  opacity: 0.82;
+}
+
+/* HERO NET WORTH */
+.heroCard {
+  padding: 1.35rem 1.25rem;
+  margin-bottom: 0.85rem;
 }
 .heroCard::before {
   content: '';
@@ -28,6 +71,11 @@
   height: 120px;
   background: radial-gradient(circle, color-mix(in srgb, var(--accent) 10%, transparent), transparent 68%);
   pointer-events: none;
+  z-index: 0;
+}
+.heroCard > * {
+  position: relative;
+  z-index: 1;
 }
 .heroLabel { font-size: 10px; color: var(--text3); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 10px; }
 .heroVal { font-family: var(--font-display); font-size: 36px; color: var(--accent); letter-spacing: -0.04em; margin-bottom: 6px; line-height: 0.95; }
@@ -38,11 +86,18 @@
   font-family: inherit;
   cursor: pointer;
   appearance: none;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 }
 .privacyCardButton:hover {
-  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 50%, var(--surface) 50%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow);
+}
+.privacyCardButton:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--glass-shadow-soft);
 }
 .privacyCardButton:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 56%, white 44%);
@@ -60,12 +115,13 @@
 /* FOCUS CARD */
 .focusCard {
   --focus-tone: var(--accent);
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border: 1px solid color-mix(in srgb, var(--focus-tone) 18%, var(--border));
-  border-radius: 18px;
+  border-color: color-mix(in srgb, var(--focus-tone) 24%, var(--glass-border));
   padding: 1rem 1.05rem;
   margin-bottom: 0.85rem;
-  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.08);
+}
+.focusCard > * {
+  position: relative;
+  z-index: 1;
 }
 .focusHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .focusEyebrow { font-size: 9px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--focus-tone); margin-bottom: 4px; }
@@ -77,8 +133,8 @@
   min-height: 26px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--focus-tone) 18%, var(--border));
-  background: color-mix(in srgb, var(--focus-tone) 7%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--focus-tone) 28%, var(--glass-border));
+  background: color-mix(in srgb, var(--focus-tone) 12%, var(--glass-1));
   color: var(--focus-tone);
   font-size: 10px;
   font-weight: 700;
@@ -93,8 +149,9 @@
   min-height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: transparent;
-  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
   color: var(--text2);
   font-size: 10px;
   font-weight: 600;
@@ -105,11 +162,12 @@
 .missionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 1rem; }
 .missionCard {
   --mission-tone: var(--accent);
-  background: color-mix(in srgb, var(--surface) 96%, #ffffff 4%);
-  border: 1px solid color-mix(in srgb, var(--mission-tone) 20%, var(--border));
-  border-radius: var(--radius);
+  border-color: color-mix(in srgb, var(--mission-tone) 26%, var(--glass-border));
   padding: 0.95rem;
-  box-shadow: 0 12px 24px rgba(8, 12, 18, 0.06);
+}
+.missionCard > * {
+  position: relative;
+  z-index: 1;
 }
 .missionTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
 .missionTitle { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.3; }
@@ -121,11 +179,12 @@
 /* STATS ROW */
 .statsRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 0.85rem; }
 .statBox {
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 16px;
   padding: 0.9rem 0.95rem;
-  box-shadow: 0 10px 22px rgba(8, 12, 18, 0.06);
+}
+.statBox > * {
+  position: relative;
+  z-index: 1;
 }
 .statBoxLabel { font-size: 9px; color: var(--text3); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 8px; }
 .statBoxVal { font-family: var(--font-mono); font-size: 15px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
@@ -136,11 +195,12 @@
 
 /* MINI CARDS */
 .miniCard {
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
   border-radius: 16px;
   padding: 0.95rem;
-  box-shadow: 0 10px 22px rgba(8, 12, 18, 0.06);
+}
+.miniCard > * {
+  position: relative;
+  z-index: 1;
 }
 .miniLabel { font-size: 9px; color: var(--text3); font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 8px; }
 .miniVal { font-family: var(--font-mono); font-size: 18px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 4px; }
@@ -153,12 +213,12 @@
 
 /* LOWER SECTIONS */
 .sectionCard {
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  border-radius: 18px;
   padding: 1rem 1.05rem;
   margin-bottom: 0.85rem;
-  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.08);
+}
+.sectionCard > * {
+  position: relative;
+  z-index: 1;
 }
 .sectionHeader {
   display: flex;

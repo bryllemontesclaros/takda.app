@@ -12,12 +12,35 @@
 .heroCopy,
 .heroAside,
 .heroStatCard {
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 74%, transparent 26%), transparent 46%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, white 3%), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--glass-border));
   border-radius: var(--radius);
-  box-shadow: 0 16px 28px rgba(8, 12, 18, 0.06);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 55%, transparent 45%), transparent 42%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 14%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+}
+
+.heroCopy::after,
+.heroAside::after,
+.heroStatCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 26%, transparent), transparent 18%, transparent 86%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
+  opacity: 0.82;
+}
+
+.heroCopy > *,
+.heroAside > *,
+.heroStatCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .heroCopy {
@@ -142,14 +165,33 @@
 }
 
 .overviewCard {
+  position: relative;
+  overflow: hidden;
   margin-bottom: 1rem;
   padding: 1.25rem;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--glass-border));
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 80%, transparent 20%), transparent 44%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, white 3%), var(--surface));
-  box-shadow: 0 18px 32px rgba(8, 12, 18, 0.08);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 50%, transparent 50%), transparent 40%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent 36%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+}
+
+.overviewCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 28%, transparent), transparent 18%, transparent 86%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
+  opacity: 0.82;
+}
+
+.overviewCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .overviewHeader {
@@ -192,8 +234,9 @@
   min-width: 220px;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface2) 90%, white 10%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 32%, transparent);
 }
 
 .accountBadgeName {
@@ -217,8 +260,9 @@
 .overviewStat {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface2) 92%, white 8%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 55%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 78%, var(--surface2) 22%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
 }
 
 .overviewStatLabel {
@@ -379,8 +423,9 @@
 .toggleButton {
   min-width: 82px;
   padding: 9px 14px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
   color: var(--text2);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -402,8 +447,9 @@
 
 .modeButton {
   padding: 9px 14px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
   color: var(--text2);
   border-radius: var(--radius-sm);
   cursor: pointer;
@@ -425,9 +471,10 @@
 }
 
 .summaryItem {
-  background: var(--surface2);
+  background: color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 55%, var(--border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 26%, transparent);
   padding: 1rem;
   text-align: center;
 }
@@ -798,8 +845,9 @@
 .donateCard {
   padding: 14px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 78%, var(--surface2) 22%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
 }
 
 .donateTop {
@@ -852,8 +900,9 @@
   text-align: left;
   padding: 14px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 78%, var(--surface2) 22%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
   color: var(--text);
   cursor: pointer;
   display: flex;
@@ -878,25 +927,50 @@
   transform: translateY(-1px);
 }
 
+@keyframes takdaFeedbackBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes takdaFeedbackModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .feedbackOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(8, 12, 18, 0.5);
+  backdrop-filter: blur(14px) saturate(120%);
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
   z-index: 320;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
+  animation: takdaFeedbackBackdropIn var(--motion-duration) var(--motion-ease-out) both;
 }
 
 .feedbackModal {
   width: min(540px, 100%);
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 12%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
   border-radius: var(--radius-lg);
   padding: 1.25rem;
+  box-shadow: var(--glass-shadow-strong);
+  backdrop-filter: blur(var(--glass-blur-xl)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-xl)) saturate(160%);
+  animation: takdaFeedbackModalIn var(--motion-duration-slow) var(--motion-ease-out) both;
 }
 
 .feedbackHeader {

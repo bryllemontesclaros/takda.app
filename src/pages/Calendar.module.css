@@ -76,17 +76,17 @@
   margin: 0;
   cursor: pointer;
 }
-.navBtn { background: transparent; border: 1px solid color-mix(in srgb, var(--border) 76%, transparent); color: var(--text2); border-radius: 999px; padding: 0; cursor: pointer; font-size: 15px; min-width: 34px; min-height: 34px; flex-shrink: 0; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
-.navBtn:hover { border-color: color-mix(in srgb, var(--accent) 24%, var(--border)); color: var(--text); background: color-mix(in srgb, var(--surface2) 82%, transparent); }
+.navBtn { background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); color: var(--text2); border-radius: 999px; padding: 0; cursor: pointer; font-size: 15px; min-width: 34px; min-height: 34px; flex-shrink: 0; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
+.navBtn:hover { border-color: color-mix(in srgb, var(--accent) 24%, var(--glass-border)); color: var(--text); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 42%, var(--surface2) 58%), color-mix(in srgb, var(--surface) 92%, transparent 8%)); transform: translateY(-1px); }
 
 /* ADD BUTTONS */
 .addBtns { display: flex; gap: 6px; }
-.addBtnIncome { padding: 8px 14px; background: var(--accent-glow); border: 1px solid var(--accent); color: var(--accent); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
-.addBtnIncome:hover { opacity: 0.8; }
-.addBtnExpense { padding: 8px 14px; background: var(--red-dim); border: 1px solid var(--red); color: var(--red); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s; }
-.addBtnExpense:hover { opacity: 0.8; }
-.addBtnImport { padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border2); color: var(--text); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s, border-color 0.15s; }
-.addBtnImport:hover { opacity: 0.9; border-color: var(--accent); }
+.addBtnIncome { padding: 8px 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%)); border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--glass-border)); color: var(--accent); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent); }
+.addBtnIncome:hover { opacity: 0.92; transform: translateY(-1px); }
+.addBtnExpense { padding: 8px 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--red-dim) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%)); border: 1px solid color-mix(in srgb, var(--red) 30%, var(--glass-border)); color: var(--red); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent); }
+.addBtnExpense:hover { opacity: 0.92; transform: translateY(-1px); }
+.addBtnImport { padding: 8px 14px; background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border2)); color: var(--text); border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 40px; transition: opacity 0.15s, border-color 0.15s, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
+.addBtnImport:hover { opacity: 0.96; border-color: var(--accent); transform: translateY(-1px); }
 
 /* DAY NAMES + GRID */
 .monthBoard {
@@ -113,12 +113,14 @@
 .cell {
   appearance: none;
   min-height: 88px;
-  background: color-mix(in srgb, var(--surface) 98%, #ffffff 2%);
-  border: 1px solid color-mix(in srgb, var(--border) 62%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 60%, var(--surface) 40%), color-mix(in srgb, var(--surface) 94%, transparent 6%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 52%, var(--border));
   border-radius: 14px;
   padding: 8px;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
   overflow: hidden;
   position: relative;
   min-width: 0;
@@ -128,9 +130,12 @@
   gap: 4px;
   text-align: left;
   font-family: var(--font-body);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 18%, transparent);
+  backdrop-filter: blur(var(--glass-blur-sm)) saturate(135%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-sm)) saturate(135%);
 }
-.cell:hover { border-color: color-mix(in srgb, var(--border2) 88%, transparent); background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); }
-.today { border-color: color-mix(in srgb, var(--accent) 56%, var(--border)) !important; background: color-mix(in srgb, var(--accent-glow) 18%, var(--surface) 82%) !important; }
+.cell:hover { border-color: color-mix(in srgb, var(--border2) 88%, var(--glass-border)); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 36%, var(--surface2) 64%), color-mix(in srgb, var(--surface) 92%, transparent 8%)); transform: translateY(-1px); }
+.today { border-color: color-mix(in srgb, var(--accent) 56%, var(--glass-border)) !important; background: radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 88%, transparent 12%), transparent 46%), linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 60%, var(--surface) 40%), color-mix(in srgb, var(--surface) 90%, transparent 10%)) !important; }
 .otherMonth { opacity: 0.2; pointer-events: none; }
 .selectedCell { border-color: color-mix(in srgb, var(--accent) 76%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 38%, transparent); background: color-mix(in srgb, var(--accent-glow) 12%, var(--surface) 88%); }
 .hasData { border-color: color-mix(in srgb, var(--border2) 88%, transparent); }
@@ -169,8 +174,10 @@
   padding: 10px 12px;
   min-height: 62px;
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  background: color-mix(in srgb, var(--surface) 97%, #ffffff 3%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 68%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -180,12 +187,16 @@
   text-align: left;
   font-family: inherit;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
 }
 
 .balanceRail:hover {
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 38%, var(--surface2) 62%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  transform: translateY(-1px);
 }
 
 .balanceRail:focus-visible {
@@ -231,8 +242,8 @@
   min-height: 34px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border2) 84%, transparent);
-  background: color-mix(in srgb, var(--surface3) 90%, #ffffff 10%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border2));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 48%, var(--surface3) 52%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
   font-family: var(--font-body);
   font-size: 11px;
@@ -336,8 +347,8 @@
 }
 .dayBalanceEditBtn,
 .dayBalanceGhostBtn {
-  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
 }
 .dayBalanceEditBtn:hover,
@@ -346,8 +357,8 @@
   color: var(--text);
 }
 .dayBalanceSaveBtn {
-  border: none;
-  background: color-mix(in srgb, var(--blue) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--blue-dim) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
   color: var(--blue);
 }
 .dayBalanceEditBtn:disabled,
@@ -360,8 +371,9 @@
   gap: 8px;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--blue) 34%, var(--border));
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+  border: 1px solid color-mix(in srgb, var(--blue) 30%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
 }
 .dayBalanceInputWrap span {
   font-family: var(--font-mono);
@@ -410,12 +422,16 @@
   margin-top: 14px;
   width: 100%;
   overflow: hidden;
-  background: color-mix(in srgb, var(--surface) 98%, #ffffff 2%);
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border));
   border-radius: 18px;
   box-sizing: border-box;
   scroll-margin-top: 18px;
-  box-shadow: 0 12px 28px rgba(8, 12, 18, 0.08);
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
 }
 .dayPanelHandle {
   display: none;
@@ -436,10 +452,10 @@
 .dayPanelTodayBadge { padding: 2px 7px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); color: var(--accent); font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .dayPanelTitle { font-family: var(--font-display); font-size: 18px; line-height: 1.05; color: var(--text); }
 .dayPanelHeaderRight { display: flex; align-items: flex-start; justify-content: flex-end; }
-.dayPanelClose { background: transparent; border: 1px solid color-mix(in srgb, var(--border) 76%, transparent); color: var(--text3); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; min-width: 0; min-height: 28px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; }
+.dayPanelClose { background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); color: var(--text3); font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; min-width: 0; min-height: 28px; padding: 0 10px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 999px; }
 .dayPanelClose:hover { border-color: color-mix(in srgb, var(--accent) 22%, var(--border)); color: var(--text); }
 .dayPanelHeaderMeta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
-.dayPanelHeaderStat { border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%); padding: 10px 12px; min-width: 0; }
+.dayPanelHeaderStat { border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border)); border-radius: var(--radius-sm); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); padding: 10px 12px; min-width: 0; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 34%, transparent); }
 .dayPanelHeaderStatLabel { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text3); margin-bottom: 4px; }
 .dayPanelHeaderStatValue { display: block; font-family: var(--font-mono); font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dayPanelHeaderStatPositive { color: var(--blue); }
@@ -453,11 +469,11 @@
 .daySectionCount { min-width: 22px; height: 22px; padding: 0 8px; border-radius: 999px; background: color-mix(in srgb, var(--surface2) 88%, transparent); border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); color: var(--text3); font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
 .daySummary { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--border) 66%, transparent); font-size: 12px; font-family: var(--font-mono); flex-wrap: wrap; }
 .dayPanelActions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.dayPanelAction { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
+.dayPanelAction { min-height: 34px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease; }
 .dayPanelAction:hover { opacity: 1; transform: none; }
 .dayPanelAction:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-.dayPanelActionIncome { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 28%, var(--border)); color: var(--accent); }
-.dayPanelActionExpense { background: color-mix(in srgb, var(--red) 9%, var(--surface)); border-color: color-mix(in srgb, var(--red) 24%, var(--border)); color: var(--red); }
+.dayPanelActionIncome { background: linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%)); border-color: color-mix(in srgb, var(--accent) 28%, var(--glass-border)); color: var(--accent); }
+.dayPanelActionExpense { background: linear-gradient(180deg, color-mix(in srgb, var(--red-dim) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%)); border-color: color-mix(in srgb, var(--red) 24%, var(--glass-border)); color: var(--red); }
 .planNote {
   margin: -2px 0 14px;
   padding: 10px 12px;
@@ -527,8 +543,8 @@
   height: 22px;
   padding: 0 7px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
-  background: color-mix(in srgb, var(--surface2) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
   font-size: 10px;
   letter-spacing: 0;
@@ -542,7 +558,7 @@
 /* MODAL */
 .modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 340; display: flex; align-items: flex-end; justify-content: center; padding: 16px; }
 @media (min-width: 640px) { .modalOverlay { align-items: center; } }
-.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: min(520px, 100%); max-width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; }
+.modal { background: radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border)); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 1.5rem; width: min(520px, 100%); max-width: 100%; max-height: 90vh; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; box-sizing: border-box; box-shadow: var(--glass-shadow-strong); backdrop-filter: blur(var(--glass-blur-xl)) saturate(160%); -webkit-backdrop-filter: blur(var(--glass-blur-xl)) saturate(160%); }
 @media (min-width: 640px) { .modal { border-radius: var(--radius-lg); max-width: 500px; max-height: unset; } }
 .modalHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 1.25rem; }
 .modalTitle { font-family: var(--font-display); font-size: 20px; color: var(--text); min-width: 0; }
@@ -556,22 +572,22 @@
   cursor: not-allowed;
 }
 .typeToggle { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 1.25rem; }
-.typeBtn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--surface2); color: var(--text3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 52px; }
+.typeBtn { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px 8px; border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); border-radius: var(--radius); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); color: var(--text3); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; min-height: 52px; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
 .typeBtn:hover { border-color: var(--border2); color: var(--text); }
 .typeBtnIncome { border-color: var(--accent) !important; background: var(--accent-glow) !important; color: var(--accent) !important; }
 .typeBtnExpense { border-color: var(--red) !important; background: var(--red-dim) !important; color: var(--red) !important; }
 .typeBtnSign { font-size: 18px; font-weight: 700; line-height: 1; }
-.amountField { display: flex; align-items: center; gap: 4px; margin-bottom: 1.25rem; padding: 12px 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); }
+.amountField { display: flex; align-items: center; gap: 4px; margin-bottom: 1.25rem; padding: 12px 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border)); border-radius: var(--radius); box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent); }
 .amountSign { font-size: 26px; font-weight: 700; font-family: var(--font-mono); line-height: 1; min-width: 20px; }
 .amountSymbol { font-size: 20px; font-weight: 600; font-family: var(--font-mono); color: var(--text2); }
 .amountInput { flex: 1; background: none; border: none; outline: none; font-size: 26px; font-weight: 600; font-family: var(--font-mono); min-width: 0; }
 .modalSectionLabel { font-size: 11px; color: var(--text3); font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
 .quickCats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface2); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; max-width: 100%; }
+.quickCat { display: flex; align-items: center; gap: 5px; min-height: 34px; padding: 6px 12px; border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border)); border-radius: 20px; background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); color: var(--text2); font-size: 12px; cursor: pointer; font-family: var(--font-body); transition: all 0.15s; max-width: 100%; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent); }
 .quickCat:hover { border-color: var(--border2); color: var(--text); }
 .quickCatActive { font-weight: 600; }
 .presetActions { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.presetToggle { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface2); color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 42px; white-space: nowrap; }
+.presetToggle { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border)); border-radius: var(--radius-sm); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font-body); min-height: 42px; white-space: nowrap; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent); }
 .presetToggleActive { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
 .modalFields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .modalFieldFull { grid-column: 1 / -1; }
@@ -579,10 +595,10 @@
 .accountHint { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--border)); background: color-mix(in srgb, var(--blue) 12%, var(--surface2)); color: var(--text2); font-size: 12px; line-height: 1.5; }
 .formError { padding: 10px 12px; margin-bottom: 12px; border-radius: var(--radius-sm); border: 1px solid var(--red); background: var(--red-dim); color: var(--red); font-size: 13px; line-height: 1.5; }
 .recurGrid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; max-width: 100%; white-space: normal; line-height: 1.25; text-align: center; }
+.recurChip { padding: 5px 11px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border)); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 48%, var(--surface2) 52%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); color: var(--text2); font-size: 11px; cursor: pointer; font-family: var(--font-body); min-height: 30px; max-width: 100%; white-space: normal; line-height: 1.25; text-align: center; }
 .recurChipActive { border-color: var(--purple); background: var(--purple-dim); color: var(--purple); }
 .modalActions { display: flex; gap: 8px; margin-top: 1.25rem; }
-.btnCancel { flex: 1; padding: 12px; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
+.btnCancel { flex: 1; padding: 12px; background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); color: var(--text2); border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; min-height: 48px; }
 .btnSave { flex: 2; padding: 12px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font-body); font-size: 14px; font-weight: 600; min-height: 48px; }
 .btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
 

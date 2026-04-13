@@ -13,11 +13,13 @@
 .heroAside,
 .topSummaryCard {
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 74%, transparent 26%), transparent 46%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 97%, white 3%), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 80%, transparent 20%), transparent 44%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--glass-border));
   border-radius: var(--radius);
-  box-shadow: 0 16px 28px rgba(8, 12, 18, 0.06);
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
 }
 
 .heroCopy {
@@ -168,10 +170,14 @@
 .panelCard,
 .galleryCard,
 .detailCard {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #ffffff 4%), var(--surface));
-  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
   border-radius: var(--radius);
-  box-shadow: 0 18px 32px rgba(8, 12, 18, 0.08);
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
 }
 
 .captureCard,
@@ -224,25 +230,28 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .primaryButton {
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--glass-border));
   background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 84%, white 16%), color-mix(in srgb, var(--accent) 90%, black 10%));
   color: #08110d;
+  box-shadow: 0 16px 28px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .secondaryButton {
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
 }
 
 .deleteButton {
-  border: 1px solid color-mix(in srgb, var(--red) 34%, var(--border));
-  background: color-mix(in srgb, var(--red-dim) 78%, var(--surface) 22%);
+  border: 1px solid color-mix(in srgb, var(--red) 34%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--red-dim) 90%, var(--glass-2) 10%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
   color: var(--red);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 24%, transparent);
 }
 
 .primaryButton:hover,
@@ -289,8 +298,9 @@
 .summaryMetric {
   padding: 12px;
   border-radius: 16px;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
-  background: color-mix(in srgb, var(--surface2) 88%, white 12%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
 }
 
 .summaryMetric span {
@@ -360,8 +370,8 @@
   min-height: 38px;
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
   font-size: 12px;
   font-weight: 700;
@@ -370,8 +380,8 @@
 }
 
 .filterChipActive {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
-  background: color-mix(in srgb, var(--accent-glow) 82%, var(--surface) 18%);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 92%, var(--glass-2) 8%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
   color: var(--accent);
 }
 
@@ -401,8 +411,9 @@
 .chartCard {
   padding: 14px;
   border-radius: 18px;
-  border: 1px solid var(--border);
-  background: radial-gradient(circle at top, color-mix(in srgb, var(--blue-dim) 32%, transparent), transparent 56%), var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: radial-gradient(circle at top, color-mix(in srgb, var(--blue-dim) 32%, transparent), transparent 56%), linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
 }
 
 .chartColumns {
@@ -555,8 +566,8 @@
 .detailImage {
   width: 100%;
   border-radius: 18px;
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   object-fit: contain;
 }
 
@@ -645,8 +656,9 @@
   min-height: 44px;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
   color: var(--text);
   font-size: 15px;
   font-family: var(--font-body);
@@ -661,7 +673,10 @@
 .formField input:focus,
 .formField select:focus,
 .formField textarea:focus {
-  border-color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .fullWidth {
@@ -673,8 +688,9 @@
   margin-top: 1rem;
   padding: 12px 14px;
   border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--surface2);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 50%, var(--surface2) 50%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
 }
 
 .lineItemsList {

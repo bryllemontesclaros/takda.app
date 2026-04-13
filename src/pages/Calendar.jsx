@@ -70,7 +70,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   const [editingDayBalance, setEditingDayBalance] = useState(false)
   const [dayBalanceDraft, setDayBalanceDraft] = useState('')
   const [dayBalanceSaving, setDayBalanceSaving] = useState(false)
-  const touchStartX = useRef(null)
   const navLock = useRef(false)
   const feedbackTimerRef = useRef(null)
   const selectedDayRef = useRef(null)
@@ -502,32 +501,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     setGoalInput('')
   }
 
-  function handleWheel(event) {
-    const horizontalDelta = event.deltaX
-    const verticalDelta = event.deltaY
-    const primaryDelta =
-      Math.abs(verticalDelta) > Math.abs(horizontalDelta) ? verticalDelta : horizontalDelta
-    if (Math.abs(primaryDelta) < 24) return
-    event.preventDefault()
-    if (primaryDelta > 0) next()
-    else prev()
-  }
-
-  function handleTouchStart(event) {
-    touchStartX.current = event.touches[0]?.clientX ?? null
-  }
-
-  function handleTouchEnd(event) {
-    if (touchStartX.current == null) return
-    const endX = event.changedTouches[0]?.clientX ?? touchStartX.current
-    const delta = touchStartX.current - endX
-    if (Math.abs(delta) > 42) {
-      if (delta > 0) next()
-      else prev()
-    }
-    touchStartX.current = null
-  }
-
   const selectedIncome = selected ? allIncome.filter(tx => normalizeDate(tx.date) === selected) : []
   const selectedExpenses = selected ? allExpenses.filter(tx => normalizeDate(tx.date) === selected) : []
   const selectedDayCount = selectedIncome.length + selectedExpenses.length
@@ -647,12 +620,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         </div>
       )}
 
-      <div
-        className={`${styles.card} ${calStyles.calendarCard}`}
-        onWheel={handleWheel}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className={`${styles.card} ${calStyles.calendarCard}`}>
         <div className={calStyles.calHeader}>
           <div className={calStyles.nav}>
             <button type="button" className={calStyles.navBtn} onClick={prev} aria-label="Previous month">←</button>
