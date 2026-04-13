@@ -241,12 +241,14 @@ select.fieldControl {
 .saveBtn:hover:not(:disabled) { opacity: 0.9; }
 .saveDock {
   position: sticky;
-  bottom: calc(-1rem - env(safe-area-inset-bottom));
-  margin: 2px -1rem calc(-1rem - env(safe-area-inset-bottom));
-  padding: 10px 1rem calc(1rem + env(safe-area-inset-bottom));
+  bottom: 0;
+  margin-top: 6px;
+  padding: 10px 0 calc(6px + env(safe-area-inset-bottom));
   background:
     linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 26%);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid color-mix(in srgb, var(--glass-border) 48%, var(--border));
   z-index: 2;
   box-sizing: border-box;
 }
@@ -267,6 +269,7 @@ select.fieldControl {
   .wrap { gap: 10px; }
   .sectionLabel,
   .fieldLabel { font-size: 11px; }
+  .metaGrid { grid-template-columns: 1fr; }
   .amountDisplay { padding: 12px 14px; }
   .currencySign { font-size: 20px; }
   .amountInput { font-size: 34px; letter-spacing: -1px; }
@@ -274,8 +277,8 @@ select.fieldControl {
   .quickCat { padding: 6px 10px; font-size: 11px; }
   .numpad { display: none; }
   .saveDock {
-    bottom: calc(-12px - env(safe-area-inset-bottom));
-    margin: 0 -12px calc(-12px - env(safe-area-inset-bottom));
-    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    bottom: 0;
+    margin-top: 6px;
+    padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
   }
 }
