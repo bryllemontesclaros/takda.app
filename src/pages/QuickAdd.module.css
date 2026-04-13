@@ -240,16 +240,11 @@ select.fieldControl {
 .saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .saveBtn:hover:not(:disabled) { opacity: 0.9; }
 .saveDock {
-  position: sticky;
-  bottom: 0;
-  margin-top: 6px;
-  padding: 10px 0 calc(6px + env(safe-area-inset-bottom));
-  background:
-    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 26%);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid color-mix(in srgb, var(--glass-border) 48%, var(--border));
-  z-index: 2;
+  position: static;
+  margin-top: 8px;
+  padding: 0;
+  background: none;
+  border-top: none;
   box-sizing: border-box;
 }
 
@@ -277,8 +272,7 @@ select.fieldControl {
   .quickCat { padding: 6px 10px; font-size: 11px; }
   .numpad { display: none; }
   .saveDock {
-    bottom: 0;
-    margin-top: 6px;
-    padding: 10px 0 calc(8px + env(safe-area-inset-bottom));
+    margin-top: 8px;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
