@@ -855,14 +855,14 @@
     min-height: 58px;
   }
   .quickAddLayer {
-    padding: 0 0 calc(86px + env(safe-area-inset-bottom));
+    padding: 8px 0 calc(86px + env(safe-area-inset-bottom));
     align-items: flex-end;
   }
   .quickAddSheet {
     width: min(100%, calc(100vw - 16px));
     max-width: none;
-    max-height: calc(100dvh - env(safe-area-inset-top));
-    min-height: calc(100dvh - 76px - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - env(safe-area-inset-top) - 8px);
+    min-height: 0;
     border-radius: 28px;
     padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
     box-shadow: var(--glass-shadow-strong);
@@ -1075,5 +1075,16 @@
   }
   .mobileNavLinkActive .mobileNavLinkChevron {
     color: var(--accent);
+  }
+}
+
+@media (max-width: 768px) and (max-height: 760px) {
+  .quickAddLayer {
+    padding: 6px 0 calc(82px + env(safe-area-inset-bottom));
+  }
+
+  .quickAddSheet {
+    max-height: calc(100dvh - env(safe-area-inset-top) - 6px);
+    padding-top: 10px;
   }
 }
