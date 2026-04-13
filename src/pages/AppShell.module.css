@@ -869,10 +869,10 @@
   }
   .quickAddHeader {
     position: sticky;
-    top: -12px;
+    top: 0;
     z-index: 3;
-    margin: -12px -12px 2px;
-    padding: 14px 12px 10px;
+    margin: 0 0 6px;
+    padding: 12px 10px 10px;
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 86%, var(--surface) 14%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
     border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
