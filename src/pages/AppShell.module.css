@@ -874,8 +874,9 @@
     margin: 0 0 6px;
     padding: 12px 10px 10px;
     background:
-      linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 86%, var(--surface) 14%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
-    border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+      radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 44%),
+      linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
+    border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 52%, var(--border));
     backdrop-filter: blur(var(--glass-blur-md)) saturate(150%);
     -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(150%);
   }
