@@ -38,7 +38,7 @@ function formatDate(value = '') {
 }
 
 function getPreviewRows(parsed = {}, symbol = '₱', privacyMode = false) {
-  const data = parsed.data || {}
+  const data = parsed?.data || {}
   const rows = []
 
   if (data.amount != null) rows.push(['Amount', formatMoney(data.amount, symbol, privacyMode)])
