@@ -386,7 +386,9 @@ export async function fsCompleteOnboarding(uid, payload = {}) {
 
   function seedCollection(col, rows = []) {
     rows.forEach(row => {
-      batch.set(doc(userCol(uid, col)), {
+      const explicitId = row?._id || row?.id
+      const ref = explicitId ? doc(userCol(uid, col), explicitId) : doc(userCol(uid, col))
+      batch.set(ref, {
         ...row,
         createdAt: row?.createdAt || now + createdAtOffset,
       })

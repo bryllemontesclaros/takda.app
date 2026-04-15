@@ -44,6 +44,7 @@ function createBillRow() {
     subcat: getTransactionSubcategories('expense', 'Bills')[0],
     presetKey: '',
     freq: 'monthly',
+    accountId: '',
   }
 }
 
@@ -186,6 +187,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   const preparedAccounts = useMemo(() => form.accounts
     .filter(hasAccountContent)
     .map((row, index) => ({
+      _id: row.id,
       name: row.name.trim(),
       type: row.type,
       balance: roundMoney(row.balance),
@@ -205,6 +207,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
       freq: row.freq || 'monthly',
       paid: false,
       type: 'bill',
+      accountId: row.accountId || '',
     })), [form.bills])
 
   const seededExpenses = useMemo(() => preparedBills.map(bill => ({
@@ -216,6 +219,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     presetKey: bill.presetKey || '',
     recur: bill.freq,
     type: 'expense',
+    accountId: bill.accountId || '',
+    accountBalanceLinked: false,
     seedSource: 'onboarding',
     gamificationExcluded: true,
   })), [preparedBills])
@@ -599,6 +604,25 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                         <label>Frequency</label>
                         <select value={bill.freq} onChange={event => updateBillRow(bill.id, 'freq', event.target.value)}>
                           {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                    <div className={styles.formGrid}>
+                      <div className={styles.inputGroup}>
+                        <label>Pay from account (optional)</label>
+                        <select
+                          value={bill.accountId}
+                          onChange={event => updateBillRow(bill.id, 'accountId', event.target.value)}
+                        >
+                          <option value="">No account selected</option>
+                          {form.accounts
+                            .filter(hasAccountContent)
+                            .filter(row => hasText(row.name))
+                            .map(row => (
+                              <option key={row.id} value={row.id}>
+                                {row.name} · {row.type}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     </div>

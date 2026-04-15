@@ -16,12 +16,21 @@ function createBillForm() {
     subcat: getTransactionSubcategories('expense', 'Bills')[0],
     presetKey: '',
     freq: 'monthly',
+    accountId: '',
   }
 }
 
 export default function Bills({ user, data, symbol }) {
   const s = symbol || '₱'
   const [form, setForm] = useState(createBillForm())
+  const accounts = Array.isArray(data?.accounts) ? data.accounts : []
+  const accountNameById = useMemo(() => {
+    const map = new Map()
+    accounts.forEach(acc => {
+      if (acc?._id) map.set(acc._id, acc.name || 'Account')
+    })
+    return map
+  }, [accounts])
 
   const quickPresets = useMemo(() => getBillQuickItems(), [])
   const presetGroups = useMemo(() => getBillPresetGroups(), [])
@@ -87,6 +96,7 @@ export default function Bills({ user, data, symbol }) {
       freq: form.freq,
       paid: false,
       type: 'bill',
+      accountId: form.accountId || '',
     })
 
     setForm(createBillForm())
@@ -180,6 +190,20 @@ export default function Bills({ user, data, symbol }) {
           </div>
         </div>
 
+        <div className={`${styles.formRow} ${styles.col2}`}>
+          <div className={styles.formGroup}>
+            <label>Pay from account (optional)</label>
+            <select value={form.accountId} onChange={e => set('accountId', e.target.value)}>
+              <option value="">No account selected</option>
+              {accounts.map(acc => (
+                <option key={acc._id} value={acc._id}>
+                  {acc.name} · {acc.type}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <div className={styles.formRow}>
           <button className={styles.btnAdd} onClick={handleAdd}>Add bill</button>
         </div>
@@ -193,6 +217,7 @@ export default function Bills({ user, data, symbol }) {
               <tr>
                 <th>Name</th>
                 <th>Type</th>
+                <th>Account</th>
                 <th>Due Day</th>
                 <th>Frequency</th>
                 <th>Amount</th>
@@ -202,11 +227,14 @@ export default function Bills({ user, data, symbol }) {
             </thead>
             <tbody>
               {!data.bills.length
-                ? <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above.</td></tr>
+                ? <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above.</td></tr>
                 : data.bills.map(row => (
                   <tr key={row._id}>
                     <td style={{ color: 'var(--text)' }}>{row.name}</td>
                     <td><span className={`${styles.badge} ${styles.badgeBill}`}>{row.subcat || row.cat}</span></td>
+                    <td style={{ color: 'var(--text2)' }}>
+                      {row.accountId ? (accountNameById.get(row.accountId) || 'Account') : '—'}
+                    </td>
                     <td>Day {row.due}</td>
                     <td>{BILL_FREQS.find(option => option.value === row.freq)?.label || row.freq}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(row.amount, s)}</td>
