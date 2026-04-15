@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { executeTakdaCommand } from '../lib/commandExecutor'
+import { Component, useEffect, useMemo, useRef, useState } from 'react'
 import { parseTakdaCommand, TAKDA_COMMAND_EXAMPLES } from '../lib/commandParser'
 import styles from './AskTakdaCommand.module.css'
 
@@ -65,7 +64,51 @@ function getStatus(parsed) {
   return 'ready'
 }
 
-export default function AskTakdaCommand({
+class AskTakdaErrorBoundary extends Component {
+  state = { hasError: false }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!prevProps.open && this.props.open && this.state.hasError) {
+      this.setState({ hasError: false })
+    }
+  }
+
+  render() {
+    if (!this.props.open) return null
+    if (!this.state.hasError) return this.props.children
+
+    return (
+      <div className={styles.layer} role="presentation">
+        <div className={styles.backdrop} onClick={this.props.onClose} aria-hidden="true" />
+        <section className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="ask-takda-error-title">
+          <div className={styles.handle} aria-hidden="true" />
+          <div className={styles.header}>
+            <div>
+              <div className={styles.eyebrow}>Smart command</div>
+              <h2 className={styles.title} id="ask-takda-error-title">Ask Takda</h2>
+              <p className={styles.subtitle}>The command sheet hit a display issue. Close it and try again.</p>
+            </div>
+            <button type="button" className={styles.closeBtn} onClick={this.props.onClose} aria-label="Close Ask Takda">x</button>
+          </div>
+        </section>
+      </div>
+    )
+  }
+}
+
+export default function AskTakdaCommand(props) {
+  return (
+    <AskTakdaErrorBoundary open={props.open} onClose={props.onClose}>
+      <AskTakdaCommandInner {...props} />
+    </AskTakdaErrorBoundary>
+  )
+}
+
+function AskTakdaCommandInner({
   open,
   onClose,
   user,
@@ -137,6 +180,7 @@ export default function AskTakdaCommand({
     setStatus('executing')
     setMessage(nextParsed.responseMessage || '')
     try {
+      const { executeTakdaCommand } = await import('../lib/commandExecutor')
       const result = await executeTakdaCommand(nextParsed, context)
       if (result.openReceiptScanner) {
         onOpenReceiptScanner?.()
@@ -188,7 +232,7 @@ export default function AskTakdaCommand({
 
   return (
     <div className={styles.layer} role="presentation">
-      <button type="button" className={styles.backdrop} onClick={onClose} aria-label="Close Ask Takda" />
+      <div className={styles.backdrop} onClick={onClose} aria-hidden="true" />
       <section className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="ask-takda-title">
         <div className={styles.handle} aria-hidden="true" />
         <div className={styles.header}>
@@ -197,7 +241,7 @@ export default function AskTakdaCommand({
             <h2 className={styles.title} id="ask-takda-title">Ask Takda</h2>
             <p className={styles.subtitle}>Type the money action. Takda will preview it before saving.</p>
           </div>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close Ask Takda">×</button>
+          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close Ask Takda">x</button>
         </div>
 
         <form className={styles.commandForm} onSubmit={handleSubmit}>

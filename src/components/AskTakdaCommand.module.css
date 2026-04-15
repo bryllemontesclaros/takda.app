@@ -6,12 +6,21 @@
   align-items: center;
   justify-content: center;
   padding: 18px;
+  color: var(--text, #10203b);
+  background: rgba(6, 10, 18, 0.16);
 }
 
 .backdrop {
   position: absolute;
   inset: 0;
+  z-index: 0;
   border: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(6, 10, 18, 0.38);
   background:
     radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 28%),
     rgba(6, 10, 18, 0.34);
@@ -22,12 +31,14 @@
 
 .sheet {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: min(640px, calc(100vw - 28px));
   max-height: min(760px, calc(100dvh - 32px));
   overflow: auto;
   border-radius: 34px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 76%, var(--border));
+  color: var(--text, #10203b);
+  background-color: var(--surface-solid, #ffffff);
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--blue) 12%, transparent), transparent 34%),
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 38%),
@@ -37,6 +48,10 @@
   -webkit-backdrop-filter: blur(var(--glass-blur-xl)) saturate(165%);
   padding: 16px;
   animation: commandSheetIn var(--motion-duration-slow) var(--motion-ease-out) both;
+}
+
+.sheet * {
+  box-sizing: border-box;
 }
 
 .handle {
