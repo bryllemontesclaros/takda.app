@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { fsAddTransaction, fsSaveReceipt } from '../lib/firestore'
+import { fsAddTransaction, fsSaveReceipt, fsUpdate } from '../lib/firestore'
 import {
   findPresetByLabel,
   getDefaultTransactionDraft,
@@ -193,7 +193,10 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
   }
 
   async function handleSave() {
-    if (!amount || parseFloat(amount) <= 0) return
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Enter an amount greater than 0 before saving this entry.')
+      return
+    }
     if (!entryDate) {
       setError('Pick a date before saving this entry.')
       return
@@ -203,7 +206,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
     try {
       const col = type === 'income' ? 'income' : 'expenses'
       const trimmedDesc = desc.trim()
-      await fsAddTransaction(user.uid, col, {
+      const txRef = await fsAddTransaction(user.uid, col, {
         desc: trimmedDesc,
         amount: parseFloat(amount),
         date: entryDate,
@@ -219,7 +222,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
 
       if (canSaveImportedReceipt && saveReceiptToBox) {
         try {
-          await fsSaveReceipt(user.uid, {
+          const savedReceipt = await fsSaveReceipt(user.uid, {
             merchant: trimmedDesc || importedReceipt?.merchant || 'Receipt',
             total: parseFloat(amount),
             date: entryDate,
@@ -238,8 +241,15 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
             cleanedHeight: importedReceipt?.cleanedHeight || 0,
             fileName: importedReceipt?.fileName || 'receipt.jpg',
             source: 'receipt',
+            transactionId: txRef.id,
+            transactionCollection: col,
             lineItems: importedReceipt?.lineItems || [],
           })
+          try {
+            await fsUpdate(user.uid, col, txRef.id, { receiptId: savedReceipt._id })
+          } catch {
+            // The receipt is saved; the transaction link can be repaired later if sync is interrupted.
+          }
         } catch {
           setDone(true)
           setSaving(false)

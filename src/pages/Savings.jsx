@@ -20,10 +20,24 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
       notifyApp({ title: 'Goal needs details', message: 'Add a goal name and target amount before saving.', tone: 'warning' })
       return
     }
+    const target = Number(form.target)
+    const current = form.current === '' ? 0 : Number(form.current)
+    if (!Number.isFinite(target) || target <= 0) {
+      notifyApp({ title: 'Check target', message: 'Target amount must be greater than zero.', tone: 'warning' })
+      return
+    }
+    if (!Number.isFinite(current) || current < 0) {
+      notifyApp({ title: 'Check current saved', message: 'Current saved cannot be below zero.', tone: 'warning' })
+      return
+    }
+    if (current > target) {
+      notifyApp({ title: 'Check current saved', message: 'Current saved cannot be higher than the target amount.', tone: 'warning' })
+      return
+    }
     await fsAdd(user.uid, 'goals', {
       name: form.name,
-      target: parseFloat(form.target),
-      current: parseFloat(form.current) || 0,
+      target,
+      current,
       date: form.date,
     })
     setForm({ name: '', target: '', current: '', date: '' })
@@ -31,7 +45,10 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
 
   async function handleContrib(goal) {
     const value = parseFloat(contribs[goal._id] || 0)
-    if (!value) return
+    if (!Number.isFinite(value) || value <= 0) {
+      notifyApp({ title: 'Check contribution', message: 'Add a contribution greater than zero.', tone: 'warning' })
+      return
+    }
     const newValue = Math.min(goal.target, (goal.current || 0) + value)
     await fsUpdate(user.uid, 'goals', goal._id, { current: newValue })
     setContribs(current => ({ ...current, [goal._id]: '' }))

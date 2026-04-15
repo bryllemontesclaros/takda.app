@@ -133,7 +133,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
       subcat: editForm.subcat,
       presetKey: editForm.presetKey || '',
       accountId: editForm.accountId,
-      accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
+      accountBalanceLinked: Boolean(editForm.accountId),
     }, data.accounts)
     setEditTx(null)
   }

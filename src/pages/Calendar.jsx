@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
 import { fsAddTransaction, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDeleteTransaction, fsSetDailyBalanceOverride, fsUpdate, fsUpdateTransaction } from '../lib/firestore'
 import { getTransactionImpact } from '../lib/forecast'
-import { notifyApp } from '../lib/appFeedback'
+import { confirmApp, notifyApp } from '../lib/appFeedback'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
   findPresetByLabel,
@@ -469,7 +469,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           presetKey: form.presetKey || '',
           recur: form.recur,
           accountId: form.accountId,
-          accountBalanceLinked: Boolean(editTx.accountBalanceLinked),
+          accountBalanceLinked: Boolean(form.accountId),
         }, data.accounts)
       } else {
         const col = modalType === 'income' ? 'income' : 'expenses'
@@ -504,12 +504,23 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       })
       return
     }
+    if (!(await confirmApp({
+      title: 'Delete this transaction?',
+      message: `Delete ${tx.desc || 'this entry'} from ${tx.date || 'this day'}? Linked account balances will be updated if this entry already affected them.`,
+      confirmLabel: 'Delete transaction',
+      cancelLabel: 'Keep it',
+      tone: 'danger',
+    }))) return
     await fsDeleteTransaction(user.uid, tx.type === 'income' ? 'income' : 'expenses', tx, data.accounts)
   }
 
   async function handleGoalUpdate(goal) {
     const value = parseFloat(goalInput)
     if (Number.isNaN(value)) return
+    if (value < 0) {
+      notifyApp({ title: 'Check saved amount', message: 'Savings progress cannot be below zero.', tone: 'warning' })
+      return
+    }
     await fsUpdate(user.uid, 'goals', goal._id, { current: Math.min(goal.target, value) })
     setEditGoalId(null)
     setGoalInput('')
@@ -588,7 +599,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       return 'No account selected. This entry will stay in the ledger only and will not change current account balances.'
     }
     if (editTx && !editTx.accountBalanceLinked) {
-      return `${selectedAccount?.name || 'Selected account'} is saved here for reference. Older unlinked entries do not rewrite today’s balances automatically.`
+      return `${selectedAccount?.name || 'Selected account'} will become linked when you save, so balances can stay in sync from here.`
     }
     if (targetDate && targetDate <= todayStr) {
       return `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`

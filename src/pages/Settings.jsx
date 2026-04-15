@@ -13,7 +13,7 @@ import {
 import { deleteField } from 'firebase/firestore'
 import GamificationCard from '../components/GamificationCard'
 import { auth } from '../lib/firebase'
-import { fsAdd, fsDel, fsDeleteAccountData, fsDeleteReceipt, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
+import { fsAdd, fsDel, fsDeleteAccountData, fsResetFinancialData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
@@ -567,8 +567,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup.'
-        : 'This will merge the backup into your current Takda data. Matching document ids will be updated.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup. Receipt image files are links only and are not re-uploaded from JSON backups.'
+        : 'This will merge the backup into your current Takda data. Matching document ids will be updated. Receipt image files are links only and are not re-uploaded from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -603,13 +603,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     if (!confirmed) return
     setResetting(true)
     try {
-      for (const item of data.income) await fsDel(user.uid, 'income', item._id)
-      for (const item of data.expenses) await fsDel(user.uid, 'expenses', item._id)
-      for (const item of data.bills) await fsDel(user.uid, 'bills', item._id)
-      for (const item of data.goals) await fsDel(user.uid, 'goals', item._id)
-      for (const item of data.accounts) await fsDel(user.uid, 'accounts', item._id)
-      for (const item of data.budgets) await fsDel(user.uid, 'budgets', item._id)
-      for (const item of data.receipts) await fsDeleteReceipt(user.uid, item)
+      await fsResetFinancialData(user.uid)
       setResetDone(true)
       window.setTimeout(() => setResetDone(false), 4000)
     } catch {
@@ -697,6 +691,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       })
       setFeedbackModal(null)
       setFeedbackSaved('Thanks. Your feedback was saved.')
+    } catch {
+      notifyApp({ title: 'Feedback not saved', message: 'Please check your connection and try again.', tone: 'error' })
     } finally {
       setFeedbackSending(false)
     }

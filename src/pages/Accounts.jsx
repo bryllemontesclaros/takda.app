@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
+import { fsAdd, fsDeleteAccountAndUnlinkTransactions, fsUpdate } from '../lib/firestore'
 import { getAccountSignedBalance, getCurrentBalance } from '../lib/finance'
-import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { confirmApp, notifyApp } from '../lib/appFeedback'
 import { displayValue, fmt, maskMoney, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import accStyles from './Accounts.module.css'
@@ -71,8 +71,30 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
   }
 
   async function handleDel(id, name) {
-    if (!(await confirmDeleteApp(name))) return
-    await fsDel(user.uid, 'accounts', id)
+    const linkedCount = [...(data.income || []), ...(data.expenses || [])]
+      .filter(tx => tx.accountId === id).length
+    const confirmed = await confirmApp({
+      title: linkedCount ? 'Delete account and unlink entries?' : 'Delete account?',
+      message: linkedCount
+        ? `${name} is used by ${linkedCount} transaction${linkedCount === 1 ? '' : 's'}. Deleting it will keep those entries in history but remove their account link so they do not point to a missing account.`
+        : `Delete ${name}? This cannot be undone.`,
+      confirmLabel: linkedCount ? 'Delete and unlink' : 'Delete',
+      cancelLabel: 'Keep account',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+    try {
+      await fsDeleteAccountAndUnlinkTransactions(user.uid, id, data)
+      if (linkedCount) {
+        notifyApp({
+          title: 'Account deleted',
+          message: `${linkedCount} transaction${linkedCount === 1 ? '' : 's'} stayed in history without the old account link.`,
+          tone: 'success',
+        })
+      }
+    } catch {
+      notifyApp({ title: 'Account not deleted', message: 'Please check your connection and try again.', tone: 'error' })
+    }
   }
 
   const accountsWithMeta = accounts.map(account => {

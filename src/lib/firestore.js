@@ -23,6 +23,37 @@ export async function fsUpdate(uid, col, id, data) {
   return await updateDoc(doc(db, 'users', uid, col, id), data)
 }
 
+export async function fsDeleteAccountAndUnlinkTransactions(uid, accountId, data = {}) {
+  if (!accountId) return
+
+  const linkedTransactions = ['income', 'expenses'].flatMap(col => (
+    (Array.isArray(data[col]) ? data[col] : [])
+      .filter(tx => tx?._id && tx.accountId === accountId)
+      .map(tx => ({ col, id: tx._id }))
+  ))
+
+  if (!linkedTransactions.length) {
+    await deleteDoc(doc(db, 'users', uid, 'accounts', accountId))
+    return
+  }
+
+  const chunks = chunkList(linkedTransactions, 399)
+  for (let index = 0; index < chunks.length; index += 1) {
+    const batch = writeBatch(db)
+    chunks[index].forEach(tx => {
+      batch.update(doc(db, 'users', uid, tx.col, tx.id), {
+        accountId: '',
+        accountBalanceLinked: false,
+        accountBalanceApplied: false,
+      })
+    })
+    if (index === chunks.length - 1) {
+      batch.delete(doc(db, 'users', uid, 'accounts', accountId))
+    }
+    await batch.commit()
+  }
+}
+
 function getAccountRef(uid, accountId) {
   return doc(db, 'users', uid, 'accounts', accountId)
 }
@@ -243,6 +274,8 @@ export async function fsSaveReceipt(uid, payload = {}) {
       reference: payload.reference || '',
       notes: payload.notes || '',
       source: payload.source || 'receipt',
+      transactionId: payload.transactionId || '',
+      transactionCollection: payload.transactionCollection || '',
       imageUrl: originalUpload?.url || cleanedUpload?.url || '',
       imagePath: originalUpload?.path || '',
       cleanedImageUrl: cleanedUpload?.url || originalUpload?.url || '',
@@ -428,6 +461,17 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
   const clearExisting = mode === 'replace'
   const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts']
 
+  if (clearExisting) {
+    const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
+    await Promise.all(receiptsSnapshot.docs.flatMap(snapshot => {
+      const data = snapshot.data() || {}
+      return [
+        deleteReceiptAsset(data.imagePath),
+        deleteReceiptAsset(data.cleanedImagePath),
+      ]
+    }))
+  }
+
   for (const col of collections) {
     const rows = Array.isArray(backup[col]) ? backup[col] : []
     await fsWriteCollection(uid, col, rows, clearExisting)
@@ -437,6 +481,22 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
     await setDoc(doc(db, 'users', uid, 'profile', 'main'), backup.profile || {})
   } else if (backup.profile && typeof backup.profile === 'object') {
     await setDoc(doc(db, 'users', uid, 'profile', 'main'), backup.profile, { merge: true })
+  }
+}
+
+export async function fsResetFinancialData(uid) {
+  const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
+  await Promise.all(receiptsSnapshot.docs.flatMap(snapshot => {
+    const data = snapshot.data() || {}
+    return [
+      deleteReceiptAsset(data.imagePath),
+      deleteReceiptAsset(data.cleanedImagePath),
+    ]
+  }))
+
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts']
+  for (const col of collections) {
+    await fsDeleteCollection(uid, col)
   }
 }
 

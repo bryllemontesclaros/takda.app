@@ -473,10 +473,14 @@ export default function ReceiptScanner({
   }
 
   function handleConfirm() {
+    const amountValue = Number(form.amount)
     if (isGrocery) {
-      if (!form.amount) return
+      if (!Number.isFinite(amountValue) || amountValue <= 0) {
+        setNotice({ text: 'Enter a price greater than zero before adding this item.', tone: 'warning' })
+        return
+      }
       onResult?.({
-        amount: parseFloat(form.amount),
+        amount: amountValue,
         desc: form.desc || 'Grocery item',
         reference: form.reference,
         source: 'grocery',
@@ -485,8 +489,18 @@ export default function ReceiptScanner({
       return
     }
 
-    if (!form.amount || !form.date || !form.desc) return
-    if (form.type === 'transfer') return
+    if (!form.amount || !form.date || !form.desc) {
+      setNotice({ text: 'Add amount, date, and merchant or description before continuing.', tone: 'warning' })
+      return
+    }
+    if (!Number.isFinite(amountValue) || amountValue <= 0) {
+      setNotice({ text: 'Amount must be greater than zero before continuing.', tone: 'warning' })
+      return
+    }
+    if (form.type === 'transfer') {
+      setNotice({ text: 'Transfers are not supported from scanner review yet. Choose income or expense.', tone: 'warning' })
+      return
+    }
 
     const nextType = form.type === 'income' ? 'income' : 'expense'
     const nextDraft = getDefaultTransactionDraft(nextType)
@@ -497,7 +511,7 @@ export default function ReceiptScanner({
 
     onResult?.({
       type: nextType,
-      amount: parseFloat(form.amount),
+      amount: amountValue,
       date: form.date,
       desc: form.desc,
       cat: nextCat,

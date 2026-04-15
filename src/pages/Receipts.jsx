@@ -424,7 +424,16 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   }
 
   async function handleSaveDraft() {
-    if (!draft || !draft.total || !draft.date || !draft.merchant) return
+    if (!draft) return
+    if (!draft.total || !draft.date || !draft.merchant) {
+      setMessage({ text: 'Add merchant, date, and total before saving this receipt.', ok: false })
+      return
+    }
+    const total = Number(draft.total)
+    if (!Number.isFinite(total) || total <= 0) {
+      setMessage({ text: 'Receipt total must be greater than zero.', ok: false })
+      return
+    }
 
     setSaving(true)
     setMessage({ text: '', ok: true })
@@ -432,7 +441,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     try {
       const saved = await fsSaveReceipt(user.uid, {
         merchant: draft.merchant,
-        total: parseFloat(draft.total),
+        total,
         date: draft.date,
         currency: draft.currency,
         category: draft.category,
@@ -780,13 +789,17 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
       {draft && (
         <div className={receiptStyles.panelCard}>
-          <div className={receiptStyles.reviewGrid}>
-            <div className={receiptStyles.reviewMedia}>
-              <img
-                src={draft.cleanedImageDataUrl || draft.originalImageDataUrl}
-                alt="Scanned receipt"
-                className={receiptStyles.reviewImage}
-              />
+            <div className={receiptStyles.reviewGrid}>
+              <div className={receiptStyles.reviewMedia}>
+              {privacyMode ? (
+                <div className={receiptStyles.privacyImagePlaceholder}>Receipt image hidden</div>
+              ) : (
+                <img
+                  src={draft.cleanedImageDataUrl || draft.originalImageDataUrl}
+                  alt="Scanned receipt"
+                  className={receiptStyles.reviewImage}
+                />
+              )}
               <div className={receiptStyles.mediaMeta}>
                 <span>{draft.cleanupSummary || 'Prepared for OCR'}</span>
                 {draft.currency && <span>{draft.currency}</span>}
@@ -894,7 +907,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                   onClick={() => setSelectedId(receipt._id)}
                 >
                   <div className={receiptStyles.receiptThumbWrap}>
-                    {receipt.thumbnailUrl || receipt.cleanedImageUrl || receipt.imageUrl ? (
+                    {privacyMode ? (
+                      <div className={receiptStyles.receiptThumbFallback}>Hidden</div>
+                    ) : receipt.thumbnailUrl || receipt.cleanedImageUrl || receipt.imageUrl ? (
                       <img src={receipt.thumbnailUrl || receipt.cleanedImageUrl || receipt.imageUrl} alt={receipt.merchant || 'Saved receipt'} className={receiptStyles.receiptThumb} />
                     ) : (
                       <div className={receiptStyles.receiptThumbFallback}>🧾</div>
@@ -948,7 +963,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
           {selectedReceipt ? (
             <div className={receiptStyles.detailContent}>
-              {(selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl) && (
+              {privacyMode && (selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl) ? (
+                <div className={receiptStyles.privacyImagePlaceholder}>Receipt image hidden while privacy mode is on</div>
+              ) : (selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl) && (
                 <img
                   src={selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl}
                   alt={selectedReceipt.merchant || 'Saved receipt'}

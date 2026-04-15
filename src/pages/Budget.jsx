@@ -56,11 +56,16 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       notifyApp({ title: 'Budget needs a limit', message: 'Choose a category and monthly limit before saving.', tone: 'warning' })
       return
     }
+    const limit = Number(form.limit)
+    if (!Number.isFinite(limit) || limit <= 0) {
+      notifyApp({ title: 'Check budget limit', message: 'Monthly limit must be greater than zero.', tone: 'warning' })
+      return
+    }
     const existing = budgets.find(budget => budget.cat === form.cat)
     if (existing) {
-      await fsUpdate(user.uid, 'budgets', existing._id, { limit: parseFloat(form.limit) })
+      await fsUpdate(user.uid, 'budgets', existing._id, { limit })
     } else {
-      await fsAdd(user.uid, 'budgets', { cat: form.cat, limit: parseFloat(form.limit) })
+      await fsAdd(user.uid, 'budgets', { cat: form.cat, limit })
     }
     setForm(current => ({ ...current, limit: '' }))
   }
@@ -75,7 +80,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       .map(budget => {
         const spent = spending[budget.cat] || 0
         const remaining = budget.limit - spent
-        const pct = Math.min(100, Math.round((spent / budget.limit) * 100))
+        const pct = budget.limit > 0 ? Math.min(100, Math.round((spent / budget.limit) * 100)) : 0
         const status = pct >= 100 ? 'over' : pct >= 80 ? 'warning' : 'ok'
         return { ...budget, spent, remaining, pct, status }
       })
