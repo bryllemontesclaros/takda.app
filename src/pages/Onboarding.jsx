@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { getCurrentBalance } from '../lib/finance'
 import { fsCompleteOnboarding } from '../lib/firestore'
+import { notifyApp } from '../lib/appFeedback'
 import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getTransactionSubcategories } from '../lib/transactionOptions'
 import { CURRENCIES, RECUR_OPTIONS, fmt, normalizeDate } from '../lib/utils'
 import styles from './Onboarding.module.css'
@@ -226,11 +227,11 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   function validateAccountsStep() {
     for (const row of form.accounts.filter(hasAccountContent)) {
       if (!hasText(row.name)) {
-        alert('Each account needs a name.')
+        notifyApp({ title: 'Account needs a name', message: 'Each account row with a balance also needs a name.', tone: 'warning' })
         return false
       }
       if (!hasValue(row.balance) || Number.isNaN(Number(row.balance)) || Number(row.balance) < 0) {
-        alert('Each account needs a valid balance.')
+        notifyApp({ title: 'Check account balance', message: 'Each account needs a valid balance of zero or more.', tone: 'warning' })
         return false
       }
     }
@@ -240,15 +241,15 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   function validateBillsStep() {
     for (const row of form.bills.filter(hasBillContent)) {
       if (!hasText(row.name) || !hasValue(row.amount) || !hasValue(row.due)) {
-        alert('Each bill needs a name, amount, and due day.')
+        notifyApp({ title: 'Bill needs details', message: 'Each bill needs a name, amount, and due day.', tone: 'warning' })
         return false
       }
       if (Number.isNaN(Number(row.amount)) || Number(row.amount) <= 0) {
-        alert('Bill amounts must be greater than zero.')
+        notifyApp({ title: 'Check bill amount', message: 'Bill amounts must be greater than zero.', tone: 'warning' })
         return false
       }
       if (Number.isNaN(Number(row.due)) || Number(row.due) < 1 || Number(row.due) > 31) {
-        alert('Bill due day must be between 1 and 31.')
+        notifyApp({ title: 'Check due day', message: 'Bill due day must be between 1 and 31.', tone: 'warning' })
         return false
       }
     }
@@ -263,6 +264,16 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   function goBack() {
     setStep(current => Math.max(current - 1, 0))
+  }
+
+  function skipAccountsStep() {
+    setForm(current => ({ ...current, accounts: [createAccountRow()] }))
+    setStep(3)
+  }
+
+  function skipBillsStep() {
+    setForm(current => ({ ...current, bills: [createBillRow()] }))
+    setStep(4)
   }
 
   async function handleFinish() {
@@ -283,7 +294,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
       return
     } catch (error) {
       console.error(error)
-      alert('We could not finish setup right now. Please try again.')
+      notifyApp({ title: 'Setup not saved', message: 'We could not finish setup right now. Please try again.', tone: 'error' })
     }
     setSaving(false)
   }
@@ -358,7 +369,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.tipCard}>
             <div className={styles.tipTitle}>This is a starting point</div>
             <div className={styles.tipText}>
-              You can change all of this later. The goal is to leave setup with a usable forecast, not a perfect ledger.
+              You can skip accounts or bills for now. The goal is a usable first forecast, not a perfect ledger.
             </div>
           </div>
         </aside>
@@ -382,6 +393,20 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepTitle}>Let’s set up your real starting point, {name}.</div>
               <div className={styles.stepSub}>
                 We’ll use your balances and recurring bills to give Takda a useful first month instead of an empty profile.
+              </div>
+              <div className={styles.setupPromise}>
+                <div className={styles.setupPromiseItem}>
+                  <strong>Optional where needed</strong>
+                  <span>Skip accounts or bills if you do not have the numbers yet.</span>
+                </div>
+                <div className={styles.setupPromiseItem}>
+                  <strong>No hidden subtraction</strong>
+                  <span>Account balances start the app. Bills are saved separately for the calendar.</span>
+                </div>
+                <div className={styles.setupPromiseItem}>
+                  <strong>Editable later</strong>
+                  <span>Settings, Accounts, and Budget can refine everything after setup.</span>
+                </div>
               </div>
 
               <div className={styles.welcomeStats}>
@@ -454,6 +479,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.kicker}>Step 2 of 4</div>
               <div className={styles.stepTitle}>Accounts and balances</div>
               <div className={styles.stepSub}>Add the accounts you already use. These balances become your starting point for forecasts and net worth.</div>
+              <div className={styles.stepHint}>
+                Not ready? Skip this step and Takda will start from zero until you add accounts later.
+              </div>
 
               <div className={styles.dynamicStack}>
                 {form.accounts.map((account, index) => (
@@ -477,6 +505,11 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                       <div className={styles.inputGroup}>
                         <label>{account.type === 'Credit Card' ? `Current amount owed (${symbol})` : `Current balance (${symbol})`}</label>
                         <input type="number" min="0" placeholder="0.00" value={account.balance} onChange={event => updateAccountRow(account.id, 'balance', event.target.value)} />
+                        <div className={styles.helper}>
+                          {account.type === 'Credit Card'
+                            ? 'Enter what you currently owe. Takda treats credit card balances as debt in your total.'
+                            : 'Enter the money available in this account today. This becomes part of your starting balance.'}
+                        </div>
                       </div>
                   </div>
                 ))}
@@ -496,6 +529,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
               <div className={styles.actionBar}>
                 <button className={styles.btnSkip} onClick={goBack}>← Back</button>
+                <button className={styles.btnSkip} onClick={skipAccountsStep}>Skip accounts</button>
                 <button className={styles.btnNext} onClick={goNext}>Continue →</button>
               </div>
             </div>
@@ -506,6 +540,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.kicker}>Step 3 of 4</div>
               <div className={styles.stepTitle}>Recurring bills</div>
               <div className={styles.stepSub}>Add the recurring bills that shape each month. One-off charges can wait until later.</div>
+              <div className={styles.stepHint}>
+                Bills are optional here. If you skip, you can still add expenses manually or set recurring bills later.
+              </div>
 
               <div className={styles.dynamicStack}>
                 {form.bills.map((bill, index) => (
@@ -583,6 +620,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
               <div className={styles.actionBar}>
                 <button className={styles.btnSkip} onClick={goBack}>← Back</button>
+                <button className={styles.btnSkip} onClick={skipBillsStep}>Skip bills</button>
                 <button className={styles.btnNext} onClick={goNext}>Review →</button>
               </div>
             </div>
@@ -638,6 +676,17 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                 <div className={styles.insightSub}>
                   Takda starts from your saved account balances. Recurring bills are saved separately and will shape your calendar after setup.
                 </div>
+              </div>
+
+              <div className={styles.finalSaveCard}>
+                <div>
+                  <div className={styles.finalSaveLabel}>Ready to save</div>
+                  <div className={styles.finalSaveTitle}>This creates your baseline, not a permanent decision.</div>
+                  <div className={styles.finalSaveText}>
+                    Takda will open with your selected currency, account balances, and recurring bill entries. You can edit, delete, or add more from inside the app.
+                  </div>
+                </div>
+                <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length} setup item{preparedAccounts.length + preparedBills.length === 1 ? '' : 's'}</div>
               </div>
 
               <div className={styles.seedList}>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getBalanceAtDateWithOverrides, getBalanceOverrides, getMonthForecast, getMonthTransactions } from '../lib/finance'
 import { fsAddTransaction, fsClearDailyBalanceOverride, fsClearMonthStartBalance, fsDeleteTransaction, fsSetDailyBalanceOverride, fsUpdate, fsUpdateTransaction } from '../lib/firestore'
 import { getTransactionImpact } from '../lib/forecast'
+import { notifyApp } from '../lib/appFeedback'
 import { getProjectedTransactions } from '../lib/recurrence'
 import {
   findPresetByLabel,
@@ -385,9 +386,15 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   async function handleSaveDayBalance() {
     if (!selected) return
     const rawValue = dayBalanceDraft.trim()
-    if (!rawValue) return alert('Enter a valid total balance.')
+    if (!rawValue) {
+      notifyApp({ title: 'Balance needed', message: 'Enter a valid total balance before saving.', tone: 'warning' })
+      return
+    }
     const value = Number(rawValue)
-    if (!Number.isFinite(value)) return alert('Enter a valid total balance.')
+    if (!Number.isFinite(value)) {
+      notifyApp({ title: 'Check balance', message: 'Enter a valid total balance before saving.', tone: 'warning' })
+      return
+    }
 
     setDayBalanceSaving(true)
     try {
@@ -403,7 +410,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       })
       closeDayBalanceEditor()
     } catch {
-      alert('Could not save the day balance. Try again.')
+      notifyApp({ title: 'Balance not saved', message: 'Could not save the day balance. Try again.', tone: 'error' })
     } finally {
       setDayBalanceSaving(false)
     }
@@ -432,7 +439,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       })
       closeDayBalanceEditor()
     } catch {
-      alert('Could not reset the day balance. Try again.')
+      notifyApp({ title: 'Balance not reset', message: 'Could not reset the day balance. Try again.', tone: 'error' })
     } finally {
       setDayBalanceSaving(false)
     }
@@ -489,7 +496,14 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }
 
   async function handleDelete(tx) {
-    if (tx._projected) return alert('This entry is only a projection. Delete the original recurring transaction to remove it.')
+    if (tx._projected) {
+      notifyApp({
+        title: 'Projection only',
+        message: 'This entry is only a projection. Delete the original recurring transaction to remove it.',
+        tone: 'warning',
+      })
+      return
+    }
     await fsDeleteTransaction(user.uid, tx.type === 'income' ? 'income' : 'expenses', tx, data.accounts)
   }
 

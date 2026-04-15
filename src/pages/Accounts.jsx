@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
 import { getAccountSignedBalance, getCurrentBalance } from '../lib/finance'
-import { displayValue, fmt, maskMoney, validateAmount, confirmDelete } from '../lib/utils'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { displayValue, fmt, maskMoney, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import accStyles from './Accounts.module.css'
 
@@ -51,9 +52,15 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
   }
 
   async function handleSave() {
-    if (!form.name || form.balance === '') return alert('Add an account name and balance.')
+    if (!form.name || form.balance === '') {
+      notifyApp({ title: 'Account needs details', message: 'Add an account name and balance before saving.', tone: 'warning' })
+      return
+    }
     const amountError = validateAmount(Number(form.balance) || 0, 'Balance')
-    if (amountError && Number(form.balance) !== 0) return alert(amountError)
+    if (amountError && Number(form.balance) !== 0) {
+      notifyApp({ title: 'Check balance', message: amountError, tone: 'warning' })
+      return
+    }
     const payload = { name: form.name, type: form.type, balance: parseFloat(form.balance) || 0, color: form.color, notes: form.notes }
     if (editAccount) {
       await fsUpdate(user.uid, 'accounts', editAccount._id, payload)
@@ -64,7 +71,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
   }
 
   async function handleDel(id, name) {
-    if (!confirmDelete(name)) return
+    if (!(await confirmDeleteApp(name))) return
     await fsDel(user.uid, 'accounts', id)
   }
 

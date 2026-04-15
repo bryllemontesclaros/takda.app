@@ -370,6 +370,90 @@
 .themeBtn:active {
   transform: translateY(0) scale(0.96);
 }
+.syncBannerWrap {
+  position: relative;
+  z-index: 2;
+  padding: 12px 18px 0;
+  flex-shrink: 0;
+}
+.syncBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--amber) 36%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--amber) 14%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 78%, var(--surface) 22%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(150%);
+}
+.syncBannerIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 14%, var(--glass-1));
+}
+.syncBannerCopy {
+  min-width: 0;
+  flex: 1;
+}
+.syncBannerTitle {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+}
+.syncBannerMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text2);
+}
+.syncBannerAction,
+.syncBannerDismiss {
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition:
+    transform var(--motion-duration-fast) var(--motion-ease-standard),
+    border-color var(--motion-duration-fast) ease,
+    background var(--motion-duration-fast) ease,
+    color var(--motion-duration-fast) ease;
+}
+.syncBannerAction {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--amber);
+}
+.syncBannerDismiss {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.syncBannerAction:hover,
+.syncBannerDismiss:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--amber) 35%, var(--glass-border));
+}
 .levelToastWrap {
   position: fixed;
   top: 90px;
@@ -823,6 +907,29 @@
     min-width: 0;
     width: min(300px, calc(100vw - 24px));
   }
+  .syncBannerWrap {
+    padding: 10px 12px 0;
+  }
+  .syncBanner {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+  }
+  .syncBannerIcon {
+    width: 30px;
+    height: 30px;
+    border-radius: 12px;
+  }
+  .syncBannerAction {
+    align-self: center;
+    padding: 8px 10px;
+  }
+  .syncBannerDismiss {
+    align-self: center;
+    width: 32px;
+    height: 32px;
+  }
   .verifyBannerWrap {
     padding: 12px 12px 0;
   }
@@ -840,9 +947,15 @@
   .fabWrap {
     left: 50%;
     right: auto;
-    bottom: calc(90px + env(safe-area-inset-bottom));
+    bottom: calc(86px + env(safe-area-inset-bottom));
     transform: translateX(-50%);
     align-items: center;
+  }
+  .fabButton {
+    width: 58px;
+    height: 58px;
+    font-size: 30px;
+    box-shadow: 0 18px 42px rgba(9, 18, 14, 0.28);
   }
   .fabMenu {
     display: grid;
@@ -891,7 +1004,7 @@
     border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
     border-radius: 26px;
     z-index: 100;
-    min-height: 64px;
+    min-height: 66px;
     padding: 6px;
     box-shadow: var(--glass-shadow);
     backdrop-filter: blur(var(--glass-blur-lg)) saturate(160%);
@@ -907,7 +1020,7 @@
     font-size: 10px;
     color: var(--text3);
     cursor: pointer;
-    min-height: 52px;
+    min-height: 54px;
     padding: 6px 4px;
     border: none;
     background: none;
@@ -932,7 +1045,7 @@
       0 10px 20px rgba(4, 10, 20, 0.12);
   }
   .bottomNavIcon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; }
-  .bottomNavLabel { font-size: 9px; font-weight: 600; }
+  .bottomNavLabel { font-size: 10px; font-weight: 650; }
   .mobileNavBackdrop {
     display: block;
     position: fixed;

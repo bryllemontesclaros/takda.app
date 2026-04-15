@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fsAddTransaction } from '../lib/firestore'
+import { notifyApp } from '../lib/appFeedback'
 import { sanitizeTransactionSubcategory } from '../lib/transactionOptions'
 import { fmt, formatDisplayDate, today } from '../lib/utils'
 import ReceiptScanner from '../components/ReceiptScanner'
@@ -116,7 +117,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
         onClose?.()
       }, 650)
     } catch {
-      alert('Could not import this grocery trip right now. Please try again.')
+      notifyApp({ title: 'Grocery trip not saved', message: 'Could not import this grocery trip right now. Please try again.', tone: 'error' })
     } finally {
       setSaving(false)
     }

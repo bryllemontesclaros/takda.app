@@ -17,7 +17,8 @@ import { fsAdd, fsDel, fsDeleteAccountData, fsDeleteReceipt, fsRestoreBackup, fs
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import { DEFAULT_NOTIFICATION_PREFS, getNotificationPrefs, requestPushPermission } from '../lib/notifications'
 import { generateMonthlyReport } from '../lib/report'
-import { CURRENCIES, confirmDelete, displayValue, fmt, formatDisplayDate, maskMoney, today } from '../lib/utils'
+import { confirmApp, confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { CURRENCIES, displayValue, fmt, formatDisplayDate, maskMoney, today } from '../lib/utils'
 import styles from './Page.module.css'
 import settStyles from './Settings.module.css'
 
@@ -466,7 +467,10 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   }
 
   async function handleAddGoal() {
-    if (!goalForm.name || !goalForm.target) return alert('Add a goal name and target amount.')
+    if (!goalForm.name || !goalForm.target) {
+      notifyApp({ title: 'Goal needs details', message: 'Add a goal name and target amount before saving.', tone: 'warning' })
+      return
+    }
     await fsAdd(user.uid, 'goals', {
       name: goalForm.name,
       target: parseFloat(goalForm.target),
@@ -485,7 +489,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   }
 
   async function handleDelGoal(id) {
-    if (!confirmDelete('this goal')) return
+    if (!(await confirmDeleteApp('this goal'))) return
     await fsDel(user.uid, 'goals', id)
   }
 
@@ -560,11 +564,15 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   async function handleRestoreBackup() {
     if (!restorePreview?.backup) return
 
-    const confirmed = window.confirm(
-      restoreMode === 'replace'
-        ? 'Replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup?'
-        : 'Merge this backup into your current Takda data? Matching document ids will be updated.',
-    )
+    const confirmed = await confirmApp({
+      title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
+      message: restoreMode === 'replace'
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup.'
+        : 'This will merge the backup into your current Takda data. Matching document ids will be updated.',
+      confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
+      cancelLabel: 'Cancel',
+      tone: restoreMode === 'replace' ? 'danger' : 'default',
+    })
     if (!confirmed) return
 
     setRestoreLoading(true)
@@ -585,7 +593,13 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   }
 
   async function handleReset() {
-    const confirmed = window.confirm('Reset ALL financial data? This permanently deletes transactions, bills, savings goals, accounts, budgets, and saved receipts. Cannot be undone.')
+    const confirmed = await confirmApp({
+      title: 'Reset all financial data?',
+      message: 'This permanently deletes transactions, bills, savings goals, accounts, budgets, and saved receipts. This cannot be undone.',
+      confirmLabel: 'Reset data',
+      cancelLabel: 'Keep data',
+      tone: 'danger',
+    })
     if (!confirmed) return
     setResetting(true)
     try {
@@ -599,7 +613,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       setResetDone(true)
       window.setTimeout(() => setResetDone(false), 4000)
     } catch {
-      alert('Reset failed. Please try again.')
+      notifyApp({ title: 'Reset failed', message: 'Please try again.', tone: 'error' })
     } finally {
       setResetting(false)
     }
@@ -619,7 +633,13 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       return
     }
 
-    const confirmed = window.confirm('Delete your Takda account and ALL data? This removes your financial records, profile, feedback, and login. This cannot be undone.')
+    const confirmed = await confirmApp({
+      title: 'Delete Takda account?',
+      message: 'This removes your financial records, profile, feedback, and login. This cannot be undone.',
+      confirmLabel: 'Delete account',
+      cancelLabel: 'Keep account',
+      tone: 'danger',
+    })
     if (!confirmed) return
 
     setDeleteAccountLoading(true)
@@ -656,8 +676,14 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
   async function submitFeedback() {
     if (!feedbackModal) return
-    if (!feedbackForm.message.trim() && feedbackModal !== 'rating') return alert('Please add a message first.')
-    if (feedbackModal === 'rating' && !feedbackForm.rating) return alert('Please select a rating.')
+    if (!feedbackForm.message.trim() && feedbackModal !== 'rating') {
+      notifyApp({ title: 'Message needed', message: 'Please add a message first.', tone: 'warning' })
+      return
+    }
+    if (feedbackModal === 'rating' && !feedbackForm.rating) {
+      notifyApp({ title: 'Rating needed', message: 'Please select a rating.', tone: 'warning' })
+      return
+    }
 
     setFeedbackSending(true)
     try {

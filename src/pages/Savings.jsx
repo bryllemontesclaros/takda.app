@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { confirmDelete, displayValue, fmt, formatDisplayDate, maskMoney } from '../lib/utils'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { displayValue, fmt, formatDisplayDate, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
 import sStyles from './Savings.module.css'
 
@@ -15,7 +16,10 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
   }
 
   async function handleAdd() {
-    if (!form.name || !form.target) return alert('Add a goal name and target amount.')
+    if (!form.name || !form.target) {
+      notifyApp({ title: 'Goal needs details', message: 'Add a goal name and target amount before saving.', tone: 'warning' })
+      return
+    }
     await fsAdd(user.uid, 'goals', {
       name: form.name,
       target: parseFloat(form.target),
@@ -221,7 +225,9 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
                   <button
                     type="button"
                     className={sStyles.goalDelete}
-                    onClick={() => confirmDelete(goal.name) && fsDel(user.uid, 'goals', goal._id)}
+                    onClick={async () => {
+                      if (await confirmDeleteApp(goal.name)) await fsDel(user.uid, 'goals', goal._id)
+                    }}
                   >
                     Delete
                   </button>

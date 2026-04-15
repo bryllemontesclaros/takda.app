@@ -10,7 +10,8 @@ import {
   sanitizeTransactionCategory,
   sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
-import { confirmDelete, displayValue, fmt, getMonthKey, maskMoney, RECUR_OPTIONS, validateAmount } from '../lib/utils'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { displayValue, fmt, getMonthKey, maskMoney, RECUR_OPTIONS, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 import hStyles from './History.module.css'
 
@@ -92,7 +93,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
   }
 
   async function handleDelete(tx) {
-    if (!confirmDelete(tx.desc)) return
+    if (!(await confirmDeleteApp(tx.desc))) return
     const collection = tx.type === 'income' ? 'income' : 'expenses'
     await fsDeleteTransaction(user.uid, collection, tx, data.accounts)
   }
@@ -116,8 +117,14 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
 
   async function handleSaveEdit() {
     const error = validateAmount(editForm.amount)
-    if (error) return alert(error)
-    if (!editForm.desc) return alert('Description is required.')
+    if (error) {
+      notifyApp({ title: 'Check amount', message: error, tone: 'warning' })
+      return
+    }
+    if (!editForm.desc) {
+      notifyApp({ title: 'Description needed', message: 'Add a description before saving this transaction.', tone: 'warning' })
+      return
+    }
     const collection = editTx.type === 'income' ? 'income' : 'expenses'
     await fsUpdateTransaction(user.uid, collection, editTx, {
       desc: editForm.desc,

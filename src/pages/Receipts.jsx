@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import ReceiptScanner from '../components/ReceiptScanner'
 import { fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
+import { confirmDeleteApp } from '../lib/appFeedback'
 import { getTransactionCategories } from '../lib/transactionOptions'
 import {
   CURRENCIES,
-  confirmDelete,
   displayValue,
   fmt,
   formatDisplayDate,
@@ -468,7 +468,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
   async function handleDelete(receipt) {
     if (!receipt?._id) return
-    if (!confirmDelete(`receipt from ${receipt.merchant || 'this merchant'}`)) return
+    if (!(await confirmDeleteApp(`receipt from ${receipt.merchant || 'this merchant'}`))) return
 
     setDeleteId(receipt._id)
     setMessage({ text: '', ok: true })

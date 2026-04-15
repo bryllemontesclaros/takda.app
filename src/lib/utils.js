@@ -106,7 +106,8 @@ export function getCurrencySymbol(code) {
 }
 
 export function confirmDelete(name = 'this item') {
-  return window.confirm(`Delete ${name}? This cannot be undone.`)
+  console.warn(`confirmDelete(${name}) is deprecated. Use confirmDeleteApp from appFeedback instead.`)
+  return false
 }
 
 export function validateAmount(val, fieldName = 'Amount') {

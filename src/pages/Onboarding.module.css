@@ -51,10 +51,14 @@
 .dynamicCard,
 .summaryCard,
 .insightCard {
-  background: color-mix(in srgb, var(--surface) 95%, #ffffff 5%);
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
   border-radius: 28px;
-  box-shadow: 0 24px 70px rgba(8, 12, 18, 0.14);
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
 }
 
 .brandBlock,
@@ -301,10 +305,10 @@
 .welcomeStat {
   padding: 1rem 1.05rem;
   border-radius: 22px;
-  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
-    color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 56%, var(--surface2) 44%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
 }
 
 .welcomeStat span {
@@ -330,14 +334,43 @@
   margin: 4px 0;
 }
 
+.setupPromise {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.setupPromiseItem {
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 8%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.setupPromiseItem strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.setupPromiseItem span {
+  display: block;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text3);
+}
+
 .feature {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 0.95rem 1rem;
   border-radius: 20px;
-  background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
   font-size: 14px;
   line-height: 1.6;
   color: var(--text2);
@@ -409,14 +442,25 @@
   letter-spacing: 0.02em;
 }
 
+.stepHint {
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--blue) 22%, var(--border));
+  background: color-mix(in srgb, var(--blue-dim) 78%, var(--surface) 22%);
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .inputControl,
 .inputGroup input,
 .inputGroup select {
   width: 100%;
   min-height: 48px;
   padding: 12px 14px;
-  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
-  border: 1px solid color-mix(in srgb, var(--border) 86%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
   border-radius: 16px;
   color: var(--text);
   font-size: 16px;
@@ -425,6 +469,7 @@
   font-family: var(--font-body);
   box-sizing: border-box;
   line-height: 1.2;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
 }
 
 .inputGroup input:focus,
@@ -625,7 +670,7 @@
 .insightCard {
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 40%),
-    color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
 }
 
 .insightLabel {
@@ -654,6 +699,52 @@
   gap: 10px;
 }
 
+.finalSaveCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.15rem;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+}
+
+.finalSaveLabel {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.finalSaveTitle {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.finalSaveText {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text2);
+}
+
+.finalSaveBadge {
+  padding: 12px 14px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent-glow) 86%, var(--surface) 14%);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .seedItem {
   font-size: 13px;
   line-height: 1.6;
@@ -675,8 +766,8 @@
   flex: 1;
   min-height: 50px;
   padding: 12px 14px;
-  background: none;
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  background: color-mix(in srgb, var(--glass-1) 82%, var(--surface2) 18%);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
   color: var(--text2);
   font-size: 14px;
   font-weight: 600;
@@ -686,12 +777,12 @@
 .btnFinish {
   min-height: 50px;
   padding: 12px 18px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white 10%), color-mix(in srgb, var(--accent) 92%, black 8%));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 84%, white 16%), color-mix(in srgb, var(--accent) 90%, black 10%));
   color: #08110d;
-  border: 1px solid color-mix(in srgb, var(--accent) 46%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--glass-border));
   font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 18px 34px rgba(10, 19, 14, 0.14);
+  font-weight: 800;
+  box-shadow: 0 16px 28px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .btnNext {
@@ -740,8 +831,13 @@
     margin-bottom: 1rem;
     padding: 12px 14px;
     border-radius: 20px;
-    border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
-    background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
+    border: 1px solid color-mix(in srgb, var(--glass-border) 64%, var(--border));
+    background:
+      radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 44%),
+      linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 68%, var(--surface) 32%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+    box-shadow: var(--glass-shadow-soft);
+    backdrop-filter: blur(var(--glass-blur-md)) saturate(145%);
+    -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(145%);
   }
 
   .mobileSetupTop {
@@ -837,6 +933,7 @@
   .formGrid,
   .summaryGrid,
   .welcomeStats,
+  .setupPromise,
   .liveMetrics {
     grid-template-columns: 1fr;
   }
@@ -852,6 +949,14 @@
   .btnFinish,
   .addRowBtn {
     width: 100%;
+  }
+
+  .finalSaveCard {
+    grid-template-columns: 1fr;
+  }
+
+  .finalSaveBadge {
+    justify-self: start;
   }
 }
 

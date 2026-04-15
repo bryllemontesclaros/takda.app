@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
 import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getBillQuickItems, getTransactionSubcategories } from '../lib/transactionOptions'
-import { fmt, RECUR_OPTIONS, confirmDelete } from '../lib/utils'
+import { fmt, RECUR_OPTIONS } from '../lib/utils'
 import styles from './Page.module.css'
 
 const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
@@ -72,7 +73,8 @@ export default function Bills({ user, data, symbol }) {
 
   async function handleAdd() {
     if (!form.name.trim() || !form.amount || !form.due) {
-      return alert('Add a bill name, amount, and due day.')
+      notifyApp({ title: 'Bill needs details', message: 'Add a bill name, amount, and due day before saving.', tone: 'warning' })
+      return
     }
 
     await fsAdd(user.uid, 'bills', {
@@ -216,7 +218,7 @@ export default function Bills({ user, data, symbol }) {
                         {row.paid ? 'Paid' : 'Unpaid'}
                       </button>
                     </td>
-                    <td><button className={styles.delBtn} onClick={() => confirmDelete(row.name) && fsDel(user.uid, 'bills', row._id)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={async () => { if (await confirmDeleteApp(row.name)) await fsDel(user.uid, 'bills', row._id) }}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

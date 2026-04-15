@@ -20,42 +20,14 @@
 .emptyCard {
   position: relative;
   overflow: hidden;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
   border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
   border-radius: 18px;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent 40%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 90%, transparent 10%));
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
-}
-
-.heroCopy::after,
-.heroAside::after,
-.totalCard::after,
-.summaryCard::after,
-.toolbar::after,
-.editorCard::after,
-.accountCard::after,
-.emptyCard::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 28%, transparent), transparent 18%, transparent 86%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
-  opacity: 0.82;
-}
-
-.heroCopy > *,
-.heroAside > *,
-.totalCard > *,
-.summaryCard > *,
-.toolbar > *,
-.editorCard > *,
-.accountCard > *,
-.emptyCard > * {
-  position: relative;
-  z-index: 1;
 }
 
 .heroCopy {
@@ -161,7 +133,6 @@
   height: 120px;
   background: radial-gradient(circle, color-mix(in srgb, var(--accent) 10%, transparent), transparent 68%);
   pointer-events: none;
-  z-index: 0;
 }
 
 .privacyCardButton {
@@ -174,10 +145,8 @@
 }
 
 .privacyCardButton:hover {
-  border-color: color-mix(in srgb, var(--accent) 32%, var(--glass-border));
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 44%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 50%, var(--surface) 50%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+  background: color-mix(in srgb, var(--surface2) 90%, #ffffff 10%);
 }
 
 .privacyCardButton:focus-visible {
@@ -313,8 +282,8 @@
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text3);
   font-size: 10px;
   font-weight: 700;
@@ -351,8 +320,8 @@
   box-sizing: border-box;
   min-height: 48px;
   padding: 12px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
@@ -433,30 +402,27 @@ select.fieldInput {
 .primaryButton {
   min-height: 44px;
   padding: 0 16px;
-  border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--glass-border));
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--glass-border));
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 28% 22%, color-mix(in srgb, white 34%, transparent), transparent 24%),
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 84%, white 16%), color-mix(in srgb, var(--accent) 76%, var(--blue) 24%));
-  color: #07130e;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, white 22%), color-mix(in srgb, var(--accent) 90%, black 10%));
+  color: #07110d;
   font-size: 13px;
   font-weight: 700;
   flex-shrink: 0;
-  box-shadow: 0 16px 28px rgba(7, 18, 14, 0.18);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .primaryButton:hover {
-  opacity: 0.95;
+  opacity: 0.88;
   transform: translateY(-1px);
-  box-shadow: 0 20px 34px rgba(7, 18, 14, 0.22);
 }
 
 .secondaryButton {
   min-height: 44px;
   padding: 0 16px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text2);
   font-size: 13px;
   font-weight: 600;
@@ -479,10 +445,8 @@ select.fieldInput {
 }
 
 .accountCardEditing {
-  border-color: color-mix(in srgb, var(--account-tone) 38%, var(--glass-border));
-  box-shadow:
-    var(--glass-shadow-soft),
-    0 0 0 1px color-mix(in srgb, var(--account-tone) 22%, transparent);
+  border-color: color-mix(in srgb, var(--account-tone) 34%, var(--border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--account-tone) 24%, transparent), 0 12px 28px rgba(8, 12, 18, 0.08);
 }
 
 .accountTop {
@@ -562,8 +526,8 @@ select.fieldInput {
   min-height: 30px;
   padding: 0 10px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
   color: var(--text3);
   font-size: 10px;
   font-weight: 700;

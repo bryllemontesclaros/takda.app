@@ -284,10 +284,12 @@ export async function fsDeleteReceipt(uid, receipt = {}) {
   await deleteDoc(doc(db, 'users', uid, 'receipts', receipt._id))
 }
 
-export function listenCol(uid, col, callback) {
+export function listenCol(uid, col, callback, onError) {
   const q = query(userCol(uid, col), orderBy('createdAt', 'asc'))
   return onSnapshot(q, snap => {
     callback(snap.docs.map(d => ({ ...d.data(), _id: d.id })))
+  }, error => {
+    onError?.(error)
   })
 }
 
@@ -367,9 +369,11 @@ export async function fsCompleteOnboarding(uid, payload = {}) {
   await batch.commit()
 }
 
-export function listenProfile(uid, callback) {
+export function listenProfile(uid, callback, onError) {
   return onSnapshot(doc(db, 'users', uid, 'profile', 'main'), snap => {
     callback(snap.exists() ? snap.data() : {})
+  }, error => {
+    onError?.(error)
   })
 }
 

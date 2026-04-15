@@ -712,7 +712,7 @@
   .nav {
     justify-content: space-between;
     align-items: center;
-    min-height: 34px;
+    min-height: 44px;
   }
   .monthLabel {
     font-size: 16px;
@@ -725,15 +725,15 @@
     flex: 1;
     width: auto;
     min-width: 0;
-    min-height: 32px;
+    min-height: 44px;
     padding: 0;
     border-radius: 0;
   }
   .navBtn {
-    min-width: 30px;
-    min-height: 30px;
+    min-width: 44px;
+    min-height: 44px;
     padding: 0;
-    font-size: 13px;
+    font-size: 15px;
   }
   .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
@@ -756,31 +756,28 @@
     align-content: stretch;
   }
   .cell {
-    min-height: 54px;
+    min-height: 52px;
     height: auto;
-    padding: 5px;
-    gap: 2px;
-    border-radius: 10px;
-    justify-content: flex-start;
+    padding: 7px;
+    gap: 4px;
+    border-radius: 12px;
+    justify-content: space-between;
   }
   .cellTop {
     gap: 3px;
   }
   .dateNum {
-    font-size: 10px;
+    font-size: 12px;
   }
   .cellBalance {
-    font-size: 8px;
-    line-height: 1.05;
-    -webkit-line-clamp: 2;
-    min-height: 17px;
+    display: none;
   }
   .dots {
-    gap: 2px;
+    gap: 3px;
   }
   .dot {
-    width: 4px;
-    height: 4px;
+    width: 5px;
+    height: 5px;
   }
   .balanceRail {
     margin-top: 6px;
@@ -842,9 +839,9 @@
     margin-bottom: 3px;
   }
   .dayPanelClose {
-    min-height: 24px;
-    padding: 0 8px;
-    font-size: 9px;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 10px;
   }
   .dayBalanceCard {
     padding: 0 0 12px;
@@ -874,9 +871,9 @@
   .dayBalanceEditBtn,
   .dayBalanceGhostBtn,
   .dayBalanceSaveBtn {
-    min-height: 32px;
-    padding: 6px 10px;
-    font-size: 11px;
+    min-height: 44px;
+    padding: 9px 12px;
+    font-size: 12px;
   }
   .dayBalanceActions {
     margin-top: 8px;
@@ -887,9 +884,9 @@
     margin-bottom: 10px;
   }
   .dayPanelAction {
-    min-height: 32px;
-    font-size: 11px;
-    padding: 0 10px;
+    min-height: 44px;
+    font-size: 12px;
+    padding: 0 12px;
   }
   .daySection {
     margin-bottom: 10px;
@@ -904,8 +901,8 @@
     gap: 8px;
   }
   .txIcon {
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     font-size: 11px;
   }
   .txDesc {
@@ -918,13 +915,13 @@
     font-size: 12px;
   }
   .editBtn {
-    min-height: 26px;
-    padding: 0 8px;
-    font-size: 10px;
+    min-height: 36px;
+    padding: 0 12px;
+    font-size: 11px;
   }
   .delBtnSm {
-    min-height: 26px;
-    min-width: 26px;
+    min-height: 36px;
+    min-width: 36px;
   }
   .dayPanelEmpty {
     padding: 10px 0;

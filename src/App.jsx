@@ -10,6 +10,7 @@ import LandingPage from './pages/LandingPage'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsPage from './pages/TermsPage'
 import { PageLoader } from './components/Loading'
+import AppFeedback from './components/AppFeedback'
 
 const AUTH_FLASH_KEY = 'takda_auth_flash'
 
@@ -91,13 +92,16 @@ function ProtectedRoute() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<AuthRoute />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="/terms" element={<TermsPage />} />
-      <Route path="/app" element={<ProtectedRoute />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AuthRoute />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/app" element={<ProtectedRoute />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <AppFeedback />
+    </>
   )
 }

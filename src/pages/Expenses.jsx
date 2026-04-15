@@ -11,7 +11,8 @@ import {
   sanitizeTransactionCategory,
   sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
-import { fmt, today, RECUR_OPTIONS, confirmDelete, validateAmount } from '../lib/utils'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { fmt, today, RECUR_OPTIONS, validateAmount } from '../lib/utils'
 import styles from './Page.module.css'
 
 function getExpenseDraft(accounts = []) {
@@ -100,9 +101,15 @@ export default function Expenses({ user, data, symbol }) {
   }
 
   async function handleAdd() {
-    if (!form.desc || !form.amount || !form.date) return alert('Add a description, amount, and date.')
+    if (!form.desc || !form.amount || !form.date) {
+      notifyApp({ title: 'Expense needs details', message: 'Add a description, amount, and date before saving.', tone: 'warning' })
+      return
+    }
     const err = validateAmount(form.amount)
-    if (err) return alert(err)
+    if (err) {
+      notifyApp({ title: 'Check amount', message: err, tone: 'warning' })
+      return
+    }
 
     await fsAddTransaction(
       user.uid,
@@ -225,7 +232,7 @@ export default function Expenses({ user, data, symbol }) {
                     <td>{r.date}</td>
                     <td>{r.recur ? <span className={`${styles.badge} ${styles.badgeRecurring}`}>{RECUR_OPTIONS.find(o => o.value === r.recur)?.label || r.recur}</span> : '—'}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--red)' }}>{fmt(r.amount, s)}</td>
-                    <td><button className={styles.delBtn} onClick={() => confirmDelete(r.desc) && fsDeleteTransaction(user.uid, 'expenses', r, data.accounts)}>✕</button></td>
+                    <td><button className={styles.delBtn} onClick={async () => { if (await confirmDeleteApp(r.desc)) await fsDeleteTransaction(user.uid, 'expenses', r, data.accounts) }}>✕</button></td>
                   </tr>
                 ))}
             </tbody>

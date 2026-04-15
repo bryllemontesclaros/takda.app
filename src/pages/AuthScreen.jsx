@@ -28,6 +28,12 @@ const ERROR_MSGS = {
 const REMEMBERED_EMAIL_KEY = 'sentimo_remembered_email'
 const REMEMBERED_EMAIL_MODE_KEY = 'sentimo_remembered_email_enabled'
 const AUTH_FLASH_KEY = 'takda_auth_flash'
+const AUTH_PROOF = [
+  'Daily closing balances',
+  'Receipt OCR review',
+  'Budgets and goals',
+  'Private account data',
+]
 
 function safeGet(key, fallback = '') {
   try {
@@ -141,6 +147,17 @@ export default function AuthScreen() {
     } finally { setResetLoading(false) }
   }
 
+  const authTitle = showForgot
+    ? 'Reset your password'
+    : tab === 'register'
+      ? 'Create your Takda account'
+      : 'Welcome back'
+  const authSubtitle = showForgot
+    ? 'Enter your email and we will send a reset link so you can get back into your money calendar.'
+    : tab === 'register'
+      ? 'Set up your account, then Takda will guide you through currency, accounts, and bills.'
+      : 'Open your dashboard, calendar, receipts, budgets, savings goals, and account balances.'
+
   return (
     <div className={styles.screen}>
       <RouteMeta
@@ -149,9 +166,47 @@ export default function AuthScreen() {
         path="/login"
         robots="noindex, nofollow"
       />
-      <div className={styles.card}>
-        <div className={styles.logo}>Takda</div>
-        <div className={styles.tagline}>Bawat piso, sinusubaybayan.</div>
+      <div className={styles.shell}>
+        <aside className={styles.storyPanel}>
+          <div>
+            <div className={styles.logo}>Takda</div>
+            <div className={styles.storyKicker}>Bawat piso, sinusubaybayan.</div>
+            <h1 className={styles.storyTitle}>Your daily money cockpit.</h1>
+            <p className={styles.storyText}>
+              Track the calendar, scan receipts, connect accounts, set budgets, and keep your savings goals moving from one calm workspace.
+            </p>
+          </div>
+
+          <div className={styles.previewCard} aria-hidden="true">
+            <div className={styles.previewTop}>
+              <span>Today&apos;s closing balance</span>
+              <strong>₱47,300</strong>
+            </div>
+            <div className={styles.previewGrid}>
+              <div className={styles.previewDay}>18</div>
+              <div className={styles.previewDay}>19</div>
+              <div className={`${styles.previewDay} ${styles.previewDayHot}`}>20</div>
+              <div className={`${styles.previewDay} ${styles.previewDayActive}`}>21</div>
+            </div>
+            <div className={styles.previewMetrics}>
+              <div><span>Receipts</span><strong>24</strong></div>
+              <div><span>Budget</span><strong>82%</strong></div>
+              <div><span>Level</span><strong>7</strong></div>
+            </div>
+          </div>
+
+          <div className={styles.proofGrid}>
+            {AUTH_PROOF.map(item => <div key={item} className={styles.proofItem}>{item}</div>)}
+          </div>
+        </aside>
+
+        <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div className={styles.cardBrand}>Takda</div>
+          <div className={styles.cardEyebrow}>{showForgot ? 'Account recovery' : tab === 'register' ? 'Start setup' : 'Secure sign in'}</div>
+          <div className={styles.cardTitle}>{authTitle}</div>
+          <div className={styles.cardSubtitle}>{authSubtitle}</div>
+        </div>
 
         {!showForgot ? (
           <>
@@ -252,8 +307,6 @@ export default function AuthScreen() {
           </>
         ) : (
           <>
-            <div className={styles.forgotTitle}>Reset password</div>
-            <div className={styles.forgotSub}>Enter your email and we’ll send you a reset link.</div>
             {error && <div className={styles.error} role="alert">{error}</div>}
             <form onSubmit={handleReset}>
               <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} autoFocus /></div>
@@ -262,6 +315,12 @@ export default function AuthScreen() {
             <button type="button" className={styles.backLink} onClick={() => { setShowForgot(false); setError('') }}>← Back to login</button>
           </>
         )}
+          <div className={styles.trustStrip}>
+            <span>Per-user Firebase data</span>
+            <span>Privacy controls</span>
+            <span>Export anytime</span>
+          </div>
+        </div>
       </div>
     </div>
   )

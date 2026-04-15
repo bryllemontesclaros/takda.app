@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import GamificationCard from '../components/GamificationCard'
 import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
 import { getTransactionCategories } from '../lib/transactionOptions'
 import { displayValue, fmt, isSameMonth, maskMoney } from '../lib/utils'
 import styles from './Page.module.css'
@@ -51,7 +52,10 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
 
   async function handleAddBudget() {
-    if (!form.cat || !form.limit) return alert('Choose a category and monthly limit.')
+    if (!form.cat || !form.limit) {
+      notifyApp({ title: 'Budget needs a limit', message: 'Choose a category and monthly limit before saving.', tone: 'warning' })
+      return
+    }
     const existing = budgets.find(budget => budget.cat === form.cat)
     if (existing) {
       await fsUpdate(user.uid, 'budgets', existing._id, { limit: parseFloat(form.limit) })
@@ -62,6 +66,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
   }
 
   async function handleDelBudget(id) {
+    if (!(await confirmDeleteApp('this budget'))) return
     await fsDel(user.uid, 'budgets', id)
   }
 
