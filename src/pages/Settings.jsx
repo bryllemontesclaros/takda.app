@@ -74,6 +74,7 @@ const BACKUP_COLLECTIONS = [
   { key: 'accounts', label: 'Accounts' },
   { key: 'budgets', label: 'Budgets' },
   { key: 'receipts', label: 'Receipts' },
+  { key: 'transfers', label: 'Transfers' },
 ]
 
 const DONATION_WALLETS = [
@@ -142,6 +143,7 @@ function parseBackupPayload(raw) {
     accounts: normalizeBackupArray(raw.accounts),
     budgets: normalizeBackupArray(raw.budgets),
     receipts: normalizeBackupArray(raw.receipts),
+    transfers: normalizeBackupArray(raw.transfers),
     profile: sanitizeProfileBackup(raw.profile || {}),
   }
 }
@@ -501,6 +503,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       ...data.income.map(tx => ['Income', tx.desc, classify(tx), tx.amount, tx.date, tx.recur || '']),
       ...data.expenses.map(tx => ['Expense', tx.desc, classify(tx), tx.amount, tx.date, tx.recur || '']),
       ...data.bills.map(tx => ['Bill', tx.name, tx.subcat || tx.cat, tx.amount, `Day ${tx.due}`, tx.freq]),
+      ...(data.transfers || []).map(tx => ['Transfer', `${tx.fromAccountName || 'From account'} to ${tx.toAccountName || 'To account'}`, '', tx.amount, tx.date, '']),
     ]
     const csv = rows.map(row => row.map(escapeCsvCell).join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
@@ -525,6 +528,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       accounts: data.accounts,
       budgets: data.budgets,
       receipts: data.receipts,
+      transfers: data.transfers || [],
       profile: sanitizeProfileBackup(profile),
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
@@ -567,7 +571,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, and profile data with this backup. Receipt image files are links only and are not re-uploaded from JSON backups.'
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, and profile data with this backup. Receipt image files are links only and are not re-uploaded from JSON backups.'
         : 'This will merge the backup into your current Takda data. Matching document ids will be updated. Receipt image files are links only and are not re-uploaded from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
@@ -595,7 +599,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
   async function handleReset() {
     const confirmed = await confirmApp({
       title: 'Reset all financial data?',
-      message: 'This permanently deletes transactions, bills, savings goals, accounts, budgets, and saved receipts. This cannot be undone.',
+      message: 'This permanently deletes transactions, bills, savings goals, accounts, budgets, transfers, and saved receipts. This cannot be undone.',
       confirmLabel: 'Reset data',
       cancelLabel: 'Keep data',
       tone: 'danger',
@@ -728,7 +732,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     ? new Date(restorePreview.exportedAt).toLocaleString()
     : restorePreview?.exportedAt
   const enabledNotificationCount = NOTIFICATION_OPTIONS.filter(option => notificationPrefs[option.key]).length
-  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length
+  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length + (data.transfers || []).length
   const goalDateSelected = Boolean(goalForm.date)
   const settingsReadiness = Math.max(
     0,
@@ -1128,7 +1132,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, receipt metadata and links, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, receipt metadata and links, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
@@ -1222,6 +1226,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.accounts.length}</div><div className={settStyles.summaryLabel}>Accounts</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.budgets.length}</div><div className={settStyles.summaryLabel}>Budgets</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.receipts.length}</div><div className={settStyles.summaryLabel}>Receipts</div></div>
+          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{(data.transfers || []).length}</div><div className={settStyles.summaryLabel}>Transfers</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal} style={{ color: 'var(--accent)' }}>{money(savingsTotal)}</div><div className={settStyles.summaryLabel}>Total saved</div></div>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{totalTx}</div><div className={settStyles.summaryLabel}>Total transactions</div></div>
         </div>
@@ -1300,7 +1305,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Danger zone"
           title="Delete financial data"
-          description="Permanently delete transactions, bills, savings goals, accounts, and budgets while keeping your login active. Use this if you want to clear your financial records without closing the whole account."
+          description="Permanently delete transactions, bills, savings goals, accounts, budgets, and transfers while keeping your login active. Use this if you want to clear your financial records without closing the whole account."
           badge="Irreversible"
         />
         {resetDone && (

@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
-import { fsAdd, fsDel, fsUpdate } from '../lib/firestore'
-import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { useEffect, useMemo, useState } from 'react'
+import { deleteField } from 'firebase/firestore'
+import { fsAdd, fsDel, fsMarkBillPaid, fsUpdate } from '../lib/firestore'
+import { confirmApp, confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { getBillPeriodInfo } from '../lib/bills'
 import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getBillQuickItems, getTransactionSubcategories } from '../lib/transactionOptions'
-import { fmt, RECUR_OPTIONS } from '../lib/utils'
+import { fmt, formatDisplayDate, RECUR_OPTIONS, today } from '../lib/utils'
 import styles from './Page.module.css'
 
 const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
@@ -20,10 +22,22 @@ function createBillForm() {
   }
 }
 
-export default function Bills({ user, data, symbol }) {
+function getStatusStyle(status) {
+  if (status === 'paid') return { background: 'var(--accent-glow)', color: 'var(--accent)' }
+  if (status === 'overdue') return { background: 'var(--red-dim)', color: 'var(--red)' }
+  if (status === 'due' || status === 'soon') return { background: 'var(--amber-dim)', color: 'var(--amber)' }
+  return { background: 'var(--blue-dim)', color: 'var(--blue)' }
+}
+
+export default function Bills({ user, data, symbol, billPaymentTarget = null }) {
   const s = symbol || '₱'
   const [form, setForm] = useState(createBillForm())
+  const [paymentBill, setPaymentBill] = useState(null)
+  const [paymentForm, setPaymentForm] = useState({ amount: '', date: today(), accountId: '' })
+  const [paymentSaving, setPaymentSaving] = useState(false)
+  const [handledTargetAt, setHandledTargetAt] = useState(0)
   const accounts = Array.isArray(data?.accounts) ? data.accounts : []
+
   const accountNameById = useMemo(() => {
     const map = new Map()
     accounts.forEach(acc => {
@@ -31,11 +45,14 @@ export default function Bills({ user, data, symbol }) {
     })
     return map
   }, [accounts])
-
   const quickPresets = useMemo(() => getBillQuickItems(), [])
   const presetGroups = useMemo(() => getBillPresetGroups(), [])
   const subcategories = useMemo(() => getTransactionSubcategories('expense', 'Bills'), [])
   const selectedPreset = useMemo(() => getBillPresetByKey(form.presetKey), [form.presetKey])
+  const billsWithStatus = useMemo(() => (data?.bills || []).map(bill => ({
+    ...bill,
+    period: getBillPeriodInfo(bill),
+  })), [data?.bills])
 
   function set(key, value) {
     setForm(current => ({ ...current, [key]: value }))
@@ -81,20 +98,31 @@ export default function Bills({ user, data, symbol }) {
   }
 
   async function handleAdd() {
+    const amount = Number(form.amount)
+    const due = Number(form.due)
     if (!form.name.trim() || !form.amount || !form.due) {
       notifyApp({ title: 'Bill needs details', message: 'Add a bill name, amount, and due day before saving.', tone: 'warning' })
+      return
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      notifyApp({ title: 'Check bill amount', message: 'Bill amount must be greater than zero.', tone: 'warning' })
+      return
+    }
+    if (!Number.isFinite(due) || due < 1 || due > 31) {
+      notifyApp({ title: 'Check due day', message: 'Due day must be between 1 and 31.', tone: 'warning' })
       return
     }
 
     await fsAdd(user.uid, 'bills', {
       name: form.name.trim(),
-      amount: parseFloat(form.amount),
+      amount,
       due: parseInt(form.due, 10),
       cat: 'Bills',
       subcat: form.subcat,
       presetKey: form.presetKey || '',
       freq: form.freq,
       paid: false,
+      paidPeriods: {},
       type: 'bill',
       accountId: form.accountId || '',
     })
@@ -102,23 +130,94 @@ export default function Bills({ user, data, symbol }) {
     setForm(createBillForm())
   }
 
-  async function togglePaid(bill) {
-    const nextPaid = !bill.paid
-    await fsUpdate(user.uid, 'bills', bill._id, {
-      paid: nextPaid,
-      paidAt: nextPaid ? Date.now() : null,
+  function openPayment(bill) {
+    setPaymentBill(bill)
+    setPaymentForm({
+      amount: String(Number(bill.amount) || ''),
+      date: today(),
+      accountId: bill.accountId || '',
     })
   }
+
+  function closePayment() {
+    setPaymentBill(null)
+    setPaymentForm({ amount: '', date: today(), accountId: '' })
+  }
+
+  async function handleMarkPaid() {
+    if (!paymentBill) return
+    const amount = Number(paymentForm.amount)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      notifyApp({ title: 'Check payment amount', message: 'Payment amount must be greater than zero.', tone: 'warning' })
+      return
+    }
+    if (!paymentForm.date) {
+      notifyApp({ title: 'Payment date needed', message: 'Choose the date this bill was paid.', tone: 'warning' })
+      return
+    }
+
+    setPaymentSaving(true)
+    try {
+      await fsMarkBillPaid(user.uid, paymentBill, {
+        amount,
+        date: paymentForm.date,
+        accountId: paymentForm.accountId,
+        source: 'bill-payment',
+      }, accounts)
+      notifyApp({
+        title: 'Bill marked paid',
+        message: `${paymentBill.name} was saved as an expense${paymentForm.accountId ? ' and applied to the selected account' : ''}.`,
+        tone: 'success',
+      })
+      closePayment()
+    } catch {
+      notifyApp({ title: 'Payment not saved', message: 'Please check your connection and try again.', tone: 'error' })
+    } finally {
+      setPaymentSaving(false)
+    }
+  }
+
+  async function handleUndoPaid(bill) {
+    const period = getBillPeriodInfo(bill)
+    const confirmed = await confirmApp({
+      title: 'Undo paid status?',
+      message: `This will mark ${bill.name} unpaid for ${formatDisplayDate(period.dueDate)}. The expense transaction already created will stay in History unless you delete it there.`,
+      confirmLabel: 'Undo paid',
+      cancelLabel: 'Keep paid',
+      tone: 'danger',
+    })
+    if (!confirmed) return
+
+    await fsUpdate(user.uid, 'bills', bill._id, {
+      [`paidPeriods.${period.key}`]: deleteField(),
+      paid: false,
+      paidAt: null,
+      lastPaidPeriod: '',
+      lastPaidExpenseId: '',
+    })
+  }
+
+  useEffect(() => {
+    if (!billPaymentTarget?.billId) return
+    if (handledTargetAt === billPaymentTarget.at) return
+    const target = (data?.bills || []).find(bill => bill._id === billPaymentTarget.billId)
+    if (!target) return
+    openPayment(target)
+    setHandledTargetAt(billPaymentTarget.at)
+  }, [billPaymentTarget?.at, billPaymentTarget?.billId, data?.bills, handledTargetAt])
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Bills</div>
-        <div className={styles.sub}>Track recurring bills and due dates.</div>
+        <div className={styles.sub}>Plan recurring bills, then mark each period paid when real money leaves an account.</div>
       </div>
 
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add bill</div>
+        <p style={{ color: 'var(--text3)', marginTop: 0 }}>
+          The pay-from account is optional. When you mark this bill paid, Takda will create a real expense and update that account balance.
+        </p>
 
         <div className={styles.formGroup}>
           <label>What bill is this for?</label>
@@ -155,7 +254,7 @@ export default function Bills({ user, data, symbol }) {
           </select>
           <div className={styles.helper}>
             {selectedPreset && !selectedPreset.isCustom
-              ? `${selectedPreset.label} auto-fills Bills → ${selectedPreset.subcat}.`
+              ? `${selectedPreset.label} auto-fills Bills -> ${selectedPreset.subcat}.`
               : 'Choose a familiar biller like Meralco or Netflix, or keep it custom.'}
           </div>
         </div>
@@ -179,7 +278,7 @@ export default function Bills({ user, data, symbol }) {
             <input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} />
           </div>
           <div className={styles.formGroup}>
-            <label>Due day (1–31)</label>
+            <label>Due day (1-31)</label>
             <input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} />
           </div>
           <div className={styles.formGroup}>
@@ -192,15 +291,18 @@ export default function Bills({ user, data, symbol }) {
 
         <div className={`${styles.formRow} ${styles.col2}`}>
           <div className={styles.formGroup}>
-            <label>Pay from account (optional)</label>
+            <label>Default pay-from account</label>
             <select value={form.accountId} onChange={e => set('accountId', e.target.value)}>
-              <option value="">No account selected</option>
+              <option value="">Choose when paying</option>
               {accounts.map(acc => (
                 <option key={acc._id} value={acc._id}>
-                  {acc.name} · {acc.type}
+                  {acc.name} - {acc.type}
                 </option>
               ))}
             </select>
+            <div className={styles.helper}>
+              {accounts.length ? 'This is only the default. You can change the account each time you pay.' : 'Add accounts first if you want payments to update balances automatically.'}
+            </div>
           </div>
         </div>
 
@@ -218,7 +320,7 @@ export default function Bills({ user, data, symbol }) {
                 <th>Name</th>
                 <th>Type</th>
                 <th>Account</th>
-                <th>Due Day</th>
+                <th>Due</th>
                 <th>Frequency</th>
                 <th>Amount</th>
                 <th>Status</th>
@@ -226,33 +328,108 @@ export default function Bills({ user, data, symbol }) {
               </tr>
             </thead>
             <tbody>
-              {!data.bills.length
+              {!billsWithStatus.length
                 ? <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above.</td></tr>
-                : data.bills.map(row => (
+                : billsWithStatus.map(row => (
                   <tr key={row._id}>
                     <td style={{ color: 'var(--text)' }}>{row.name}</td>
                     <td><span className={`${styles.badge} ${styles.badgeBill}`}>{row.subcat || row.cat}</span></td>
                     <td style={{ color: 'var(--text2)' }}>
-                      {row.accountId ? (accountNameById.get(row.accountId) || 'Account') : '—'}
+                      {row.accountId ? (accountNameById.get(row.accountId) || 'Missing account') : 'Choose when paying'}
                     </td>
-                    <td>Day {row.due}</td>
+                    <td>
+                      <div>Day {row.due}</div>
+                      <div style={{ color: 'var(--text3)', fontSize: 11 }}>{formatDisplayDate(row.period.dueDate)}</div>
+                    </td>
                     <td>{BILL_FREQS.find(option => option.value === row.freq)?.label || row.freq}</td>
                     <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--amber)' }}>{fmt(row.amount, s)}</td>
                     <td>
-                      <button
-                        onClick={() => togglePaid(row)}
-                        style={{ background: row.paid ? 'var(--accent-glow)' : 'var(--red-dim)', color: row.paid ? 'var(--accent)' : 'var(--red)', border: 'none', borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        {row.paid ? 'Paid' : 'Unpaid'}
-                      </button>
+                      <span style={{ ...getStatusStyle(row.period.status), borderRadius: 20, padding: '4px 10px', fontSize: 11, fontWeight: 700 }}>
+                        {row.period.label}
+                      </span>
                     </td>
-                    <td><button className={styles.delBtn} onClick={async () => { if (await confirmDeleteApp(row.name)) await fsDel(user.uid, 'bills', row._id) }}>✕</button></td>
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {row.period.paid ? (
+                        <button className={styles.btnGhost} onClick={() => handleUndoPaid(row)}>Undo</button>
+                      ) : (
+                        <button className={styles.btnAdd} style={{ width: 'auto', minHeight: 38, padding: '8px 12px' }} onClick={() => openPayment(row)}>
+                          {row.period.status === 'overdue' ? 'Pay overdue' : 'Mark paid'}
+                        </button>
+                      )}
+                      <button className={styles.delBtn} onClick={async () => { if (await confirmDeleteApp(row.name)) await fsDel(user.uid, 'bills', row._id) }}>x</button>
+                    </td>
                   </tr>
                 ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {paymentBill && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Mark ${paymentBill.name} paid`}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 700,
+            display: 'grid',
+            placeItems: 'center',
+            padding: 18,
+            background: 'rgba(6, 10, 18, 0.42)',
+            backdropFilter: 'blur(14px)',
+          }}
+          onClick={event => {
+            if (event.target === event.currentTarget) closePayment()
+          }}
+        >
+          <div className={styles.formCard} style={{ width: 'min(520px, 100%)', margin: 0 }}>
+            <div className={styles.cardTitle}>Mark bill paid</div>
+            <p style={{ color: 'var(--text3)', marginTop: 0 }}>
+              This creates a real expense for {paymentBill.name}. If an account is selected, its balance updates too.
+            </p>
+            <div className={styles.formGroup}>
+              <label>Amount ({s})</label>
+              <input
+                type="number"
+                min="0"
+                value={paymentForm.amount}
+                onChange={event => setPaymentForm(current => ({ ...current, amount: event.target.value }))}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Payment date</label>
+              <input
+                type="date"
+                value={paymentForm.date}
+                onChange={event => setPaymentForm(current => ({ ...current, date: event.target.value }))}
+              />
+              <div className={styles.helper}>Due for this period: {formatDisplayDate(getBillPeriodInfo(paymentBill).dueDate)}</div>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Pay from account</label>
+              <select
+                value={paymentForm.accountId}
+                onChange={event => setPaymentForm(current => ({ ...current, accountId: event.target.value }))}
+              >
+                <option value="">No account movement</option>
+                {accounts.map(acc => (
+                  <option key={acc._id} value={acc._id}>
+                    {acc.name} - {acc.type}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formRow} style={{ justifyContent: 'flex-end' }}>
+              <button className={styles.btnGhost} onClick={closePayment} disabled={paymentSaving}>Cancel</button>
+              <button className={styles.btnAdd} style={{ width: 'auto' }} onClick={handleMarkPaid} disabled={paymentSaving}>
+                {paymentSaving ? 'Saving...' : 'Save payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

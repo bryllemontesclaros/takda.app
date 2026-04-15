@@ -10,11 +10,13 @@ import Savings from './Savings'
 import Accounts from './Accounts'
 import Breakdown from './Breakdown'
 import Budget from './Budget'
+import Bills from './Bills'
 import Receipts from './Receipts'
 import Settings from './Settings'
 import History from './History'
 import QuickAdd from './QuickAdd'
 import GroceryMode from './GroceryMode'
+import AskTakdaCommand from '../components/AskTakdaCommand'
 import ReceiptScanner from '../components/ReceiptScanner'
 import {
   findPresetByLabel,
@@ -54,6 +56,14 @@ const NAV_ICONS = {
       <line x1="21" y1="12" x2="19" y2="12"/>
       <line x1="12" y1="21" x2="12" y2="19"/>
       <line x1="3" y1="12" x2="5" y2="12"/>
+    </svg>
+  ),
+  bills: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3.5h10a2 2 0 0 1 2 2V21l-3-1.8-3 1.8-3-1.8L7 21V5.5a2 2 0 0 1 2-2Z"/>
+      <path d="M10 8h6"/>
+      <path d="M10 12h6"/>
+      <path d="M10 16h3"/>
     </svg>
   ),
   savings: (
@@ -99,6 +109,7 @@ const HEADER_EXP_LABELS = {
   calendar: 'Tracking habit',
   breakdown: 'Trend view',
   accounts: 'Balance view',
+  bills: 'Payment habit',
 }
 
 function getEmailActionSettings() {
@@ -111,18 +122,20 @@ function getEmailActionSettings() {
 
 export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
-  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [], receipts: [] })
+  const [data, setData] = useState({ income: [], expenses: [], bills: [], goals: [], accounts: [], budgets: [], receipts: [], transfers: [] })
   const [profile, setProfile] = useState({})
   const [gamificationReady, setGamificationReady] = useState(false)
   const [celebrationToast, setCelebrationToast] = useState(null)
   const [quickAddMenuOpen, setQuickAddMenuOpen] = useState(false)
   const [quickAddSheet, setQuickAddSheet] = useState({ open: false, mode: 'manual', type: 'expense', initialEntry: null })
+  const [askTakdaOpen, setAskTakdaOpen] = useState(false)
   const [mobileNavMenuOpen, setMobileNavMenuOpen] = useState(false)
   const [calendarQuickAddDate, setCalendarQuickAddDate] = useState('')
   const [emailVerified, setEmailVerified] = useState(() => Boolean(auth.currentUser?.emailVerified || user?.emailVerified))
   const [verifyBannerMsg, setVerifyBannerMsg] = useState({ text: '', ok: false })
   const [verifySending, setVerifySending] = useState(false)
   const [syncIssue, setSyncIssue] = useState(null)
+  const [billPaymentTarget, setBillPaymentTarget] = useState(null)
   const previousGamificationRef = useRef(null)
   const celebrationToastRef = useRef(null)
   const toastQueueRef = useRef([])
@@ -133,11 +146,12 @@ export default function AppShell({ user }) {
     expenses: false,
     bills: false,
     goals: false,
-      accounts: false,
-      budgets: false,
-      receipts: false,
-      profile: false,
-    })
+    accounts: false,
+    budgets: false,
+    receipts: false,
+    transfers: false,
+    profile: false,
+  })
 
   function markLoaded(key) {
     if (loadFlagsRef.current[key]) return
@@ -208,6 +222,7 @@ export default function AppShell({ user }) {
       accounts: false,
       budgets: false,
       receipts: false,
+      transfers: false,
       profile: false,
     }
     const uid = user.uid
@@ -240,6 +255,10 @@ export default function AppShell({ user }) {
         setData(d => ({ ...d, receipts: rows }))
         markLoaded('receipts')
       }, error => handleRealtimeError('receipts', error)),
+      listenCol(uid, 'transfers', rows => {
+        setData(d => ({ ...d, transfers: rows }))
+        markLoaded('transfers')
+      }, error => handleRealtimeError('transfers', error)),
       listenProfile(uid, p => {
         setProfile(p)
         markLoaded('profile')
@@ -275,8 +294,8 @@ export default function AppShell({ user }) {
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
   const privacyMode = Boolean(profile.privacyMode)
   const gamification = useMemo(
-    () => getGamificationSnapshot(data.income, data.expenses, data.bills, profile),
-    [data.income, data.expenses, data.bills, profile],
+    () => getGamificationSnapshot(data.income, data.expenses, data.bills, data.goals, profile),
+    [data.income, data.expenses, data.bills, data.goals, profile],
   )
 
   useEffect(() => {
@@ -294,7 +313,7 @@ export default function AppShell({ user }) {
       nextToasts.push({
         eyebrow: 'Level up',
         title: `Level ${gamification.level} reached`,
-        meta: 'Your money momentum just moved up another step.',
+        meta: 'Your trusted money habits just moved up another step.',
       })
     }
 
@@ -337,6 +356,7 @@ export default function AppShell({ user }) {
       if (event.key !== 'Escape') return
       setMobileNavMenuOpen(false)
       setQuickAddMenuOpen(false)
+      setAskTakdaOpen(false)
       setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
     }
 
@@ -347,6 +367,7 @@ export default function AppShell({ user }) {
   useEffect(() => {
     setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
+    setAskTakdaOpen(false)
     if (page !== 'calendar') setCalendarQuickAddDate('')
   }, [page])
 
@@ -365,10 +386,11 @@ export default function AppShell({ user }) {
     { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: null },
     { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
     { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
+    { id: 'bills', label: 'Bills', iconKey: 'bills', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, settings: Settings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
   const PageComponent = pages[page] || Dashboard
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
 
@@ -379,7 +401,7 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
   const mobileMoreNav = nav
-    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'settings'].includes(item.id))
+    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
@@ -394,29 +416,41 @@ export default function AppShell({ user }) {
 
   function toggleQuickAddMenu() {
     if (quickAddSheet.open) return
+    setAskTakdaOpen(false)
     setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(current => !current)
   }
 
   function toggleMobileNavMenu() {
     setQuickAddMenuOpen(false)
+    setAskTakdaOpen(false)
     setMobileNavMenuOpen(current => !current)
+  }
+
+  function openAskTakda() {
+    setMobileNavMenuOpen(false)
+    setQuickAddMenuOpen(false)
+    setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
+    setAskTakdaOpen(true)
   }
 
   function openQuickAdd(type) {
     setMobileNavMenuOpen(false)
+    setAskTakdaOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'manual', type, initialEntry: null })
   }
 
   function openQuickImport() {
     setMobileNavMenuOpen(false)
+    setAskTakdaOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'import', type: 'expense', initialEntry: null })
   }
 
   function openGroceryMode() {
     setMobileNavMenuOpen(false)
+    setAskTakdaOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'grocery', type: 'expense', initialEntry: null })
   }
@@ -496,6 +530,14 @@ export default function AppShell({ user }) {
     }
   }
 
+  function handleNotificationAction(alert) {
+    const action = alert?.action || {}
+    if (action.page) setPage(action.page)
+    if (action.type === 'payBill' && action.billId) {
+      setBillPaymentTarget({ billId: action.billId, at: Date.now() })
+    }
+  }
+
   const quickAddDefaultDate = page === 'calendar' && calendarQuickAddDate ? calendarQuickAddDate : undefined
 
   const pageProps = {
@@ -505,6 +547,7 @@ export default function AppShell({ user }) {
     symbol,
     privacyMode,
     gamification,
+    billPaymentTarget,
     onTogglePrivacy: handleTogglePrivacy,
     onSelectedDateChange: setCalendarQuickAddDate,
   }
@@ -590,7 +633,7 @@ export default function AppShell({ user }) {
                 </svg>
               )}
             </button>
-            <NotificationBell data={data} profile={profile} privacyMode={privacyMode} />
+            <NotificationBell data={data} profile={profile} privacyMode={privacyMode} onAction={handleNotificationAction} />
           </div>
         </header>
         {syncIssue && (
@@ -681,6 +724,10 @@ export default function AppShell({ user }) {
       <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
         {quickAddMenuOpen && (
           <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
+            <button type="button" className={`${styles.fabAction} ${styles.fabActionAsk}`} onClick={openAskTakda} role="menuitem">
+              <span className={styles.fabActionIcon}>AI</span>
+              <span className={styles.fabActionText}>Ask Takda</span>
+            </button>
             <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
               <span className={styles.fabActionIcon}>−</span>
               <span className={styles.fabActionText}>Expense</span>
@@ -709,6 +756,17 @@ export default function AppShell({ user }) {
           +
         </button>
       </div>
+      <AskTakdaCommand
+        open={askTakdaOpen}
+        onClose={() => setAskTakdaOpen(false)}
+        user={user}
+        data={data}
+        profile={profile}
+        symbol={symbol}
+        privacyMode={privacyMode}
+        onOpenReceiptScanner={openQuickImport}
+        onNavigate={setPage}
+      />
       {quickAddSheet.open && (
         <div className={styles.quickAddLayer}>
           <div

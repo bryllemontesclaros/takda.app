@@ -1,4 +1,5 @@
 import { getMonthKey, maskMoney, today as todayKey, toMonthKey } from './utils'
+import { getBillPeriodInfo } from './bills'
 
 // Notification engine — generates in-app alerts based on user data
 
@@ -19,7 +20,6 @@ export function getNotificationPrefs(profile = {}) {
 export function getAlerts(data, profile, privacyMode = false) {
   const alerts = []
   const now = new Date()
-  const currentDay = now.getDate()
   const ym = toMonthKey(now.getFullYear(), now.getMonth())
   const prefs = getNotificationPrefs(profile)
 
@@ -58,24 +58,26 @@ export function getAlerts(data, profile, privacyMode = false) {
   // 2. Bills due soon (within next 3 days or overdue this month)
   if (prefs.bills) {
     data.bills.forEach(b => {
-      if (b.paid) return
-      const daysUntil = b.due - currentDay
-      if (daysUntil < 0) {
+      const period = getBillPeriodInfo(b, now)
+      if (period.paid) return
+      if (period.daysUntil < 0) {
         alerts.push({
-          id: `bill-overdue-${b._id}`,
+          id: `bill-overdue-${b._id}-${period.key}`,
           type: 'danger',
           icon: '📄',
           title: `Bill overdue — ${b.name}`,
           body: `${b.name} was due on day ${b.due}. Mark it paid when settled.`,
+          action: { type: 'payBill', label: 'Mark paid', page: 'bills', billId: b._id },
           priority: 1,
         })
-      } else if (daysUntil <= 3) {
+      } else if (period.daysUntil <= 3) {
         alerts.push({
-          id: `bill-due-${b._id}`,
+          id: `bill-due-${b._id}-${period.key}`,
           type: 'warning',
           icon: '📄',
-          title: `Bill due in ${daysUntil === 0 ? 'today' : daysUntil + ' day' + (daysUntil > 1 ? 's' : '')} — ${b.name}`,
-          body: `${b.name} payment of ${privacyMode ? maskMoney() : formatOver(b.amount || 0, false)} is due ${daysUntil === 0 ? 'today' : `in ${daysUntil} days`}.`,
+          title: `Bill due in ${period.daysUntil === 0 ? 'today' : period.daysUntil + ' day' + (period.daysUntil > 1 ? 's' : '')} — ${b.name}`,
+          body: `${b.name} payment of ${privacyMode ? maskMoney() : formatOver(b.amount || 0, false)} is due ${period.daysUntil === 0 ? 'today' : `in ${period.daysUntil} days`}.`,
+          action: { type: 'payBill', label: 'Mark paid', page: 'bills', billId: b._id },
           priority: 2,
         })
       }

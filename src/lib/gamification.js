@@ -1,13 +1,14 @@
 import { isSameMonth, normalizeDate, today } from './utils'
+import { getBillPaidPeriodEntries } from './bills'
 
 const EXP_PER_LEVEL = 60
 const WEEKLY_CHECKIN_TARGET = 3
 const INCOME_CATS = new Set(['Salary', 'Bonus', 'Freelance', 'Business', 'Investment', '13th Month', 'Other'])
 const EXPENSE_EXCLUDED_CATS = new Set(['Bills'])
-const ONBOARDING_MATCH_WINDOW_MS = 120000
-const RECUR_BONUS_MULTIPLIER = 1.2
-const BILL_PAYMENT_BONUS_MULTIPLIER = 1.35
-const EXPENSE_TRACKING_DIVISOR = 450
+const DAILY_EXP_CAP = 20
+const ENTRY_EXP_CAP = 8
+const MANUAL_ENTRIES_PER_DAY_CAP = 3
+const GOAL_EXP_CAP = 5
 
 function toDateValue(date) {
   return new Date(`${normalizeDate(date)}T00:00:00`)
@@ -64,20 +65,17 @@ function getWeeklyCheckins(days = []) {
   }).length
 }
 
-function getExpDelta(amount, sourceType, options = {}) {
-  const value = Math.abs(Number(amount) || 0)
-  let delta = 0
-  if (sourceType === 'income') {
-    delta = Math.max(3, Math.floor(value / 80))
-  } else if (sourceType === 'bill') {
-    delta = Math.max(4, Math.floor(value / 75))
-  } else {
-    // Expense tracking should still feel rewarding, just lighter than income or paid bills.
-    delta = Math.max(2, Math.floor(value / EXPENSE_TRACKING_DIVISOR))
-  }
-  if (options.isRecurring) delta = Math.max(1, Math.round(delta * RECUR_BONUS_MULTIPLIER))
-  if (sourceType === 'bill') delta = Math.max(1, Math.round(delta * BILL_PAYMENT_BONUS_MULTIPLIER))
-  return delta
+function getExpDelta(sourceType, options = {}) {
+  let delta = sourceType === 'income' ? 2 : 1
+
+  if (sourceType === 'bill') delta = 7
+  if (sourceType === 'goal') delta = Math.min(GOAL_EXP_CAP, Math.max(1, options.progressPoints || 1))
+  if (options.accountLinked) delta += 2
+  if (options.receiptBacked) delta += 3
+  if (options.isRecurring && sourceType !== 'bill') delta += 1
+  if (options.manual) delta = Math.min(delta, 1)
+
+  return Math.min(ENTRY_EXP_CAP, Math.max(0, Math.round(delta)))
 }
 
 function isOnboardingSeededIncome(tx = {}) {
@@ -117,10 +115,11 @@ function buildCheckinEntries(income = [], expenses = [], bills = [], profile = {
     }))
     .filter(entry => entry.activityDate)
   const billEntries = bills
-    .filter(bill => bill?.paid && !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
-    .map(bill => ({
-      ...bill,
-      activityDate: getBillActivityDate(bill),
+    .filter(bill => !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
+    .flatMap(bill => getBillPaidPeriodEntries(bill))
+    .map(payment => ({
+      ...payment,
+      activityDate: getBillActivityDate(payment),
     }))
     .filter(entry => entry.activityDate)
 
@@ -131,35 +130,103 @@ function buildCheckinEntries(income = [], expenses = [], bills = [], profile = {
     })
 }
 
-function buildExpLedger(income = [], expenses = [], bills = [], profile = {}) {
-  const gains = income
-    .filter(tx => INCOME_CATS.has(tx?.cat || 'Other') && !isOnboardingSeededIncome(tx, profile))
-    .map(tx => ({
-      ...tx,
-      date: normalizeDate(tx?.date),
-      delta: getExpDelta(tx?.amount, 'income', { isRecurring: Boolean(tx?.recur) }),
-      sourceType: 'income',
-    }))
+function normalizeDescription(value = '') {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, ' ')
+}
 
-  const expenseEntries = expenses
-    .filter(tx => !isExcludedExpense(tx))
-    .map(tx => ({
-      ...tx,
-      date: normalizeDate(tx?.date),
-      delta: getExpDelta(tx?.amount, 'expense', { isRecurring: Boolean(tx?.recur) }),
-      sourceType: 'expense',
-    }))
+function getTransactionIdentity(tx = {}, sourceType = 'expense') {
+  return [
+    sourceType,
+    normalizeDate(tx.date),
+    Math.round((Number(tx.amount) || 0) * 100) / 100,
+    normalizeDescription(tx.desc || tx.name),
+    tx.cat || '',
+    tx.subcat || '',
+  ].join('|')
+}
 
+function getTrustFlags(tx = {}) {
+  const receiptBacked = Boolean(tx.receiptId || tx.source === 'receipt' || tx.importSource === 'receipt')
+  const accountLinked = Boolean(tx.accountBalanceLinked && tx.accountId)
+  return {
+    receiptBacked,
+    accountLinked,
+    manual: !receiptBacked && !accountLinked && !tx.recur,
+  }
+}
+
+function buildTransactionEntries(transactions = [], sourceType = 'expense', profile = {}, context = {}) {
+  const entries = []
+  const seen = context.seen || new Set()
+  const manualByDay = context.manualByDay || new Map()
+
+  transactions.forEach(tx => {
+    if (sourceType === 'income' && (!INCOME_CATS.has(tx?.cat || 'Other') || isOnboardingSeededIncome(tx, profile))) return
+    if (sourceType === 'expense' && isExcludedExpense(tx)) return
+
+    const date = getActivityDate(tx)
+    if (!date) return
+
+    const identity = getTransactionIdentity(tx, sourceType)
+    if (seen.has(identity)) return
+    seen.add(identity)
+
+    const trust = getTrustFlags(tx)
+    if (trust.manual) {
+      const manualCount = manualByDay.get(date) || 0
+      if (manualCount >= MANUAL_ENTRIES_PER_DAY_CAP) return
+      manualByDay.set(date, manualCount + 1)
+    }
+
+    entries.push({
+      ...tx,
+      date,
+      delta: getExpDelta(sourceType, {
+        ...trust,
+        isRecurring: Boolean(tx?.recur),
+      }),
+      sourceType,
+    })
+  })
+
+  return entries
+}
+
+function buildGoalEntries(goals = []) {
+  return goals
+    .filter(goal => !goal?.gamificationExcluded && !goal?.seedSource)
+    .map(goal => {
+      const target = Number(goal?.target) || 0
+      const current = Number(goal?.current) || 0
+      if (target <= 0 || current <= 0) return null
+      const progressPoints = Math.min(GOAL_EXP_CAP, Math.max(1, Math.round((Math.min(current, target) / target) * GOAL_EXP_CAP)))
+      return {
+        ...goal,
+        date: getActivityDate(goal),
+        amount: current,
+        delta: getExpDelta('goal', { progressPoints }),
+        sourceType: 'goal',
+      }
+    })
+    .filter(Boolean)
+}
+
+function buildExpLedger(income = [], expenses = [], bills = [], goals = [], profile = {}) {
+  const context = { seen: new Set(), manualByDay: new Map() }
+  const gains = buildTransactionEntries(income, 'income', profile, context)
+  const expenseEntries = buildTransactionEntries(expenses, 'expense', profile, context)
   const billPayments = bills
-    .filter(bill => bill?.paid && !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
-    .map(bill => ({
-      ...bill,
-      date: getBillActivityDate(bill),
-      delta: getExpDelta(bill?.amount, 'bill', { isRecurring: true }),
+    .filter(bill => !bill?.gamificationExcluded && bill?.seedSource !== 'onboarding')
+    .flatMap(bill => getBillPaidPeriodEntries(bill))
+    .map(payment => ({
+      ...payment,
+      date: getBillActivityDate(payment),
+      delta: getExpDelta('bill', { isRecurring: true, accountLinked: Boolean(payment.accountId) }),
       sourceType: 'bill',
     }))
+  const goalEntries = buildGoalEntries(goals)
 
-  return [...gains, ...expenseEntries, ...billPayments]
+  return [...gains, ...expenseEntries, ...billPayments, ...goalEntries]
     .filter(entry => entry.date)
     .sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date)
@@ -167,8 +234,8 @@ function buildExpLedger(income = [], expenses = [], bills = [], profile = {}) {
     })
 }
 
-export function getGamificationSnapshot(income = [], expenses = [], bills = [], profile = {}) {
-  const ledger = buildExpLedger(income, expenses, bills, profile)
+export function getGamificationSnapshot(income = [], expenses = [], bills = [], goals = [], profile = {}) {
+  const ledger = buildExpLedger(income, expenses, bills, goals, profile)
   const checkinEntries = buildCheckinEntries(income, expenses, bills, profile)
   const now = new Date()
   const todayStr = today()
@@ -178,10 +245,17 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
   let totalGained = 0
   let totalLost = 0
   let monthNetExp = 0
+  const dailyExp = new Map()
 
   ledger.forEach(entry => {
+    const usedToday = dailyExp.get(entry.date) || 0
+    const remainingToday = Math.max(0, DAILY_EXP_CAP - usedToday)
+    if (!remainingToday) return
+
     const before = totalExp
-    totalExp = Math.max(0, totalExp + entry.delta)
+    const cappedDelta = Math.min(entry.delta, remainingToday)
+    dailyExp.set(entry.date, usedToday + cappedDelta)
+    totalExp = Math.max(0, totalExp + cappedDelta)
     const appliedDelta = totalExp - before
 
     if (appliedDelta > 0) totalGained += appliedDelta
@@ -204,7 +278,7 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
   const todayCheckins = checkinEntries.filter(entry => entry.activityDate === todayStr).length
   const checkedInToday = todayCheckins > 0
 
-  let message = 'Every peso you track builds momentum.'
+  let message = 'Trusted money habits build momentum.'
   if (currentStreakDays >= 7) message = 'Your logging rhythm is locked in. Protect the streak and keep compounding.'
   else if (currentStreakDays >= 3) message = 'You are building a real money habit now. Keep the streak warm.'
   else if (weeklyCheckins >= weeklyTarget) message = 'Weekly check-in target complete. You are keeping the habit alive.'
@@ -212,8 +286,8 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
   else if (monthNetExp > 0) message = 'Steady progress. Keep your good money habits going.'
   else if (monthNetExp < 0) message = 'Small resets are normal. One good entry gets the bar moving again.'
 
-  let nextMilestone = `Need ${expToNextLevel} EXP for Level ${level + 1}.`
-  if (expToNextLevel <= 6) nextMilestone = `One more solid entry could unlock Level ${level + 1}.`
+  let nextMilestone = `Need ${expToNextLevel} trusted EXP for Level ${level + 1}.`
+  if (expToNextLevel <= 6) nextMilestone = `One more trusted action could unlock Level ${level + 1}.`
   else if (weeklyCheckins < weeklyTarget) nextMilestone = `${weeklyTarget - weeklyCheckins} more check-in${weeklyTarget - weeklyCheckins === 1 ? '' : 's'} completes this week.`
   else if (currentStreakDays > 0) nextMilestone = `Keep tomorrow logged to extend your ${currentStreakDays}-day streak.`
 
@@ -234,6 +308,8 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
     weeklyProgressPct,
     todayCheckins,
     checkedInToday,
+    dailyExpCap: DAILY_EXP_CAP,
+    entryExpCap: ENTRY_EXP_CAP,
     nextMilestone,
     message,
   }

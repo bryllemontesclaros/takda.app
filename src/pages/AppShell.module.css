@@ -686,6 +686,7 @@
 }
 .fabActionIncome { --fab-tone: var(--accent); }
 .fabActionExpense { --fab-tone: var(--red); }
+.fabActionAsk { --fab-tone: var(--purple); }
 .fabActionImport { --fab-tone: var(--blue); }
 .fabActionGrocery { --fab-tone: var(--amber); }
 .fabActionIcon {

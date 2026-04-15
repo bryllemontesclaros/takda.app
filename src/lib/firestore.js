@@ -5,6 +5,7 @@ import {
 } from 'firebase/firestore'
 import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { getAccountBalanceDelta, shouldAffectCurrentAccountBalance } from './finance'
+import { getBillPeriodInfo } from './bills'
 import { normalizeDate, today } from './utils'
 
 export function userCol(uid, col) {
@@ -127,6 +128,101 @@ export async function fsAddTransaction(uid, col, data, accounts = []) {
   applyAccountAdjustments(batch, uid, adjustments, accountLookup)
   await batch.commit()
   return transactionRef
+}
+
+export async function fsMarkBillPaid(uid, bill = {}, payment = {}, accounts = []) {
+  if (!uid || !bill?._id) throw new Error('Bill is required.')
+
+  const amount = Number(payment.amount || bill.amount) || 0
+  const date = normalizeDate(payment.date) || today()
+  if (!amount || amount <= 0) throw new Error('Payment amount must be greater than zero.')
+  if (!date) throw new Error('Payment date is required.')
+
+  const period = getBillPeriodInfo(bill, payment.periodReferenceDate || today())
+  const accountId = payment.accountId || bill.accountId || ''
+  const txRef = await fsAddTransaction(uid, 'expenses', {
+    desc: `${bill.name || 'Bill'} payment`,
+    amount,
+    date,
+    cat: 'Bills',
+    subcat: bill.subcat || 'Other',
+    presetKey: bill.presetKey || '',
+    recur: '',
+    type: 'expense',
+    accountId,
+    accountBalanceLinked: Boolean(accountId),
+    billId: bill._id,
+    billPeriodKey: period.key,
+    source: payment.source || 'bill-payment',
+    gamificationExcluded: true,
+  }, accounts)
+  const paidAt = Date.now()
+  await fsUpdate(uid, 'bills', bill._id, {
+    [`paidPeriods.${period.key}`]: {
+      paidAt,
+      amount,
+      date,
+      accountId,
+      expenseId: txRef.id,
+      dueDate: period.dueDate,
+    },
+    paid: true,
+    paidAt,
+    lastPaidPeriod: period.key,
+    lastPaidExpenseId: txRef.id,
+  })
+
+  return { transactionId: txRef.id, paidAt, period }
+}
+
+function getTransferOutDelta(account = {}, amount = 0) {
+  const normalizedAmount = Math.abs(Number(amount) || 0)
+  if (!normalizedAmount) return 0
+  return String(account?.type || '').toLowerCase() === 'credit card'
+    ? normalizedAmount
+    : -normalizedAmount
+}
+
+function getTransferInDelta(account = {}, amount = 0) {
+  const normalizedAmount = Math.abs(Number(amount) || 0)
+  if (!normalizedAmount) return 0
+  return String(account?.type || '').toLowerCase() === 'credit card'
+    ? -normalizedAmount
+    : normalizedAmount
+}
+
+export async function fsTransferAccounts(uid, transfer = {}, accounts = []) {
+  const amount = Number(transfer.amount) || 0
+  const fromAccountId = transfer.fromAccountId || ''
+  const toAccountId = transfer.toAccountId || ''
+  const date = normalizeDate(transfer.date) || today()
+  if (!uid) throw new Error('User is required.')
+  if (!amount || amount <= 0) throw new Error('Transfer amount must be greater than zero.')
+  if (!fromAccountId || !toAccountId || fromAccountId === toAccountId) throw new Error('Transfer needs two different accounts.')
+
+  const accountLookup = buildAccountLookup(accounts)
+  const fromAccount = accountLookup.get(fromAccountId)
+  const toAccount = accountLookup.get(toAccountId)
+  if (!fromAccount || !toAccount) throw new Error('Transfer account not found.')
+
+  const transferRef = doc(userCol(uid, 'transfers'))
+  const batch = writeBatch(db)
+  batch.update(getAccountRef(uid, fromAccountId), { balance: increment(getTransferOutDelta(fromAccount, amount)) })
+  batch.update(getAccountRef(uid, toAccountId), { balance: increment(getTransferInDelta(toAccount, amount)) })
+  batch.set(transferRef, {
+    amount,
+    date,
+    fromAccountId,
+    fromAccountName: fromAccount.name || '',
+    toAccountId,
+    toAccountName: toAccount.name || '',
+    desc: transfer.desc || 'transfer',
+    type: 'transfer',
+    source: transfer.source || 'manual',
+    createdAt: Date.now(),
+  })
+  await batch.commit()
+  return transferRef
 }
 
 export async function fsUpdateTransaction(uid, col, currentTx, data, accounts = []) {
@@ -386,10 +482,13 @@ export async function fsCompleteOnboarding(uid, payload = {}) {
 
   function seedCollection(col, rows = []) {
     rows.forEach(row => {
-      const explicitId = row?._id || row?.id
-      const ref = explicitId ? doc(userCol(uid, col), explicitId) : doc(userCol(uid, col))
-      batch.set(ref, {
-        ...row,
+      const providedId = typeof row?._id === 'string' && row._id.trim() ? row._id.trim() : ''
+      const targetRef = providedId ? doc(db, 'users', uid, col, providedId) : doc(userCol(uid, col))
+      const payload = { ...row }
+      delete payload._id
+      delete payload.id
+      batch.set(targetRef, {
+        ...payload,
         createdAt: row?.createdAt || now + createdAtOffset,
       })
       createdAtOffset += 1
@@ -461,7 +560,7 @@ async function fsDeleteCollection(uid, col) {
 
 export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
   const clearExisting = mode === 'replace'
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts', 'transfers', 'calendarEvents']
 
   if (clearExisting) {
     const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
@@ -496,7 +595,7 @@ export async function fsResetFinancialData(uid) {
     ]
   }))
 
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts', 'transfers', 'calendarEvents']
   for (const col of collections) {
     await fsDeleteCollection(uid, col)
   }
@@ -512,7 +611,7 @@ export async function fsDeleteAccountData(uid) {
     ]
   }))
 
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts', 'transfers', 'calendarEvents']
 
   for (const col of collections) {
     await fsDeleteCollection(uid, col)

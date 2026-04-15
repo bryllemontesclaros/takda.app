@@ -1,4 +1,5 @@
 import { getMonthKey, toMonthKey } from './utils'
+import { getBillPeriodInfo } from './bills'
 
 // Generate a monthly report as a printable HTML page
 // Uses browser print dialog — no external PDF library needed
@@ -93,7 +94,10 @@ export function generateMonthlyReport(data, profile, year, month, symbol) {
 <table>
   <thead><tr><th>Name</th><th>Category</th><th>Due Day</th><th>Frequency</th><th class="amt">Amount</th><th>Status</th></tr></thead>
   <tbody>
-    ${bills.map(b => `<tr><td>${b.name || ''}</td><td>${b.subcat || b.cat || ''}</td><td>Day ${b.due}</td><td>${b.freq || ''}</td><td class="amt amber">${fmt(b.amount)}</td><td>${b.paid ? '✓ Paid' : 'Unpaid'}</td></tr>`).join('') || '<tr><td colspan="6" style="color:#aaa;text-align:center">No bills</td></tr>'}
+    ${bills.map(b => {
+      const period = getBillPeriodInfo(b, new Date(year, month, 1))
+      return `<tr><td>${b.name || ''}</td><td>${b.subcat || b.cat || ''}</td><td>Day ${b.due}</td><td>${b.freq || ''}</td><td class="amt amber">${fmt(b.amount)}</td><td>${period.paid ? 'Paid' : period.label}</td></tr>`
+    }).join('') || '<tr><td colspan="6" style="color:#aaa;text-align:center">No bills</td></tr>'}
     <tr style="background:#fffbeb"><td colspan="4" style="font-weight:700">Total monthly bills</td><td class="amt amber" style="font-weight:700">${fmt(totalBills)}</td><td></td></tr>
   </tbody>
 </table>

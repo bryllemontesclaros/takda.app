@@ -397,12 +397,12 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.kicker}>Before you start</div>
               <div className={styles.stepTitle}>Let’s set up your real starting point, {name}.</div>
               <div className={styles.stepSub}>
-                We’ll use your balances and recurring bills to give Takda a useful first month instead of an empty profile.
+                Currency is the only required setup. Accounts and bills are optional, but they make your first forecast and reminders more useful.
               </div>
               <div className={styles.setupPromise}>
                 <div className={styles.setupPromiseItem}>
                   <strong>Optional where needed</strong>
-                  <span>Skip accounts or bills if you do not have the numbers yet.</span>
+                  <span>Skip accounts or bills if you do not have the numbers yet. You can add them later.</span>
                 </div>
                 <div className={styles.setupPromiseItem}>
                   <strong>No hidden subtraction</strong>
@@ -410,7 +410,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                 </div>
                 <div className={styles.setupPromiseItem}>
                   <strong>Editable later</strong>
-                  <span>Settings, Accounts, and Budget can refine everything after setup.</span>
+                  <span>Settings, Accounts, Bills, and Budget can refine everything after setup.</span>
                 </div>
               </div>
 
@@ -546,7 +546,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepTitle}>Recurring bills</div>
               <div className={styles.stepSub}>Add the recurring bills that shape each month. One-off charges can wait until later.</div>
               <div className={styles.stepHint}>
-                Bills are optional here. If you skip, you can still add expenses manually or set recurring bills later.
+                Bills are optional here. Add accounts first if you want to choose a default pay-from account for each bill.
               </div>
 
               <div className={styles.dynamicStack}>
@@ -605,6 +605,11 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                         <select value={bill.freq} onChange={event => updateBillRow(bill.id, 'freq', event.target.value)}>
                           {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
                         </select>
+                        <div className={styles.helper}>
+                          {form.accounts.filter(hasAccountContent).filter(row => hasText(row.name)).length
+                            ? 'This is only the default. You can still change the account when marking the bill paid.'
+                            : 'No accounts yet. Skip this or go back to add an account first.'}
+                        </div>
                       </div>
                     </div>
                     <div className={styles.formGrid}>
@@ -614,7 +619,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                           value={bill.accountId}
                           onChange={event => updateBillRow(bill.id, 'accountId', event.target.value)}
                         >
-                          <option value="">No account selected</option>
+                          <option value="">Choose when paying</option>
                           {form.accounts
                             .filter(hasAccountContent)
                             .filter(row => hasText(row.name))
@@ -707,7 +712,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                   <div className={styles.finalSaveLabel}>Ready to save</div>
                   <div className={styles.finalSaveTitle}>This creates your baseline, not a permanent decision.</div>
                   <div className={styles.finalSaveText}>
-                    Takda will open with your selected currency, account balances, and recurring bill entries. You can edit, delete, or add more from inside the app.
+                    Takda will open with your selected currency, account balances, and recurring bill entries. Paying a bill later will create a real expense and can update the selected account.
                   </div>
                 </div>
                 <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length} setup item{preparedAccounts.length + preparedBills.length === 1 ? '' : 's'}</div>

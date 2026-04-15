@@ -20,7 +20,7 @@ const safeLocalStorageSet = (key, value) => {
   try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
 }
 
-export default function NotificationBell({ data, profile, privacyMode = false }) {
+export default function NotificationBell({ data, profile, privacyMode = false, onAction = null }) {
   const [open, setOpen] = useState(false)
   const [dismissed, setDismissed] = useState(() => safeLocalStorageGet('sentimo_dismissed', '[]'))
   const [pushEnabled, setPushEnabled] = useState(() => safeNotificationPermission() === 'granted')
@@ -62,6 +62,11 @@ export default function NotificationBell({ data, profile, privacyMode = false })
   async function enablePush() {
     const granted = await requestPushPermission()
     setPushEnabled(granted)
+  }
+
+  function handleAction(alert) {
+    onAction?.(alert)
+    setOpen(false)
   }
 
   const showPushBanner = !pushEnabled && typeof Notification !== 'undefined'
@@ -120,6 +125,15 @@ export default function NotificationBell({ data, profile, privacyMode = false })
                       <div>
                         <div className={nStyles.alertTitle} style={{ color: c.icon }}>{a.title}</div>
                         <div className={nStyles.alertBody}>{a.body}</div>
+                        {a.action?.label && (
+                          <button
+                            type="button"
+                            className={nStyles.alertAction}
+                            onClick={() => handleAction(a)}
+                          >
+                            {a.action.label}
+                          </button>
+                        )}
                       </div>
                     </div>
                     <button type="button" className={nStyles.dismissBtn} onClick={() => dismiss(a.id)} aria-label={`Dismiss notification: ${a.title}`}>✕</button>
