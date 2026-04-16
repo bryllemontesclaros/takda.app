@@ -5,7 +5,6 @@ import { fsSetProfile, fsSyncDueLinkedTransactions, listenCol, listenProfile } f
 import { getGamificationSnapshot } from '../lib/gamification'
 import { getInitials, getCurrencySymbol } from '../lib/utils'
 import Calendar from './Calendar'
-import Lakas from './Lakas'
 import Dashboard from './Dashboard'
 import Savings from './Savings'
 import Accounts from './Accounts'
@@ -102,24 +101,12 @@ const NAV_ICONS = {
       <path d="M12 8v4l2.5 2.5"/>
     </svg>
   ),
-  lakas: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 14V10"/>
-      <path d="M8 16V8"/>
-      <path d="M16 16V8"/>
-      <path d="M20 14V10"/>
-      <path d="M8 12h8"/>
-      <path d="M2 12h2"/>
-      <path d="M20 12h2"/>
-    </svg>
-  ),
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
 const HEADER_EXP_LABELS = {
   dashboard: 'Money momentum',
   calendar: 'Tracking habit',
-  lakas: 'Body rhythm',
   breakdown: 'Trend view',
   accounts: 'Balance view',
   bills: 'Payment habit',
@@ -144,10 +131,6 @@ export default function AppShell({ user }) {
     budgets: [],
     receipts: [],
     transfers: [],
-    lakasWorkouts: [],
-    lakasBodyLogs: [],
-    lakasMeals: [],
-    lakasGoals: [],
   })
   const [profile, setProfile] = useState({})
   const [gamificationReady, setGamificationReady] = useState(false)
@@ -176,10 +159,6 @@ export default function AppShell({ user }) {
     budgets: false,
     receipts: false,
     transfers: false,
-    lakasWorkouts: false,
-    lakasBodyLogs: false,
-    lakasMeals: false,
-    lakasGoals: false,
     profile: false,
   })
 
@@ -253,10 +232,6 @@ export default function AppShell({ user }) {
       budgets: false,
       receipts: false,
       transfers: false,
-      lakasWorkouts: false,
-      lakasBodyLogs: false,
-      lakasMeals: false,
-      lakasGoals: false,
       profile: false,
     }
     const uid = user.uid
@@ -293,22 +268,6 @@ export default function AppShell({ user }) {
         setData(d => ({ ...d, transfers: rows }))
         markLoaded('transfers')
       }, error => handleRealtimeError('transfers', error)),
-      listenCol(uid, 'lakasWorkouts', rows => {
-        setData(d => ({ ...d, lakasWorkouts: rows }))
-        markLoaded('lakasWorkouts')
-      }, error => handleRealtimeError('lakasWorkouts', error)),
-      listenCol(uid, 'lakasBodyLogs', rows => {
-        setData(d => ({ ...d, lakasBodyLogs: rows }))
-        markLoaded('lakasBodyLogs')
-      }, error => handleRealtimeError('lakasBodyLogs', error)),
-      listenCol(uid, 'lakasMeals', rows => {
-        setData(d => ({ ...d, lakasMeals: rows }))
-        markLoaded('lakasMeals')
-      }, error => handleRealtimeError('lakasMeals', error)),
-      listenCol(uid, 'lakasGoals', rows => {
-        setData(d => ({ ...d, lakasGoals: rows }))
-        markLoaded('lakasGoals')
-      }, error => handleRealtimeError('lakasGoals', error)),
       listenProfile(uid, p => {
         setProfile(p)
         markLoaded('profile')
@@ -430,7 +389,6 @@ export default function AppShell({ user }) {
   const nav = [
     { id: 'dashboard', label: 'Home', iconKey: 'dashboard', section: 'Core' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
-    { id: 'lakas', label: 'Lakas', iconKey: 'lakas', section: null },
     { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
     { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
@@ -441,7 +399,7 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, lakas: Lakas, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
   const PageComponent = pages[page] || Dashboard
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
 
@@ -452,7 +410,7 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
   const mobileMoreNav = nav
-    .filter(item => ['lakas', 'history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
+    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
