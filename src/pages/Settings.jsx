@@ -75,8 +75,12 @@ const BACKUP_COLLECTIONS = [
   { key: 'budgets', label: 'Budgets' },
   { key: 'receipts', label: 'Receipts' },
   { key: 'transfers', label: 'Transfers' },
+  { key: 'lakasRoutines', label: 'Lakas routines' },
   { key: 'lakasWorkouts', label: 'Lakas workouts' },
   { key: 'lakasBodyLogs', label: 'Lakas body logs' },
+  { key: 'lakasActivities', label: 'Lakas activity logs' },
+  { key: 'lakasHabits', label: 'Lakas habit check-ins' },
+  { key: 'lakasReminders', label: 'Lakas reminders' },
   { key: 'lakasMeals', label: 'Lakas meals' },
   { key: 'lakasGoals', label: 'Lakas goals' },
 ]
@@ -148,8 +152,12 @@ function parseBackupPayload(raw) {
     budgets: normalizeBackupArray(raw.budgets),
     receipts: normalizeBackupArray(raw.receipts),
     transfers: normalizeBackupArray(raw.transfers),
+    lakasRoutines: normalizeBackupArray(raw.lakasRoutines),
     lakasWorkouts: normalizeBackupArray(raw.lakasWorkouts),
     lakasBodyLogs: normalizeBackupArray(raw.lakasBodyLogs),
+    lakasActivities: normalizeBackupArray(raw.lakasActivities),
+    lakasHabits: normalizeBackupArray(raw.lakasHabits),
+    lakasReminders: normalizeBackupArray(raw.lakasReminders),
     lakasMeals: normalizeBackupArray(raw.lakasMeals),
     lakasGoals: normalizeBackupArray(raw.lakasGoals),
     profile: sanitizeProfileBackup(raw.profile || {}),
@@ -512,9 +520,13 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       ...data.expenses.map(tx => ['Expense', tx.desc, classify(tx), tx.amount, tx.date, tx.recur || '']),
       ...data.bills.map(tx => ['Bill', tx.name, tx.subcat || tx.cat, tx.amount, `Day ${tx.due}`, tx.freq]),
       ...(data.transfers || []).map(tx => ['Transfer', `${tx.fromAccountName || 'From account'} to ${tx.toAccountName || 'To account'}`, '', tx.amount, tx.date, '']),
+      ...(data.lakasRoutines || []).map(row => ['Lakas routine', row.name, `${row.exerciseCount || 0} exercises / ${row.setCount || 0} sets`, row.focus || '', row.duration || '', '']),
       ...(data.lakasWorkouts || []).map(row => ['Lakas workout', row.title, `${row.exerciseCount || 0} exercises`, row.duration || '', row.date, '']),
       ...(data.lakasMeals || []).map(row => ['Lakas meal', row.name, row.mealType || '', row.calories || '', row.date, '']),
-      ...(data.lakasBodyLogs || []).map(row => ['Lakas body', row.notes || 'Body log', `Weight ${row.weight || 0} kg / Waist ${row.waist || 0} cm`, '', row.date, '']),
+      ...(data.lakasBodyLogs || []).map(row => ['Lakas body', row.notes || 'Body log', `Weight ${row.weight || 0} kg / Waist ${row.waist || 0} cm / BMI ${row.bmi || 0}`, '', row.date, '']),
+      ...(data.lakasActivities || []).map(row => ['Lakas activity', row.type || 'Activity', `${row.steps || 0} steps / ${row.activeMinutes || 0} active min / ${row.cardioMinutes || 0} cardio min`, row.distance || '', row.date, '']),
+      ...(data.lakasHabits || []).map(row => ['Lakas habit', row.notes || 'Habit check-in', `${row.score || 0} habits completed`, '', row.date, '']),
+      ...(data.lakasReminders || []).map(row => ['Lakas reminder', row.title, row.type || '', row.time || '', row.date, row.frequency || '']),
       ...(data.lakasGoals || []).map(row => ['Lakas goal', row.name, row.type || '', row.target || '', '', row.unit || '']),
     ]
     const csv = rows.map(row => row.map(escapeCsvCell).join(',')).join('\n')
@@ -541,8 +553,12 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       budgets: data.budgets,
       receipts: data.receipts,
       transfers: data.transfers || [],
+      lakasRoutines: data.lakasRoutines || [],
       lakasWorkouts: data.lakasWorkouts || [],
       lakasBodyLogs: data.lakasBodyLogs || [],
+      lakasActivities: data.lakasActivities || [],
+      lakasHabits: data.lakasHabits || [],
+      lakasReminders: data.lakasReminders || [],
       lakasMeals: data.lakasMeals || [],
       lakasGoals: data.lakasGoals || [],
       profile: sanitizeProfileBackup(profile),
@@ -587,8 +603,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, Lakas data, and profile data with this backup. Receipt and meal image files are links only and are not re-uploaded from JSON backups.'
-        : 'This will merge the backup into your current Takda data. Matching document ids will be updated. Receipt and meal image files are links only and are not re-uploaded from JSON backups.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, Lakas data, and profile data with this backup. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.'
+        : 'This will merge the backup into your current Takda data. Matching document ids will be updated. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -748,7 +764,14 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     ? new Date(restorePreview.exportedAt).toLocaleString()
     : restorePreview?.exportedAt
   const enabledNotificationCount = NOTIFICATION_OPTIONS.filter(option => notificationPrefs[option.key]).length
-  const lakasRecords = (data.lakasWorkouts || []).length + (data.lakasBodyLogs || []).length + (data.lakasMeals || []).length + (data.lakasGoals || []).length
+  const lakasRecords = (data.lakasRoutines || []).length
+    + (data.lakasWorkouts || []).length
+    + (data.lakasBodyLogs || []).length
+    + (data.lakasActivities || []).length
+    + (data.lakasHabits || []).length
+    + (data.lakasReminders || []).length
+    + (data.lakasMeals || []).length
+    + (data.lakasGoals || []).length
   const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length + (data.transfers || []).length + lakasRecords
   const goalDateSelected = Boolean(goalForm.date)
   const settingsReadiness = Math.max(

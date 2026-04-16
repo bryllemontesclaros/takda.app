@@ -30,7 +30,16 @@ import styles from './AppShell.module.css'
 
 const Lakas = lazy(() => import('./Lakas'))
 
-const LAKAS_COLLECTIONS = ['lakasWorkouts', 'lakasBodyLogs', 'lakasMeals', 'lakasGoals']
+const LAKAS_COLLECTIONS = [
+  'lakasRoutines',
+  'lakasWorkouts',
+  'lakasBodyLogs',
+  'lakasActivities',
+  'lakasHabits',
+  'lakasReminders',
+  'lakasMeals',
+  'lakasGoals',
+]
 
 class PageErrorBoundary extends Component {
   constructor(props) {
@@ -196,11 +205,15 @@ const STREAK_MILESTONES = [3, 7, 14]
 const HEADER_EXP_LABELS = {
   dashboard: 'Money momentum',
   calendar: 'Tracking habit',
-  lakas: 'Body rhythm',
   breakdown: 'Trend view',
   accounts: 'Balance view',
   bills: 'Payment habit',
 }
+
+const APP_SPACES = [
+  { id: 'takda', label: 'Takda', meta: 'Finance', iconKey: 'dashboard' },
+  { id: 'lakas', label: 'Lakas', meta: 'Fitness', iconKey: 'lakas' },
+]
 
 function getEmailActionSettings() {
   if (typeof window === 'undefined') return undefined
@@ -211,6 +224,7 @@ function getEmailActionSettings() {
 }
 
 export default function AppShell({ user }) {
+  const [activeSpace, setActiveSpace] = useState('takda')
   const [page, setPage] = useState('dashboard')
   const [data, setData] = useState({
     income: [],
@@ -221,8 +235,12 @@ export default function AppShell({ user }) {
     budgets: [],
     receipts: [],
     transfers: [],
+    lakasRoutines: [],
     lakasWorkouts: [],
     lakasBodyLogs: [],
+    lakasActivities: [],
+    lakasHabits: [],
+    lakasReminders: [],
     lakasMeals: [],
     lakasGoals: [],
   })
@@ -373,7 +391,7 @@ export default function AppShell({ user }) {
   }, [user])
 
   useEffect(() => {
-    if (!user || page !== 'lakas') return undefined
+    if (!user || (activeSpace !== 'lakas' && page !== 'settings')) return undefined
 
     const uid = user.uid
     const unsubs = LAKAS_COLLECTIONS.map(collectionName => (
@@ -383,7 +401,7 @@ export default function AppShell({ user }) {
     ))
 
     return () => unsubs.forEach(unsub => unsub())
-  }, [page, user])
+  }, [activeSpace, page, user])
 
   useEffect(() => {
     if (!user?.uid || !data.accounts.length) return
@@ -486,8 +504,8 @@ export default function AppShell({ user }) {
     setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
-    if (page !== 'calendar') setCalendarQuickAddDate('')
-  }, [page])
+    if (activeSpace !== 'takda' || page !== 'calendar') setCalendarQuickAddDate('')
+  }, [activeSpace, page])
 
   useEffect(() => {
     const nextVerified = Boolean(auth.currentUser?.emailVerified || user?.emailVerified)
@@ -500,8 +518,7 @@ export default function AppShell({ user }) {
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
     { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
-    { id: 'lakas', label: 'Lakas', iconKey: 'lakas', section: 'More' },
-    { id: 'history', label: 'History', iconKey: 'history', section: null },
+    { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
     { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: null },
     { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
     { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
@@ -509,25 +526,61 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, lakas: Lakas, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
-  const PageComponent = pages[page] || Dashboard
-  const headerExpLabel = HEADER_EXP_LABELS[page] || ''
+  const financePages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
+  const PageComponent = activeSpace === 'lakas' ? Lakas : financePages[page] || Dashboard
+  const headerExpLabel = activeSpace === 'takda' ? HEADER_EXP_LABELS[page] || '' : ''
+  const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
+  const isCalendarPage = activeSpace === 'takda' && page === 'calendar'
+  const pageBoundaryKey = activeSpace === 'lakas' ? 'lakas' : page
 
-  const bottomNav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'dashboard' },
-    { id: 'calendar', label: 'Calendar', iconKey: 'calendar' },
-    { id: 'savings', label: 'Savings', iconKey: 'savings' },
-    { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
+  const financeBottomNav = [
+    { id: 'dashboard', label: 'Home', iconKey: 'dashboard', space: 'takda' },
+    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', space: 'takda' },
+    { id: 'savings', label: 'Savings', iconKey: 'savings', space: 'takda' },
+    { id: 'accounts', label: 'Accounts', iconKey: 'accounts', space: 'takda' },
   ]
+  const lakasBottomNav = [
+    { id: 'dashboard', label: 'Takda', iconKey: 'dashboard', space: 'takda' },
+    { id: 'lakas', label: 'Lakas', iconKey: 'lakas', space: 'lakas' },
+    { id: 'settings', label: 'Settings', iconKey: 'settings', space: 'takda' },
+  ]
+  const bottomNav = activeSpace === 'lakas' ? lakasBottomNav : financeBottomNav
   const mobileMoreNav = nav
-    .filter(item => ['lakas', 'history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
+    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
     }))
-  const isMorePage = mobileMoreNav.some(item => item.id === page)
+  const isMorePage = activeSpace === 'takda' && mobileMoreNav.some(item => item.id === page)
+  const isBottomNavItemActive = item => (
+    item.space === 'lakas'
+      ? activeSpace === 'lakas'
+      : activeSpace === 'takda' && page === item.id
+  )
 
   const { theme, toggle: toggleTheme } = useTheme()
+
+  function openSpace(nextSpace) {
+    setMobileNavMenuOpen(false)
+    setQuickAddMenuOpen(false)
+    setAskTakdaOpen(false)
+    setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
+    setActiveSpace(nextSpace === 'lakas' ? 'lakas' : 'takda')
+  }
+
+  function navigateToFinancePage(nextPage = 'dashboard') {
+    setActiveSpace('takda')
+    setPage(nextPage || 'dashboard')
+  }
+
+  function handleBottomNavSelect(item) {
+    if (item.space === 'lakas') {
+      openSpace('lakas')
+      return
+    }
+
+    navigateToFinancePage(item.id || 'dashboard')
+  }
 
   async function handleTogglePrivacy() {
     await fsSetProfile(user.uid, { privacyMode: !privacyMode })
@@ -543,6 +596,7 @@ export default function AppShell({ user }) {
   function toggleMobileNavMenu() {
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
+    setActiveSpace('takda')
     setMobileNavMenuOpen(current => !current)
   }
 
@@ -651,13 +705,26 @@ export default function AppShell({ user }) {
 
   function handleNotificationAction(alert) {
     const action = alert?.action || {}
-    if (action.page) setPage(action.page)
+    if (action.page === 'lakas') {
+      openSpace('lakas')
+    } else if (action.page) {
+      navigateToFinancePage(action.page)
+    }
     if (action.type === 'payBill' && action.billId) {
       setBillPaymentTarget({ billId: action.billId, at: Date.now() })
     }
   }
 
-  const quickAddDefaultDate = page === 'calendar' && calendarQuickAddDate ? calendarQuickAddDate : undefined
+  function handleCommandNavigate(nextPage) {
+    if (nextPage === 'lakas') {
+      openSpace('lakas')
+      return
+    }
+
+    navigateToFinancePage(nextPage)
+  }
+
+  const quickAddDefaultDate = isCalendarPage && calendarQuickAddDate ? calendarQuickAddDate : undefined
 
   const pageProps = {
     user,
@@ -680,21 +747,41 @@ export default function AppShell({ user }) {
         : 'Track expense'
 
   return (
-    <div className={`${styles.shell} ${page === 'calendar' ? styles.shellCalendar : ''}`}>
+    <div className={`${styles.shell} ${isCalendarPage ? styles.shellCalendar : ''} ${activeSpace === 'lakas' ? styles.shellLakas : ''}`}>
       <a href="#app-main" className="skipLink">Skip to main content</a>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarTop}>
-          <div className={styles.logo}>Takda</div>
+          <div>
+            <div className={styles.logo}>Takda</div>
+            <div className={styles.logoMeta}>All-in-one tracker</div>
+          </div>
         </div>
-        <nav className={styles.sidebarNav} aria-label="Primary navigation">
+        <div className={styles.spaceSwitcher} role="group" aria-label="Switch app space">
+          {APP_SPACES.map(space => (
+            <button
+              key={space.id}
+              type="button"
+              className={`${styles.spaceButton} ${activeSpace === space.id ? styles.spaceButtonActive : ''}`}
+              onClick={() => openSpace(space.id)}
+              aria-pressed={activeSpace === space.id}
+            >
+              <span className={styles.spaceIcon}>{NAV_ICONS[space.iconKey]}</span>
+              <span className={styles.spaceCopy}>
+                <span className={styles.spaceName}>{space.label}</span>
+                <span className={styles.spaceMeta}>{space.meta}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        <nav className={styles.sidebarNav} aria-label="Finance navigation">
           {nav.map(n => (
             <div key={n.id}>
               {n.section && <div className={styles.navSection}>{n.section}</div>}
               <button
                 type="button"
-                className={`${styles.navItem} ${page === n.id ? styles.active : ''}`}
-                onClick={() => setPage(n.id)}
-                aria-current={page === n.id ? 'page' : undefined}
+                className={`${styles.navItem} ${activeSpace === 'takda' && page === n.id ? styles.active : ''}`}
+                onClick={() => navigateToFinancePage(n.id)}
+                aria-current={activeSpace === 'takda' && page === n.id ? 'page' : undefined}
               >
                 <span className={styles.icon} aria-hidden="true">{NAV_ICONS[n.iconKey]}</span> {n.label}
               </button>
@@ -715,11 +802,29 @@ export default function AppShell({ user }) {
           <button type="button" className={styles.btnLogout} onClick={() => signOut(auth)}>Log out</button>
         </div>
       </aside>
-      <div className={`${styles.mainWrap} ${page === 'calendar' ? styles.mainWrapCalendar : ''}`}>
+      <div className={`${styles.mainWrap} ${isCalendarPage ? styles.mainWrapCalendar : ''}`}>
         <header className={styles.topBar}>
-          <div className={styles.topBarLogo}>Takda</div>
+          <div className={styles.topBarLeft}>
+            <div>
+              <div className={styles.topBarLogo}>{activeSpaceConfig.label}</div>
+              <div className={styles.topBarMeta}>{activeSpaceConfig.meta} space</div>
+            </div>
+            <div className={styles.mobileSpaceSwitch} role="group" aria-label="Switch app space">
+              {APP_SPACES.map(space => (
+                <button
+                  key={space.id}
+                  type="button"
+                  className={`${styles.mobileSpaceButton} ${activeSpace === space.id ? styles.mobileSpaceButtonActive : ''}`}
+                  onClick={() => openSpace(space.id)}
+                  aria-pressed={activeSpace === space.id}
+                >
+                  {space.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className={styles.topBarRight}>
-            {headerExpLabel && gamification && (
+            {activeSpace === 'takda' && headerExpLabel && gamification && (
               <div
                 className={styles.topBarStatus}
                 aria-label={`${headerExpLabel}. Level ${gamification.level}. ${gamification.totalExp} EXP.`}
@@ -752,7 +857,9 @@ export default function AppShell({ user }) {
                 </svg>
               )}
             </button>
-            <NotificationBell data={data} profile={profile} privacyMode={privacyMode} onAction={handleNotificationAction} />
+            {activeSpace === 'takda' && (
+              <NotificationBell data={data} profile={profile} privacyMode={privacyMode} onAction={handleNotificationAction} />
+            )}
           </div>
         </header>
         {syncIssue && (
@@ -826,15 +933,15 @@ export default function AppShell({ user }) {
             </div>
           </div>
         )}
-        <main id="app-main" className={`${styles.main} ${page === 'calendar' ? styles.mainCalendar : ''}`}>
-          <PageErrorBoundary key={page} onRecover={() => setPage('dashboard')}>
+        <main id="app-main" className={`${styles.main} ${isCalendarPage ? styles.mainCalendar : ''}`}>
+          <PageErrorBoundary key={pageBoundaryKey} onRecover={() => navigateToFinancePage('dashboard')}>
             <Suspense fallback={<PageLoading />}>
               <PageComponent {...pageProps} />
             </Suspense>
           </PageErrorBoundary>
         </main>
       </div>
-      {(quickAddMenuOpen || quickAddSheet.open) && (
+      {activeSpace === 'takda' && (quickAddMenuOpen || quickAddSheet.open) && (
         <div
           className={styles.fabBackdrop}
           aria-hidden="true"
@@ -844,43 +951,45 @@ export default function AppShell({ user }) {
           }}
         />
       )}
-      <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
-        {quickAddMenuOpen && (
-          <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
-            <button type="button" className={`${styles.fabAction} ${styles.fabActionAsk}`} onClick={openAskTakda} role="menuitem">
-              <span className={styles.fabActionIcon}>AI</span>
-              <span className={styles.fabActionText}>Ask Takda</span>
-            </button>
-            <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
-              <span className={styles.fabActionIcon}>−</span>
-              <span className={styles.fabActionText}>Expense</span>
-            </button>
-            <button type="button" className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')} role="menuitem">
-              <span className={styles.fabActionIcon}>+</span>
-              <span className={styles.fabActionText}>Income</span>
-            </button>
-            <button type="button" className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport} role="menuitem">
-              <span className={styles.fabActionIcon}>🧾</span>
-              <span className={styles.fabActionText}>Import</span>
-            </button>
-            <button type="button" className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode} role="menuitem">
-              <span className={styles.fabActionIcon}>🛒</span>
-              <span className={styles.fabActionText}>Grocery</span>
-            </button>
-          </div>
-        )}
-        <button
-          className={`${styles.fabButton} ${quickAddMenuOpen ? styles.fabButtonOpen : ''}`}
-          onClick={toggleQuickAddMenu}
-          aria-expanded={quickAddMenuOpen}
-          aria-label="Add transaction"
-          aria-haspopup="menu"
-        >
-          +
-        </button>
-      </div>
+      {activeSpace === 'takda' && (
+        <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
+          {quickAddMenuOpen && (
+            <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
+              <button type="button" className={`${styles.fabAction} ${styles.fabActionAsk}`} onClick={openAskTakda} role="menuitem">
+                <span className={styles.fabActionIcon}>AI</span>
+                <span className={styles.fabActionText}>Ask Takda</span>
+              </button>
+              <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
+                <span className={styles.fabActionIcon}>−</span>
+                <span className={styles.fabActionText}>Expense</span>
+              </button>
+              <button type="button" className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')} role="menuitem">
+                <span className={styles.fabActionIcon}>+</span>
+                <span className={styles.fabActionText}>Income</span>
+              </button>
+              <button type="button" className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport} role="menuitem">
+                <span className={styles.fabActionIcon}>🧾</span>
+                <span className={styles.fabActionText}>Import</span>
+              </button>
+              <button type="button" className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode} role="menuitem">
+                <span className={styles.fabActionIcon}>🛒</span>
+                <span className={styles.fabActionText}>Grocery</span>
+              </button>
+            </div>
+          )}
+          <button
+            className={`${styles.fabButton} ${quickAddMenuOpen ? styles.fabButtonOpen : ''}`}
+            onClick={toggleQuickAddMenu}
+            aria-expanded={quickAddMenuOpen}
+            aria-label="Add transaction"
+            aria-haspopup="menu"
+          >
+            +
+          </button>
+        </div>
+      )}
       <AskTakdaCommand
-        open={askTakdaOpen}
+        open={activeSpace === 'takda' && askTakdaOpen}
         onClose={() => setAskTakdaOpen(false)}
         user={user}
         data={data}
@@ -888,9 +997,9 @@ export default function AppShell({ user }) {
         symbol={symbol}
         privacyMode={privacyMode}
         onOpenReceiptScanner={openQuickImport}
-        onNavigate={setPage}
+        onNavigate={handleCommandNavigate}
       />
-      {quickAddSheet.open && (
+      {activeSpace === 'takda' && quickAddSheet.open && (
         <div className={styles.quickAddLayer}>
           <div
             className={`${styles.quickAddSheet} ${quickAddSheet.mode === 'grocery' ? styles.quickAddSheetWide : ''}`}
@@ -966,12 +1075,12 @@ export default function AppShell({ user }) {
                 <button
                   key={n.id}
                   type="button"
-                  className={`${styles.mobileNavLink} ${page === n.id ? styles.mobileNavLinkActive : ''}`}
+                  className={`${styles.mobileNavLink} ${activeSpace === 'takda' && page === n.id ? styles.mobileNavLinkActive : ''}`}
                   onClick={() => {
-                    setPage(n.id)
+                    navigateToFinancePage(n.id)
                     setMobileNavMenuOpen(false)
                   }}
-                  aria-current={page === n.id ? 'page' : undefined}
+                  aria-current={activeSpace === 'takda' && page === n.id ? 'page' : undefined}
                 >
                   <span className={styles.mobileNavLinkIcon}>{NAV_ICONS[n.iconKey]}</span>
                   <span className={styles.mobileNavLinkCopy}>
@@ -987,12 +1096,19 @@ export default function AppShell({ user }) {
       )}
       <nav className={styles.bottomNav} aria-label="Primary navigation">
         {bottomNav.map(n => (
-          <button key={n.id} type="button" className={`${styles.bottomNavItem} ${page === n.id ? styles.active : ''}`} onClick={() => setPage(n.id)} aria-current={page === n.id ? 'page' : undefined}>
+          <button
+            key={`${n.space}-${n.id}`}
+            type="button"
+            className={`${styles.bottomNavItem} ${isBottomNavItemActive(n) ? styles.active : ''}`}
+            onClick={() => handleBottomNavSelect(n)}
+            aria-current={isBottomNavItemActive(n) ? 'page' : undefined}
+          >
             <span className={styles.bottomNavIcon}>{NAV_ICONS[n.iconKey]}</span>
             <span className={styles.bottomNavLabel}>{n.label}</span>
           </button>
         ))}
-        <button
+        {activeSpace === 'takda' && (
+          <button
           type="button"
           className={`${styles.bottomNavItem} ${(isMorePage || mobileNavMenuOpen) ? styles.active : ''}`}
           onClick={toggleMobileNavMenu}
@@ -1003,6 +1119,7 @@ export default function AppShell({ user }) {
           <span className={styles.bottomNavIcon}>{NAV_ICONS.more}</span>
           <span className={styles.bottomNavLabel}>More</span>
         </button>
+        )}
       </nav>
     </div>
   )

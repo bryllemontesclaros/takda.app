@@ -413,10 +413,10 @@ export async function fsDeleteReceipt(uid, receipt = {}) {
   await deleteDoc(doc(db, 'users', uid, 'receipts', receipt._id))
 }
 
-async function uploadLakasMealPhoto(uid, mealId, blob, fileName = '') {
+async function uploadLakasImage(uid, folder, docId, blob, fileName = '') {
   if (!blob) return null
   const extension = getReceiptExtension(fileName, 'jpg')
-  const path = `users/${uid}/lakas/meals/${mealId}/photo.${extension}`
+  const path = `users/${uid}/lakas/${folder}/${docId}/photo.${extension}`
   const target = storageRef(storage, path)
   await uploadBytes(target, blob, {
     contentType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
@@ -426,13 +426,29 @@ async function uploadLakasMealPhoto(uid, mealId, blob, fileName = '') {
   return { path, url }
 }
 
-async function deleteLakasMealPhoto(path) {
+async function deleteLakasAsset(path) {
   if (!path) return
   try {
     await deleteObject(storageRef(storage, path))
   } catch {
-    // Missing meal photos should not block deleting the meal document.
+    // Missing Lakas photos should not block deleting the Firestore document.
   }
+}
+
+async function uploadLakasMealPhoto(uid, mealId, blob, fileName = '') {
+  return uploadLakasImage(uid, 'meals', mealId, blob, fileName)
+}
+
+async function deleteLakasMealPhoto(path) {
+  return deleteLakasAsset(path)
+}
+
+async function uploadLakasBodyPhoto(uid, bodyLogId, blob, fileName = '') {
+  return uploadLakasImage(uid, 'bodyLogs', bodyLogId, blob, fileName)
+}
+
+async function deleteLakasBodyPhoto(path) {
+  return deleteLakasAsset(path)
 }
 
 export async function fsSaveLakasMeal(uid, payload = {}) {
@@ -468,6 +484,43 @@ export async function fsSaveLakasMeal(uid, payload = {}) {
 export async function fsDeleteLakasMeal(uid, meal = {}) {
   await deleteLakasMealPhoto(meal.photoPath)
   await deleteDoc(doc(db, 'users', uid, 'lakasMeals', meal._id))
+}
+
+export async function fsSaveLakasBodyLog(uid, payload = {}) {
+  const bodyRef = doc(userCol(uid, 'lakasBodyLogs'))
+  const bodyLogId = bodyRef.id
+  let photoUpload = null
+
+  try {
+    photoUpload = await uploadLakasBodyPhoto(uid, bodyLogId, payload.photoBlob, payload.fileName)
+    const bodyDoc = {
+      date: normalizeDate(payload.date) || today(),
+      weight: Number(payload.weight) || 0,
+      height: Number(payload.height) || 0,
+      waist: Number(payload.waist) || 0,
+      chest: Number(payload.chest) || 0,
+      hips: Number(payload.hips) || 0,
+      arm: Number(payload.arm) || 0,
+      thigh: Number(payload.thigh) || 0,
+      bmi: Number(payload.bmi) || 0,
+      notes: payload.notes || '',
+      photoUrl: photoUpload?.url || '',
+      photoPath: photoUpload?.path || '',
+      source: payload.source || 'lakas-body',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    }
+    await setDoc(bodyRef, bodyDoc)
+    return { _id: bodyLogId, ...bodyDoc }
+  } catch (error) {
+    await deleteLakasBodyPhoto(photoUpload?.path)
+    throw error
+  }
+}
+
+export async function fsDeleteLakasBodyLog(uid, bodyLog = {}) {
+  await deleteLakasBodyPhoto(bodyLog.photoPath)
+  await deleteDoc(doc(db, 'users', uid, 'lakasBodyLogs', bodyLog._id))
 }
 
 export function listenCol(uid, col, callback, onError) {
@@ -627,8 +680,12 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
     'receipts',
     'transfers',
     'calendarEvents',
+    'lakasRoutines',
     'lakasWorkouts',
     'lakasBodyLogs',
+    'lakasActivities',
+    'lakasHabits',
+    'lakasReminders',
     'lakasMeals',
     'lakasGoals',
   ]
@@ -636,15 +693,17 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
   if (clearExisting) {
     const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
     const mealsSnapshot = await getDocs(userCol(uid, 'lakasMeals'))
+    const bodySnapshot = await getDocs(userCol(uid, 'lakasBodyLogs'))
     await Promise.all([
       ...receiptsSnapshot.docs.flatMap(snapshot => {
-      const data = snapshot.data() || {}
-      return [
-        deleteReceiptAsset(data.imagePath),
-        deleteReceiptAsset(data.cleanedImagePath),
-      ]
+        const data = snapshot.data() || {}
+        return [
+          deleteReceiptAsset(data.imagePath),
+          deleteReceiptAsset(data.cleanedImagePath),
+        ]
       }),
       ...mealsSnapshot.docs.map(snapshot => deleteLakasMealPhoto((snapshot.data() || {}).photoPath)),
+      ...bodySnapshot.docs.map(snapshot => deleteLakasBodyPhoto((snapshot.data() || {}).photoPath)),
     ])
   }
 
@@ -663,18 +722,20 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
 export async function fsResetFinancialData(uid) {
   const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
   const mealsSnapshot = await getDocs(userCol(uid, 'lakasMeals'))
+  const bodySnapshot = await getDocs(userCol(uid, 'lakasBodyLogs'))
   await Promise.all([
     ...receiptsSnapshot.docs.flatMap(snapshot => {
-    const data = snapshot.data() || {}
-    return [
-      deleteReceiptAsset(data.imagePath),
-      deleteReceiptAsset(data.cleanedImagePath),
-    ]
+      const data = snapshot.data() || {}
+      return [
+        deleteReceiptAsset(data.imagePath),
+        deleteReceiptAsset(data.cleanedImagePath),
+      ]
     }),
     ...mealsSnapshot.docs.map(snapshot => deleteLakasMealPhoto((snapshot.data() || {}).photoPath)),
+    ...bodySnapshot.docs.map(snapshot => deleteLakasBodyPhoto((snapshot.data() || {}).photoPath)),
   ])
 
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts', 'transfers', 'calendarEvents', 'lakasWorkouts', 'lakasBodyLogs', 'lakasMeals', 'lakasGoals']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'receipts', 'transfers', 'calendarEvents', 'lakasRoutines', 'lakasWorkouts', 'lakasBodyLogs', 'lakasActivities', 'lakasHabits', 'lakasReminders', 'lakasMeals', 'lakasGoals']
   for (const col of collections) {
     await fsDeleteCollection(uid, col)
   }
@@ -683,18 +744,20 @@ export async function fsResetFinancialData(uid) {
 export async function fsDeleteAccountData(uid) {
   const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
   const mealsSnapshot = await getDocs(userCol(uid, 'lakasMeals'))
+  const bodySnapshot = await getDocs(userCol(uid, 'lakasBodyLogs'))
   await Promise.all([
     ...receiptsSnapshot.docs.flatMap(snapshot => {
-    const data = snapshot.data() || {}
-    return [
-      deleteReceiptAsset(data.imagePath),
-      deleteReceiptAsset(data.cleanedImagePath),
-    ]
+      const data = snapshot.data() || {}
+      return [
+        deleteReceiptAsset(data.imagePath),
+        deleteReceiptAsset(data.cleanedImagePath),
+      ]
     }),
     ...mealsSnapshot.docs.map(snapshot => deleteLakasMealPhoto((snapshot.data() || {}).photoPath)),
+    ...bodySnapshot.docs.map(snapshot => deleteLakasBodyPhoto((snapshot.data() || {}).photoPath)),
   ])
 
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts', 'transfers', 'calendarEvents', 'lakasWorkouts', 'lakasBodyLogs', 'lakasMeals', 'lakasGoals']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts', 'transfers', 'calendarEvents', 'lakasRoutines', 'lakasWorkouts', 'lakasBodyLogs', 'lakasActivities', 'lakasHabits', 'lakasReminders', 'lakasMeals', 'lakasGoals']
 
   for (const col of collections) {
     await fsDeleteCollection(uid, col)

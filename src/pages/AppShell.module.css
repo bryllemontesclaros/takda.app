@@ -20,6 +20,13 @@
   opacity: 0.75;
 }
 
+.shellLakas::before {
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 24%),
+    radial-gradient(circle at 84% 16%, color-mix(in srgb, var(--blue) 16%, transparent), transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, white 3%, transparent), transparent 22%, color-mix(in srgb, white 2%, transparent) 82%, transparent);
+}
+
 /* SIDEBAR — desktop */
 .sidebar {
   position: relative;
@@ -61,6 +68,101 @@
   color: var(--text);
   letter-spacing: -0.6px;
   text-shadow: 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent);
+}
+
+.logoMeta {
+  margin-top: 2px;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.spaceSwitcher {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 12px;
+}
+
+.spaceButton {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 58px;
+  padding: 10px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 70%, transparent);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  text-align: left;
+  transition:
+    transform var(--motion-duration) var(--motion-ease-out),
+    border-color var(--motion-duration) var(--motion-ease-standard),
+    background var(--motion-duration) var(--motion-ease-standard),
+    color var(--motion-duration) var(--motion-ease-standard),
+    box-shadow var(--motion-duration) var(--motion-ease-standard);
+}
+
+.spaceButton:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--glass-highlight) 32%, var(--glass-border));
+}
+
+.spaceButtonActive {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 15%, var(--glass-1)), color-mix(in srgb, var(--accent) 7%, var(--surface2)));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 52%, transparent),
+    0 14px 28px rgba(4, 10, 20, 0.14);
+}
+
+.spaceIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--glass-1) 84%, var(--surface3) 16%);
+  color: var(--text2);
+}
+
+.spaceButtonActive .spaceIcon {
+  background: color-mix(in srgb, var(--accent) 18%, var(--glass-1));
+  color: var(--accent);
+}
+
+.spaceCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spaceName {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.spaceMeta {
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.65px;
+  text-transform: uppercase;
 }
 
 .sidebarNav {
@@ -283,7 +385,34 @@
   opacity: 0.65;
 }
 
-.topBarLogo { display: none; font-family: var(--font-display); font-size: 20px; color: var(--accent); letter-spacing: -0.5px; margin-right: auto; }
+.topBarLeft { display: none; }
+.topBarLogo { font-family: var(--font-display); font-size: 20px; color: var(--accent); letter-spacing: -0.5px; }
+.topBarMeta {
+  margin-top: 1px;
+  color: var(--text3);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.65px;
+  text-transform: uppercase;
+}
+.mobileSpaceSwitch { display: none; }
+.mobileSpaceButton {
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text3);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 800;
+}
+.mobileSpaceButtonActive {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--glass-border));
+  background: color-mix(in srgb, var(--accent) 15%, var(--glass-1));
+}
 .topBarRight { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 .topBarStatus {
   display: flex;
@@ -883,7 +1012,24 @@
     box-shadow: var(--glass-shadow-soft);
     flex-shrink: 0;
   }
+  .topBarLeft {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    margin-right: auto;
+  }
   .topBarLogo { display: block; }
+  .topBarMeta { display: none; }
+  .mobileSpaceSwitch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+    background: color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  }
   .topBarRight { gap: 6px; flex-wrap: nowrap; }
   .topBarStatus {
     gap: 0;
@@ -1201,5 +1347,15 @@
   .quickAddSheet {
     max-height: calc(100dvh - env(safe-area-inset-top) - 6px);
     padding-top: 10px;
+  }
+}
+
+@media (max-width: 390px) {
+  .topBarLogo {
+    display: none;
+  }
+
+  .mobileSpaceButton {
+    padding-inline: 8px;
   }
 }
