@@ -5,14 +5,14 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '..
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
-  { icon: '💸', title: 'Takda finance space', desc: 'Daily balances, income, expenses, transfers, bills, budgets, savings goals, receipts, grocery trips, reports, and cashflow forecasting.' },
-  { icon: '🏋️', title: 'Lakas fitness space', desc: 'Workout logs, routines, exercises, sets, reps, weight, duration, rest, meals, activity, body progress, habits, reminders, and goals.' },
-  { icon: '🌙', title: 'Tala mind space', desc: 'Daily check-ins, journal entries, mood, energy, stress, sleep quality, tasks, life goals, calendar dots, tags, triggers, and insights.' },
-  { icon: '📅', title: 'Calendars that explain the day', desc: 'Finance uses projected closing balances, Lakas shows training patterns, and Tala maps check-ins, moods, tasks, and goals.' },
-  { icon: '📷', title: 'Photo-assisted capture', desc: 'Scan receipts for expenses and use meal photo logs for food tracking, with review steps before anything becomes saved data.' },
-  { icon: '🎯', title: 'Goals across life areas', desc: 'Track money targets, workout consistency, body progress, habits, personal milestones, and life goals without juggling separate apps.' },
-  { icon: '🔒', title: 'Privacy and control', desc: 'Mask sensitive values, export backups, restore data, delete records, manage notifications, and keep each user under scoped Firebase data.' },
-  { icon: '☁️', title: 'Installable real-time PWA', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive mobile-first screens, service worker caching, and app-like navigation.' },
+  { icon: '💸', title: 'Takda finance space', tone: 'takda', desc: 'Daily balances, income, expenses, transfers, bills, budgets, savings goals, receipts, grocery trips, reports, and cashflow forecasting.' },
+  { icon: '🏋️', title: 'Lakas fitness space', tone: 'lakas', desc: 'Workout logs, routines, exercises, sets, reps, weight, duration, rest, meals, activity, body progress, habits, reminders, and goals.' },
+  { icon: '🌙', title: 'Tala mind space', tone: 'tala', desc: 'Daily check-ins, journal entries, mood, energy, stress, sleep quality, tasks, life goals, calendar dots, tags, triggers, and insights.' },
+  { icon: '📅', title: 'Calendars that explain the day', tone: 'buhay', desc: 'Finance uses projected closing balances, Lakas shows training patterns, and Tala maps check-ins, moods, tasks, and goals.' },
+  { icon: '📷', title: 'Photo-assisted capture', tone: 'lakas', desc: 'Scan receipts for expenses and use meal photo logs for food tracking, with review steps before anything becomes saved data.' },
+  { icon: '🎯', title: 'Goals across life areas', tone: 'tala', desc: 'Track money targets, workout consistency, body progress, habits, personal milestones, and life goals without juggling separate apps.' },
+  { icon: '🔒', title: 'Privacy and control', tone: 'takda', desc: 'Mask sensitive values, export backups, restore data, delete records, manage notifications, and keep each user under scoped Firebase data.' },
+  { icon: '☁️', title: 'Installable real-time PWA', tone: 'buhay', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive mobile-first screens, service worker caching, and app-like navigation.' },
 ]
 
 const USE_CASES = [
@@ -31,20 +31,20 @@ const USE_CASES = [
 ]
 
 const HERO_CELLS = [
-  { day: 'Takda', balance: 'Money', tone: 'healthy' },
-  { day: 'Lakas', balance: 'Fitness', tone: 'expense' },
-  { day: 'Tala', balance: 'Mind', tone: 'tight' },
-  { day: 'Bills', balance: 'Due', tone: 'expense' },
-  { day: 'Meals', balance: 'Photo', tone: 'healthy' },
-  { day: 'Mood', balance: 'Check-in', tone: 'tight' },
-  { day: 'Goals', balance: 'Progress', tone: 'healthy' },
+  { day: 'Takda', balance: 'Money', tone: 'takda' },
+  { day: 'Lakas', balance: 'Fitness', tone: 'lakas' },
+  { day: 'Tala', balance: 'Mind', tone: 'tala' },
+  { day: 'Bills', balance: 'Due', tone: 'takda' },
+  { day: 'Meals', balance: 'Photo', tone: 'lakas' },
+  { day: 'Mood', balance: 'Check-in', tone: 'tala' },
+  { day: 'Goals', balance: 'Progress', tone: 'buhay' },
   { day: 'Today', balance: 'Review', tone: 'selected' },
 ]
 
 const HERO_PROOF = [
-  { label: 'Takda', value: 'Balances, bills, receipts, budgets, savings' },
-  { label: 'Lakas', value: 'Workouts, meals, habits, body, activity' },
-  { label: 'Tala', value: 'Journal, mood, tasks, goals, insights' },
+  { label: 'Takda', tone: 'takda', value: 'Balances, bills, receipts, budgets, savings' },
+  { label: 'Lakas', tone: 'lakas', value: 'Workouts, meals, habits, body, activity' },
+  { label: 'Tala', tone: 'tala', value: 'Journal, mood, tasks, goals, insights' },
 ]
 
 const PRODUCT_TOUR = [
@@ -54,7 +54,7 @@ const PRODUCT_TOUR = [
     desc: 'See daily closing balances, account-linked transactions, recurring bills, receipt proof, grocery trips, budgets, savings goals, reports, and exports in one finance space.',
     stat: '₱47.3K',
     meta: 'Projected balance',
-    tone: 'green',
+    tone: 'takda',
   },
   {
     eyebrow: 'Lakas',
@@ -62,7 +62,7 @@ const PRODUCT_TOUR = [
     desc: 'Build routines, log exercises, sets, reps, weight, duration, rest, activity, habits, reminders, body measurements, progress photos, and meal photo logs.',
     stat: '12',
     meta: 'Workout tools',
-    tone: 'blue',
+    tone: 'lakas',
   },
   {
     eyebrow: 'Tala',
@@ -70,7 +70,7 @@ const PRODUCT_TOUR = [
     desc: 'Track daily check-ins, mood, energy, stress, sleep, gratitude, private journal entries, tags, triggers, tasks, life goals, calendar dots, and insights.',
     stat: '7d',
     meta: 'Journal streak',
-    tone: 'amber',
+    tone: 'tala',
   },
   {
     eyebrow: 'Buhay',
@@ -78,7 +78,7 @@ const PRODUCT_TOUR = [
     desc: 'Buhay keeps account security, privacy mode, notifications, backups, restore, data deletion, legal pages, and PWA navigation consistent across every space.',
     stat: '1',
     meta: 'Secure account',
-    tone: 'purple',
+    tone: 'buhay',
   },
 ]
 
@@ -147,7 +147,7 @@ export default function LandingPage() {
           <div className={styles.heroNote}>Full access. Installable PWA. Real-time sync. Built for phone and desktop.</div>
           <div className={styles.heroProof}>
             {HERO_PROOF.map(item => (
-              <div key={item.label} className={styles.heroProofCard}>
+              <div key={item.label} className={`${styles.heroProofCard} ${styles[`heroProof${item.tone[0].toUpperCase()}${item.tone.slice(1)}`]}`}>
                 <div className={styles.heroProofLabel}>{item.label}</div>
                 <div className={styles.heroProofValue}>{item.value}</div>
               </div>
@@ -276,9 +276,7 @@ export default function LandingPage() {
           {FEATURES.map((f, i) => (
             <div
               key={i}
-              className={`${styles.featureCard} ${
-                i === 2 ? styles.featureCardFeature : i === 0 ? styles.featureCardHighlight : ''
-              }`}
+              className={`${styles.featureCard} ${styles[`featureCard${f.tone[0].toUpperCase()}${f.tone.slice(1)}`]}`}
             >
               <div className={styles.featureIcon}>{f.icon}</div>
               <div className={styles.featureTitle}>{f.title}</div>

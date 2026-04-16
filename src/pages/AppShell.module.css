@@ -6,6 +6,51 @@
   height: 100dvh;
   overflow: hidden;
   padding: 14px;
+  background:
+    radial-gradient(circle at 14% 12%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 30%),
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 32%),
+    radial-gradient(circle at 54% 118%, color-mix(in srgb, var(--purple) 13%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, #ffffff 6%), var(--bg));
+}
+
+.shellLakas {
+  --accent: #fb923c;
+  --accent-dim: #f97316;
+  --accent-glow: rgba(251, 146, 60, 0.18);
+  --blue: #fdba74;
+  --blue-dim: rgba(253, 186, 116, 0.16);
+  --purple: #fed7aa;
+  --purple-dim: rgba(254, 215, 170, 0.15);
+}
+
+.shellTala {
+  --accent: #8b8cff;
+  --accent-dim: #6366f1;
+  --accent-glow: rgba(139, 140, 255, 0.18);
+  --blue: #a5b4fc;
+  --blue-dim: rgba(165, 180, 252, 0.16);
+  --purple: #c4b5fd;
+  --purple-dim: rgba(196, 181, 253, 0.16);
+}
+
+:global([data-theme="light"]) .shellLakas {
+  --accent: #ea580c;
+  --accent-dim: #c2410c;
+  --accent-glow: rgba(234, 88, 12, 0.14);
+  --blue: #f59e0b;
+  --blue-dim: rgba(245, 158, 11, 0.13);
+  --purple: #fb923c;
+  --purple-dim: rgba(251, 146, 60, 0.13);
+}
+
+:global([data-theme="light"]) .shellTala {
+  --accent: #6366f1;
+  --accent-dim: #4f46e5;
+  --accent-glow: rgba(99, 102, 241, 0.14);
+  --blue: #818cf8;
+  --blue-dim: rgba(129, 140, 248, 0.13);
+  --purple: #8b5cf6;
+  --purple-dim: rgba(139, 92, 246, 0.13);
 }
 
 .shell::before {
@@ -29,8 +74,8 @@
 
 .shellTala::before {
   background:
-    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--amber) 16%, transparent), transparent 24%),
-    radial-gradient(circle at 84% 16%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 28%),
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--purple) 15%, transparent), transparent 24%),
+    radial-gradient(circle at 84% 16%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 28%),
     linear-gradient(180deg, color-mix(in srgb, white 3%, transparent), transparent 22%, color-mix(in srgb, white 2%, transparent) 82%, transparent);
 }
 

@@ -133,6 +133,20 @@ const NAV_ICONS = {
       <rect x="14" y="14" width="7" height="7" rx="1.5"/>
     </svg>
   ),
+  finance: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="6" width="18" height="12" rx="3"/>
+      <path d="M16 10h2.5a1.5 1.5 0 0 1 0 3H16a1.5 1.5 0 0 1 0-3Z"/>
+      <path d="M6 9h5"/>
+    </svg>
+  ),
+  home: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 11.5 12 4l8 7.5"/>
+      <path d="M6.5 10.5V20h11v-9.5"/>
+      <path d="M9.5 20v-5h5v5"/>
+    </svg>
+  ),
   calendar: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
@@ -199,6 +213,17 @@ const NAV_ICONS = {
   ),
   lakas: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 4 14h7l-1 8 10-13h-7l0-7Z"/>
+    </svg>
+  ),
+  overview: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12h4l2-6 4 12 2-6h4"/>
+      <path d="M5 20h14"/>
+    </svg>
+  ),
+  workouts: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M4 14V10"/>
       <path d="M8 16V8"/>
       <path d="M16 16V8"/>
@@ -208,10 +233,72 @@ const NAV_ICONS = {
       <path d="M20 12h2"/>
     </svg>
   ),
+  meals: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 3v8"/>
+      <path d="M5 3v4"/>
+      <path d="M9 3v4"/>
+      <path d="M7 11v10"/>
+      <path d="M15 3v18"/>
+      <path d="M15 3c2 1.2 3 3.2 3 6 0 2.4-1 4-3 4"/>
+    </svg>
+  ),
+  activity: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 17.5c2.5-5 4.5-7.5 7-7.5 2 0 3 1.5 5 1.5 1.2 0 2-.5 2.5-1"/>
+      <circle cx="7" cy="6" r="2"/>
+      <path d="M11 22h.01"/>
+      <path d="M16 20h.01"/>
+      <path d="M20 22h.01"/>
+    </svg>
+  ),
+  habits: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 7 9 18l-5-5"/>
+      <path d="M4 6h8"/>
+      <path d="M4 10h5"/>
+    </svg>
+  ),
+  body: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="5" r="2.5"/>
+      <path d="M6 21c.7-4 2.7-6 6-6s5.3 2 6 6"/>
+      <path d="M8 10h8"/>
+      <path d="M9 10v5"/>
+      <path d="M15 10v5"/>
+    </svg>
+  ),
+  goals: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 21V4"/>
+      <path d="M5 5h11l-1.8 3L16 11H5"/>
+      <path d="M12 15l2 2 4-5"/>
+    </svg>
+  ),
+  reminders: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9a6 6 0 0 1 12 0c0 7 2 7 2 9H4c0-2 2-2 2-9"/>
+      <path d="M10 21h4"/>
+      <path d="M12 3V2"/>
+    </svg>
+  ),
   tala: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 3l1.8 4.8L19 9.6l-4.2 3.1.1 5.3L12 15.2 9.1 18l.1-5.3L5 9.6l5.2-1.8L12 3z"/>
       <path d="M4 20h16"/>
+    </svg>
+  ),
+  today: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2"/>
+      <path d="M12 20v2"/>
+      <path d="m4.93 4.93 1.41 1.41"/>
+      <path d="m17.66 17.66 1.41 1.41"/>
+      <path d="M2 12h2"/>
+      <path d="M20 12h2"/>
+      <path d="m6.34 17.66-1.41 1.41"/>
+      <path d="m19.07 4.93-1.41 1.41"/>
     </svg>
   ),
   journal: (
@@ -240,6 +327,14 @@ const NAV_ICONS = {
       <path d="M3 18l1 1 2-2"/>
     </svg>
   ),
+  insights: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19V5"/>
+      <path d="M4 19h16"/>
+      <path d="m7 15 3-4 3 2 5-7"/>
+      <path d="M18 6h2v2"/>
+    </svg>
+  ),
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
@@ -252,7 +347,7 @@ const HEADER_EXP_LABELS = {
 }
 
 const APP_SPACES = [
-  { id: 'takda', label: 'Takda', meta: 'Finance', iconKey: 'dashboard' },
+  { id: 'takda', label: 'Takda', meta: 'Finance', iconKey: 'finance' },
   { id: 'lakas', label: 'Lakas', meta: 'Fitness', iconKey: 'lakas' },
   { id: 'tala', label: 'Tala', meta: 'Mind', iconKey: 'tala' },
 ]
@@ -576,7 +671,7 @@ export default function AppShell({ user }) {
   }, [user])
 
   const nav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'dashboard', section: 'Core' },
+    { id: 'dashboard', label: 'Home', iconKey: 'home', section: 'Core' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
     { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
@@ -588,24 +683,24 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
   const lakasNav = [
-    { id: 'overview', label: 'Overview', iconKey: 'lakas', section: 'Core' },
-    { id: 'workouts', label: 'Workouts', iconKey: 'lakas', section: null },
-    { id: 'meals', label: 'Meals', iconKey: 'receipts', section: null },
-    { id: 'activity', label: 'Activity', iconKey: 'calendar', section: null },
-    { id: 'habits', label: 'Habits', iconKey: 'savings', section: null },
-    { id: 'body', label: 'Body', iconKey: 'accounts', section: 'Progress' },
-    { id: 'goals', label: 'Goals', iconKey: 'budget', section: null },
-    { id: 'reminders', label: 'Reminders', iconKey: 'bills', section: null },
+    { id: 'overview', label: 'Overview', iconKey: 'overview', section: 'Core' },
+    { id: 'workouts', label: 'Workouts', iconKey: 'workouts', section: null },
+    { id: 'meals', label: 'Meals', iconKey: 'meals', section: null },
+    { id: 'activity', label: 'Activity', iconKey: 'activity', section: null },
+    { id: 'habits', label: 'Habits', iconKey: 'habits', section: null },
+    { id: 'body', label: 'Body', iconKey: 'body', section: 'Progress' },
+    { id: 'goals', label: 'Goals', iconKey: 'goals', section: null },
+    { id: 'reminders', label: 'Reminders', iconKey: 'reminders', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const talaNav = [
-    { id: 'today', label: 'Today', iconKey: 'tala', section: 'Core' },
+    { id: 'today', label: 'Today', iconKey: 'today', section: 'Core' },
     { id: 'journal', label: 'Journal', iconKey: 'journal', section: null },
     { id: 'mood', label: 'Mood', iconKey: 'mood', section: null },
     { id: 'tasks', label: 'Tasks', iconKey: 'tasks', section: null },
-    { id: 'goals', label: 'Goals', iconKey: 'budget', section: 'More' },
+    { id: 'goals', label: 'Goals', iconKey: 'goals', section: 'More' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
-    { id: 'insights', label: 'Insights', iconKey: 'breakdown', section: null },
+    { id: 'insights', label: 'Insights', iconKey: 'insights', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
 
@@ -618,19 +713,19 @@ export default function AppShell({ user }) {
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
 
   const financeBottomNav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'dashboard', space: 'takda' },
+    { id: 'dashboard', label: 'Home', iconKey: 'home', space: 'takda' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', space: 'takda' },
     { id: 'savings', label: 'Savings', iconKey: 'savings', space: 'takda' },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', space: 'takda' },
   ]
   const lakasBottomNav = [
-    { id: 'overview', label: 'Home', iconKey: 'lakas', space: 'lakas' },
-    { id: 'workouts', label: 'Workout', iconKey: 'lakas', space: 'lakas' },
-    { id: 'meals', label: 'Meals', iconKey: 'receipts', space: 'lakas' },
-    { id: 'activity', label: 'Activity', iconKey: 'calendar', space: 'lakas' },
+    { id: 'overview', label: 'Home', iconKey: 'overview', space: 'lakas' },
+    { id: 'workouts', label: 'Workout', iconKey: 'workouts', space: 'lakas' },
+    { id: 'meals', label: 'Meals', iconKey: 'meals', space: 'lakas' },
+    { id: 'activity', label: 'Activity', iconKey: 'activity', space: 'lakas' },
   ]
   const talaBottomNav = [
-    { id: 'today', label: 'Today', iconKey: 'tala', space: 'tala' },
+    { id: 'today', label: 'Today', iconKey: 'today', space: 'tala' },
     { id: 'journal', label: 'Journal', iconKey: 'journal', space: 'tala' },
     { id: 'mood', label: 'Mood', iconKey: 'mood', space: 'tala' },
     { id: 'tasks', label: 'Tasks', iconKey: 'tasks', space: 'tala' },

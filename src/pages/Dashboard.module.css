@@ -301,6 +301,10 @@
   font-weight: 700;
   flex-shrink: 0;
 }
+.txIcon svg {
+  width: 14px;
+  height: 14px;
+}
 .txContent {
   flex: 1;
   min-width: 0;

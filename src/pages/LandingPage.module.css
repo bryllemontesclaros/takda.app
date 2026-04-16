@@ -1,16 +1,36 @@
 .page {
+  --takda-accent: #67e2ba;
+  --takda-glow: rgba(103, 226, 186, 0.18);
+  --lakas-accent: #fb923c;
+  --lakas-glow: rgba(251, 146, 60, 0.18);
+  --tala-accent: #8b8cff;
+  --tala-glow: rgba(139, 140, 255, 0.18);
+  --buhay-accent: #c4b5fd;
+  --buhay-glow: rgba(196, 181, 253, 0.16);
   height: 100vh;
   height: 100dvh;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 12%, transparent), transparent 26%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 12%, transparent), transparent 32%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--takda-accent) 13%, transparent), transparent 26%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 13%, transparent), transparent 32%),
+    radial-gradient(circle at 58% 112%, color-mix(in srgb, var(--tala-accent) 16%, transparent), transparent 36%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, #ffffff 8%), var(--bg));
   color: var(--text);
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+}
+
+:global([data-theme="light"]) .page {
+  --takda-accent: #16b88a;
+  --takda-glow: rgba(22, 184, 138, 0.14);
+  --lakas-accent: #ea580c;
+  --lakas-glow: rgba(234, 88, 12, 0.13);
+  --tala-accent: #6366f1;
+  --tala-glow: rgba(99, 102, 241, 0.13);
+  --buhay-accent: #8b5cf6;
+  --buhay-glow: rgba(139, 92, 246, 0.12);
 }
 
 .nav {
@@ -33,7 +53,15 @@
 }
 
 .navBrand { display: flex; flex-direction: column; gap: 2px; }
-.navLogo { font-family: var(--font-display); font-size: 24px; color: var(--accent); letter-spacing: -0.6px; }
+.navLogo {
+  font-family: var(--font-display);
+  font-size: 24px;
+  color: transparent;
+  letter-spacing: -0.6px;
+  background: linear-gradient(90deg, var(--takda-accent), var(--lakas-accent), var(--tala-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 .navTag { font-size: 11px; color: var(--text3); letter-spacing: 0.3px; }
 
 .navActions { display: flex; align-items: center; gap: 10px; }
@@ -125,7 +153,12 @@
   color: var(--text);
 }
 
-.heroAccent { color: color-mix(in srgb, var(--text) 76%, var(--accent) 24%); }
+.heroAccent {
+  color: transparent;
+  background: linear-gradient(90deg, var(--takda-accent), var(--lakas-accent), var(--tala-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 
 .heroSub {
   font-size: clamp(16px, 2vw, 19px);
@@ -162,6 +195,31 @@
   background: color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
 }
 
+.heroProofTakda {
+  border-color: color-mix(in srgb, var(--takda-accent) 32%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--takda-accent) 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
+}
+
+.heroProofLakas {
+  border-color: color-mix(in srgb, var(--lakas-accent) 32%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
+}
+
+.heroProofTala {
+  border-color: color-mix(in srgb, var(--tala-accent) 32%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 92%, #ffffff 8%);
+}
+
+.heroProofTakda .heroProofLabel { color: var(--takda-accent); }
+.heroProofLakas .heroProofLabel { color: var(--lakas-accent); }
+.heroProofTala .heroProofLabel { color: var(--tala-accent); }
+
 .heroProofLabel {
   font-size: 10px;
   color: var(--text3);
@@ -181,9 +239,11 @@
 .heroPanel {
   position: relative;
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 16%, transparent), transparent 36%),
+    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--takda-accent) 14%, transparent), transparent 34%),
+    radial-gradient(circle at 92% 16%, color-mix(in srgb, var(--lakas-accent) 14%, transparent), transparent 34%),
+    radial-gradient(circle at 58% 112%, color-mix(in srgb, var(--tala-accent) 18%, transparent), transparent 40%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
-  border: 1px solid color-mix(in srgb, var(--border) 80%, var(--accent) 20%);
+  border: 1px solid color-mix(in srgb, var(--border) 74%, var(--tala-accent) 26%);
   border-radius: 34px;
   padding: 1.5rem;
   box-shadow: 0 34px 80px rgba(8, 12, 18, 0.18);
@@ -295,6 +355,10 @@
 .heroCellHealthy { background: color-mix(in srgb, var(--accent-glow) 88%, var(--surface) 12%); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
 .heroCellExpense { background: color-mix(in srgb, var(--red-dim) 88%, var(--surface) 12%); color: var(--red); border-color: color-mix(in srgb, var(--red) 28%, var(--border)); }
 .heroCellTight { background: color-mix(in srgb, var(--amber-dim) 88%, var(--surface) 12%); color: var(--amber); border-color: color-mix(in srgb, var(--amber) 28%, var(--border)); }
+.heroCellTakda { background: color-mix(in srgb, var(--takda-glow) 88%, var(--surface) 12%); color: var(--takda-accent); border-color: color-mix(in srgb, var(--takda-accent) 30%, var(--border)); }
+.heroCellLakas { background: color-mix(in srgb, var(--lakas-glow) 88%, var(--surface) 12%); color: var(--lakas-accent); border-color: color-mix(in srgb, var(--lakas-accent) 30%, var(--border)); }
+.heroCellTala { background: color-mix(in srgb, var(--tala-glow) 88%, var(--surface) 12%); color: var(--tala-accent); border-color: color-mix(in srgb, var(--tala-accent) 30%, var(--border)); }
+.heroCellBuhay { background: color-mix(in srgb, var(--buhay-glow) 88%, var(--surface) 12%); color: var(--buhay-accent); border-color: color-mix(in srgb, var(--buhay-accent) 30%, var(--border)); }
 .heroCellSelected { background: color-mix(in srgb, var(--surface2) 88%, #ffffff 12%); color: var(--text); border-color: color-mix(in srgb, var(--text) 16%, var(--border)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 10%, transparent); }
 
 .heroCellTop {
@@ -378,6 +442,27 @@
   background: color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
 }
 
+.heroMetric:nth-child(1) {
+  border-color: color-mix(in srgb, var(--takda-accent) 24%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--takda-accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.heroMetric:nth-child(2) {
+  border-color: color-mix(in srgb, var(--lakas-accent) 24%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.heroMetric:nth-child(3) {
+  border-color: color-mix(in srgb, var(--tala-accent) 24%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
 .heroMetricLabel {
   font-size: 10px;
   color: var(--text3);
@@ -392,6 +477,10 @@
   font-size: 15px;
   font-weight: 700;
 }
+
+.heroMetric:nth-child(1) .heroMetricValue { color: var(--takda-accent); }
+.heroMetric:nth-child(2) .heroMetricValue { color: var(--lakas-accent); }
+.heroMetric:nth-child(3) .heroMetricValue { color: var(--tala-accent); }
 
 .heroInsight {
   margin-top: 1rem;
@@ -478,7 +567,9 @@
   padding: 1.3rem;
   border-radius: 24px;
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--takda-accent) 9%, transparent), transparent 38%),
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--lakas-accent) 8%, transparent), transparent 36%),
+    radial-gradient(circle at 72% 92%, color-mix(in srgb, var(--tala-accent) 9%, transparent), transparent 40%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
 }
@@ -537,6 +628,56 @@
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--purple) 12%, transparent), transparent 38%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.productTourTakda {
+  border-color: color-mix(in srgb, var(--takda-accent) 26%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--takda-accent) 13%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.productTourLakas {
+  border-color: color-mix(in srgb, var(--lakas-accent) 26%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 13%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.productTourTala {
+  border-color: color-mix(in srgb, var(--tala-accent) 26%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 13%, transparent), transparent 38%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.productTourBuhay {
+  border-color: color-mix(in srgb, var(--buhay-accent) 26%, var(--border));
+  background:
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--takda-accent) 8%, transparent), transparent 36%),
+    radial-gradient(circle at 92% 10%, color-mix(in srgb, var(--lakas-accent) 8%, transparent), transparent 36%),
+    radial-gradient(circle at 80% 92%, color-mix(in srgb, var(--tala-accent) 10%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.productTourTakda .productTourEyebrow,
+.productTourTakda .productTourStat strong {
+  color: var(--takda-accent);
+}
+
+.productTourLakas .productTourEyebrow,
+.productTourLakas .productTourStat strong {
+  color: var(--lakas-accent);
+}
+
+.productTourTala .productTourEyebrow,
+.productTourTala .productTourStat strong {
+  color: var(--tala-accent);
+}
+
+.productTourBuhay .productTourEyebrow,
+.productTourBuhay .productTourStat strong {
+  color: var(--buhay-accent);
 }
 
 .productTourTop {
@@ -622,6 +763,36 @@
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
 }
 
+.featureCardTakda {
+  border-color: color-mix(in srgb, var(--takda-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--takda-accent) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.featureCardLakas {
+  border-color: color-mix(in srgb, var(--lakas-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.featureCardTala {
+  border-color: color-mix(in srgb, var(--tala-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 12%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
+.featureCardBuhay {
+  border-color: color-mix(in srgb, var(--buhay-accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at 18% 10%, color-mix(in srgb, var(--takda-accent) 7%, transparent), transparent 34%),
+    radial-gradient(circle at 84% 14%, color-mix(in srgb, var(--lakas-accent) 7%, transparent), transparent 34%),
+    radial-gradient(circle at 76% 92%, color-mix(in srgb, var(--tala-accent) 9%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
+}
+
 .featureIcon { font-size: 26px; margin-bottom: 12px; }
 .featureTitle { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .featureDesc { font-size: 13px; line-height: 1.65; color: var(--text2); }
@@ -694,9 +865,11 @@
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 28px;
-  border: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--tala-accent) 22%, var(--border));
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 16% 12%, color-mix(in srgb, var(--takda-accent) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 84% 14%, color-mix(in srgb, var(--lakas-accent) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 72% 92%, color-mix(in srgb, var(--tala-accent) 12%, transparent), transparent 40%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
   box-shadow: 0 18px 36px rgba(8, 12, 18, 0.08);
 }
@@ -759,7 +932,7 @@
   border-radius: 24px;
   border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 10%, transparent), transparent 36%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 10%, transparent), transparent 36%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
   box-shadow: 0 18px 36px rgba(8, 12, 18, 0.08);
 }
@@ -793,7 +966,9 @@
   border-radius: 32px;
   border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
   background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 18% 16%, color-mix(in srgb, var(--takda-accent) 10%, transparent), transparent 34%),
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--lakas-accent) 11%, transparent), transparent 34%),
+    radial-gradient(circle at 72% 100%, color-mix(in srgb, var(--tala-accent) 13%, transparent), transparent 40%),
     linear-gradient(180deg, color-mix(in srgb, var(--surface) 95%, #ffffff 5%), var(--surface));
   box-shadow: 0 22px 48px rgba(8, 12, 18, 0.08);
 }
@@ -842,7 +1017,14 @@
 }
 
 .footerBrand { display: grid; gap: 4px; }
-.footerLogo { font-family: var(--font-display); font-size: 21px; color: var(--accent); }
+.footerLogo {
+  font-family: var(--font-display);
+  font-size: 21px;
+  color: transparent;
+  background: linear-gradient(90deg, var(--takda-accent), var(--lakas-accent), var(--tala-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
 .footerTagline { font-size: 13px; color: var(--text3); }
 .footerMeta { font-size: 12px; color: var(--text3); line-height: 1.6; }
 .footerLinks { display: flex; gap: 10px; font-size: 13px; color: var(--text3); }

@@ -9,6 +9,115 @@ const TYPE_COLOR = { income: 'var(--accent)', expense: 'var(--red)' }
 const TYPE_SIGN = { income: '+', expense: '−' }
 const TYPE_BG = { income: 'var(--accent-glow)', expense: 'var(--red-dim)' }
 
+function DashboardIcon({ type }) {
+  const common = {
+    width: 16,
+    height: 16,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
+
+  if (type === 'income') {
+    return (
+      <svg {...common}>
+        <path d="M12 19V5"/>
+        <path d="m6 11 6-6 6 6"/>
+      </svg>
+    )
+  }
+
+  if (type === 'salary') {
+    return (
+      <svg {...common}>
+        <rect x="3" y="6" width="18" height="13" rx="3"/>
+        <path d="M7 10h5"/>
+        <path d="M16 14h2"/>
+      </svg>
+    )
+  }
+
+  if (type === 'food') {
+    return (
+      <svg {...common}>
+        <path d="M7 3v8"/>
+        <path d="M5 3v4"/>
+        <path d="M9 3v4"/>
+        <path d="M7 11v10"/>
+        <path d="M15 3v18"/>
+        <path d="M15 3c2 1.2 3 3.2 3 6 0 2.4-1 4-3 4"/>
+      </svg>
+    )
+  }
+
+  if (type === 'transport') {
+    return (
+      <svg {...common}>
+        <path d="M5 16h14l-1.4-5.2A2.4 2.4 0 0 0 15.3 9H8.7a2.4 2.4 0 0 0-2.3 1.8L5 16Z"/>
+        <path d="M7 16v2"/>
+        <path d="M17 16v2"/>
+        <path d="M8 13h.01"/>
+        <path d="M16 13h.01"/>
+      </svg>
+    )
+  }
+
+  if (type === 'bills') {
+    return (
+      <svg {...common}>
+        <path d="M7 3.5h10a2 2 0 0 1 2 2V21l-3-1.8-3 1.8-3-1.8L7 21V5.5a2 2 0 0 1 2-2Z"/>
+        <path d="M10 8h6"/>
+        <path d="M10 12h6"/>
+      </svg>
+    )
+  }
+
+  if (type === 'shopping') {
+    return (
+      <svg {...common}>
+        <path d="M6 8h12l-1 12H7L6 8Z"/>
+        <path d="M9 8a3 3 0 0 1 6 0"/>
+      </svg>
+    )
+  }
+
+  if (type === 'health') {
+    return (
+      <svg {...common}>
+        <path d="M12 5v14"/>
+        <path d="M5 12h14"/>
+        <rect x="4" y="4" width="16" height="16" rx="4"/>
+      </svg>
+    )
+  }
+
+  return (
+    <svg {...common}>
+      <path d="M12 5v14"/>
+      <path d="m18 13-6 6-6-6"/>
+    </svg>
+  )
+}
+
+function getTransactionIconKey(tx = {}) {
+  const text = `${tx.cat || ''} ${tx.subcat || ''} ${tx.desc || ''}`.toLowerCase()
+
+  if (tx.txType === 'income') {
+    return /salary|payroll|freelance|bonus|business/.test(text) ? 'salary' : 'income'
+  }
+
+  if (/food|dining|coffee|restaurant|grocery|groceries|market|supermarket/.test(text)) return 'food'
+  if (/transport|commute|grab|taxi|bus|jeep|fuel|gas|parking/.test(text)) return 'transport'
+  if (/bill|rent|electric|water|internet|mobile|subscription|utilities|loan|installment/.test(text)) return 'bills'
+  if (/shopping|clothes|mall|store|online/.test(text)) return 'shopping'
+  if (/health|medicine|doctor|pharmacy|hospital/.test(text)) return 'health'
+  return 'expense'
+}
+
 function pluralize(count, singular, plural = `${singular}s`) {
   return `${count} ${count === 1 ? singular : plural}`
 }
@@ -333,7 +442,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
             style={{ borderBottom: index < recent.length - 1 ? '1px solid color-mix(in srgb, var(--border) 66%, transparent)' : 'none' }}
           >
             <div className={dStyles.txIcon} style={{ background: TYPE_BG[tx.txType], color: TYPE_COLOR[tx.txType] }}>
-              {TYPE_SIGN[tx.txType]}
+              <DashboardIcon type={getTransactionIconKey(tx)} />
             </div>
             <div className={dStyles.txContent}>
               <div className={dStyles.txDesc}>{tx.desc}</div>
