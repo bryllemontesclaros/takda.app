@@ -226,6 +226,7 @@ function getEmailActionSettings() {
 export default function AppShell({ user }) {
   const [activeSpace, setActiveSpace] = useState('takda')
   const [page, setPage] = useState('dashboard')
+  const [lakasPage, setLakasPage] = useState('overview')
   const [data, setData] = useState({
     income: [],
     expenses: [],
@@ -525,6 +526,16 @@ export default function AppShell({ user }) {
     { id: 'bills', label: 'Bills', iconKey: 'bills', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
+  const lakasNav = [
+    { id: 'overview', label: 'Overview', iconKey: 'lakas', section: 'Core' },
+    { id: 'workouts', label: 'Workouts', iconKey: 'lakas', section: null },
+    { id: 'body', label: 'Body', iconKey: 'accounts', section: null },
+    { id: 'meals', label: 'Meals', iconKey: 'receipts', section: null },
+    { id: 'activity', label: 'Activity', iconKey: 'calendar', section: 'Tracking' },
+    { id: 'habits', label: 'Habits', iconKey: 'savings', section: null },
+    { id: 'goals', label: 'Goals', iconKey: 'budget', section: null },
+    { id: 'reminders', label: 'Reminders', iconKey: 'bills', section: null },
+  ]
 
   const financePages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
   const PageComponent = activeSpace === 'lakas' ? Lakas : financePages[page] || Dashboard
@@ -532,6 +543,7 @@ export default function AppShell({ user }) {
   const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
   const isCalendarPage = activeSpace === 'takda' && page === 'calendar'
   const pageBoundaryKey = activeSpace === 'lakas' ? 'lakas' : page
+  const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : nav
 
   const financeBottomNav = [
     { id: 'dashboard', label: 'Home', iconKey: 'dashboard', space: 'takda' },
@@ -540,21 +552,33 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', space: 'takda' },
   ]
   const lakasBottomNav = [
-    { id: 'dashboard', label: 'Takda', iconKey: 'dashboard', space: 'takda' },
-    { id: 'lakas', label: 'Lakas', iconKey: 'lakas', space: 'lakas' },
-    { id: 'settings', label: 'Settings', iconKey: 'settings', space: 'takda' },
+    { id: 'overview', label: 'Home', iconKey: 'lakas', space: 'lakas' },
+    { id: 'workouts', label: 'Workout', iconKey: 'lakas', space: 'lakas' },
+    { id: 'body', label: 'Body', iconKey: 'accounts', space: 'lakas' },
+    { id: 'meals', label: 'Meals', iconKey: 'receipts', space: 'lakas' },
   ]
   const bottomNav = activeSpace === 'lakas' ? lakasBottomNav : financeBottomNav
-  const mobileMoreNav = nav
+  const financeMoreNav = nav
     .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
+      space: 'takda',
     }))
-  const isMorePage = activeSpace === 'takda' && mobileMoreNav.some(item => item.id === page)
+  const lakasMoreNav = lakasNav
+    .filter(item => ['activity', 'habits', 'goals', 'reminders'].includes(item.id))
+    .map(item => ({ ...item, space: 'lakas' }))
+  const mobileMoreNav = activeSpace === 'lakas' ? lakasMoreNav : financeMoreNav
+  const mobileMoreTitle = activeSpace === 'lakas' ? 'More Lakas' : 'More'
+  const mobileMoreMeta = activeSpace === 'lakas'
+    ? 'Open activity, habits, goals, and reminders.'
+    : 'Open the rest of your tools here.'
+  const isMorePage = activeSpace === 'lakas'
+    ? lakasMoreNav.some(item => item.id === lakasPage)
+    : financeMoreNav.some(item => item.id === page)
   const isBottomNavItemActive = item => (
     item.space === 'lakas'
-      ? activeSpace === 'lakas'
+      ? activeSpace === 'lakas' && lakasPage === item.id
       : activeSpace === 'takda' && page === item.id
   )
 
@@ -576,6 +600,7 @@ export default function AppShell({ user }) {
   function handleBottomNavSelect(item) {
     if (item.space === 'lakas') {
       openSpace('lakas')
+      setLakasPage(item.id || 'overview')
       return
     }
 
@@ -596,7 +621,6 @@ export default function AppShell({ user }) {
   function toggleMobileNavMenu() {
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
-    setActiveSpace('takda')
     setMobileNavMenuOpen(current => !current)
   }
 
@@ -718,6 +742,7 @@ export default function AppShell({ user }) {
   function handleCommandNavigate(nextPage) {
     if (nextPage === 'lakas') {
       openSpace('lakas')
+      setLakasPage('overview')
       return
     }
 
@@ -734,6 +759,7 @@ export default function AppShell({ user }) {
     privacyMode,
     gamification,
     billPaymentTarget,
+    activeTab: lakasPage,
     onTogglePrivacy: handleTogglePrivacy,
     onSelectedDateChange: setCalendarQuickAddDate,
   }
@@ -773,15 +799,21 @@ export default function AppShell({ user }) {
             </button>
           ))}
         </div>
-        <nav className={styles.sidebarNav} aria-label="Finance navigation">
-          {nav.map(n => (
+        <nav className={styles.sidebarNav} aria-label={activeSpace === 'lakas' ? 'Lakas navigation' : 'Finance navigation'}>
+          {currentSidebarNav.map(n => (
             <div key={n.id}>
               {n.section && <div className={styles.navSection}>{n.section}</div>}
               <button
                 type="button"
-                className={`${styles.navItem} ${activeSpace === 'takda' && page === n.id ? styles.active : ''}`}
-                onClick={() => navigateToFinancePage(n.id)}
-                aria-current={activeSpace === 'takda' && page === n.id ? 'page' : undefined}
+                className={`${styles.navItem} ${activeSpace === 'lakas' ? lakasPage === n.id ? styles.active : '' : page === n.id ? styles.active : ''}`}
+                onClick={() => {
+                  if (activeSpace === 'lakas') {
+                    setLakasPage(n.id)
+                    return
+                  }
+                  navigateToFinancePage(n.id)
+                }}
+                aria-current={activeSpace === 'lakas' ? lakasPage === n.id ? 'page' : undefined : page === n.id ? 'page' : undefined}
               >
                 <span className={styles.icon} aria-hidden="true">{NAV_ICONS[n.iconKey]}</span> {n.label}
               </button>
@@ -1058,8 +1090,8 @@ export default function AppShell({ user }) {
             <div className={styles.mobileNavSheetHandle} aria-hidden="true" />
             <div className={styles.mobileNavSheetHeader}>
               <div>
-                <div className={styles.mobileNavSheetTitle} id="mobile-more-title">More</div>
-                <div className={styles.mobileNavSheetMeta}>Open the rest of your tools here.</div>
+                <div className={styles.mobileNavSheetTitle} id="mobile-more-title">{mobileMoreTitle}</div>
+                <div className={styles.mobileNavSheetMeta}>{mobileMoreMeta}</div>
               </div>
               <button
                 type="button"
@@ -1075,12 +1107,17 @@ export default function AppShell({ user }) {
                 <button
                   key={n.id}
                   type="button"
-                  className={`${styles.mobileNavLink} ${activeSpace === 'takda' && page === n.id ? styles.mobileNavLinkActive : ''}`}
+                  className={`${styles.mobileNavLink} ${n.space === 'lakas' ? lakasPage === n.id ? styles.mobileNavLinkActive : '' : page === n.id ? styles.mobileNavLinkActive : ''}`}
                   onClick={() => {
-                    navigateToFinancePage(n.id)
+                    if (n.space === 'lakas') {
+                      openSpace('lakas')
+                      setLakasPage(n.id)
+                    } else {
+                      navigateToFinancePage(n.id)
+                    }
                     setMobileNavMenuOpen(false)
                   }}
-                  aria-current={activeSpace === 'takda' && page === n.id ? 'page' : undefined}
+                  aria-current={n.space === 'lakas' ? lakasPage === n.id ? 'page' : undefined : page === n.id ? 'page' : undefined}
                 >
                   <span className={styles.mobileNavLinkIcon}>{NAV_ICONS[n.iconKey]}</span>
                   <span className={styles.mobileNavLinkCopy}>
@@ -1107,7 +1144,7 @@ export default function AppShell({ user }) {
             <span className={styles.bottomNavLabel}>{n.label}</span>
           </button>
         ))}
-        {activeSpace === 'takda' && (
+        {!!mobileMoreNav.length && (
           <button
           type="button"
           className={`${styles.bottomNavItem} ${(isMorePage || mobileNavMenuOpen) ? styles.active : ''}`}

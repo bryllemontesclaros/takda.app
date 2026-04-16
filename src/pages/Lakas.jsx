@@ -454,7 +454,7 @@ function MiniBarChart({ title, rows, unit = '', hidden = false }) {
   )
 }
 
-export default function Lakas({ user, data = {}, privacyMode = false }) {
+export default function Lakas({ user, data = {}, privacyMode = false, activeTab = 'overview' }) {
   const [routineForm, setRoutineForm] = useState(createRoutineForm)
   const [workoutForm, setWorkoutForm] = useState(createWorkoutForm)
   const [mealForm, setMealForm] = useState(createMealForm)
@@ -919,6 +919,15 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
 
   const latestBmiLabel = getBmiLabel(insights.latestBmi)
   const upcomingReminders = reminders.filter(row => row.enabled !== false).slice(0, 5)
+  const currentTab = activeTab || 'overview'
+  const showOverview = currentTab === 'overview'
+  const showWorkouts = currentTab === 'workouts'
+  const showActivity = currentTab === 'activity'
+  const showBody = currentTab === 'body'
+  const showMeals = currentTab === 'meals'
+  const showHabits = currentTab === 'habits'
+  const showGoals = currentTab === 'goals'
+  const showReminders = currentTab === 'reminders'
 
   return (
     <div className={`${styles.page} ${lStyles.page}`}>
@@ -962,7 +971,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
         </div>
       </div>
 
+      {(showOverview || showReminders) && (
       <div className={lStyles.insightGrid}>
+        {showOverview && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -987,7 +998,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             ))}
           </div>
         </section>
+        )}
 
+        {showOverview && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1002,7 +1015,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             <MiniBarChart title="Weight trend" rows={insights.weightTrend.length ? insights.weightTrend : [{ key: 'empty', label: '--', value: 0 }]} unit="kg" hidden={privacyMode} />
           </div>
         </section>
+        )}
 
+        {showOverview && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1040,7 +1055,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             <span><i className={lStyles.dotHabit} /> Habit</span>
           </div>
         </section>
+        )}
 
+        {(showOverview || showReminders) && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1097,9 +1114,13 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             ))}
           </div>
         </section>
+        )}
       </div>
+      )}
 
+      {(showWorkouts || showActivity || showHabits) && (
       <div className={lStyles.grid}>
+        {showWorkouts && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1192,7 +1213,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
           {renderExerciseEditor(workoutForm.exercises, setWorkoutForm, 'Workout exercises')}
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddWorkout}>Save workout</button>
         </section>
+        )}
 
+        {showActivity && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1238,7 +1261,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
           </div>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddActivity}>Save activity</button>
         </section>
+        )}
 
+        {showHabits && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1268,9 +1293,13 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
           </div>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddHabit}>Save check-in</button>
         </section>
+        )}
       </div>
+      )}
 
+      {(showBody || showGoals) && (
       <div className={lStyles.grid}>
+        {showBody && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1331,7 +1360,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             {savingBody ? 'Saving body log...' : 'Save body log'}
           </button>
         </section>
+        )}
 
+        {showGoals && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1365,8 +1396,11 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
           </div>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddGoal}>Save goal</button>
         </section>
+        )}
       </div>
+      )}
 
+      {showMeals && (
       <div className={lStyles.grid}>
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
@@ -1434,8 +1468,11 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
           </button>
         </section>
       </div>
+      )}
 
+      {(showWorkouts || showActivity || showMeals || showBody || showHabits || showGoals) && (
       <div className={lStyles.timelineGrid}>
+        {showWorkouts && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1459,7 +1496,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             </div>
           ))}
         </section>
+        )}
 
+        {showActivity && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1478,7 +1517,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             </div>
           ))}
         </section>
+        )}
 
+        {showMeals && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1498,7 +1539,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             </div>
           ))}
         </section>
+        )}
 
+        {showBody && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1518,7 +1561,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             </div>
           ))}
         </section>
+        )}
 
+        {showHabits && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1537,7 +1582,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             </div>
           ))}
         </section>
+        )}
 
+        {showGoals && (
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1567,7 +1614,9 @@ export default function Lakas({ user, data = {}, privacyMode = false }) {
             )
           })}
         </section>
+        )}
       </div>
+      )}
     </div>
   )
 }
