@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Component, Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { sendEmailVerification, signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { fsSetProfile, fsSyncDueLinkedTransactions, listenCol, listenProfile } from '../lib/firestore'
@@ -27,6 +27,84 @@ import {
 import { useTheme } from '../lib/theme.jsx'
 import NotificationBell from '../components/NotificationBell'
 import styles from './AppShell.module.css'
+
+const Lakas = lazy(() => import('./Lakas'))
+
+const LAKAS_COLLECTIONS = ['lakasWorkouts', 'lakasBodyLogs', 'lakasMeals', 'lakasGoals']
+
+class PageErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error, info) {
+    console.error('Takda page failed to render', error, info)
+  }
+
+  render() {
+    if (!this.state.hasError) return this.props.children
+
+    return (
+      <div
+        role="alert"
+        style={{
+          border: '1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border))',
+          borderRadius: 28,
+          background: 'linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 78%, var(--surface) 22%), color-mix(in srgb, var(--surface) 92%, transparent 8%))',
+          boxShadow: 'var(--glass-shadow-soft)',
+          color: 'var(--text)',
+          padding: 24,
+        }}
+      >
+        <div style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 800, letterSpacing: 0.9, textTransform: 'uppercase' }}>Page recovered</div>
+        <h2 style={{ margin: '8px 0 8px', fontFamily: 'var(--font-display)', fontSize: 34, letterSpacing: '-0.05em', lineHeight: 1 }}>This page hit a display issue.</h2>
+        <p style={{ margin: 0, color: 'var(--text2)', maxWidth: 560, lineHeight: 1.55 }}>
+          Takda is still running. Go back Home, then try opening the page again.
+        </p>
+        <button
+          type="button"
+          onClick={this.props.onRecover}
+          style={{
+            marginTop: 18,
+            minHeight: 44,
+            border: '1px solid color-mix(in srgb, var(--accent) 38%, var(--glass-border))',
+            borderRadius: 16,
+            background: 'color-mix(in srgb, var(--accent) 18%, var(--glass-1))',
+            color: 'var(--text)',
+            cursor: 'pointer',
+            fontFamily: 'var(--font-body)',
+            fontWeight: 800,
+            padding: '10px 16px',
+          }}
+        >
+          Back to Home
+        </button>
+      </div>
+    )
+  }
+}
+
+function PageLoading() {
+  return (
+    <div
+      role="status"
+      style={{
+        border: '1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border))',
+        borderRadius: 28,
+        background: 'color-mix(in srgb, var(--glass-1) 76%, var(--surface) 24%)',
+        color: 'var(--text2)',
+        padding: 24,
+      }}
+    >
+      Opening page...
+    </div>
+  )
+}
 
 const NAV_ICONS = {
   dashboard: (
@@ -101,12 +179,24 @@ const NAV_ICONS = {
       <path d="M12 8v4l2.5 2.5"/>
     </svg>
   ),
+  lakas: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 14V10"/>
+      <path d="M8 16V8"/>
+      <path d="M16 16V8"/>
+      <path d="M20 14V10"/>
+      <path d="M8 12h8"/>
+      <path d="M2 12h2"/>
+      <path d="M20 12h2"/>
+    </svg>
+  ),
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
 const HEADER_EXP_LABELS = {
   dashboard: 'Money momentum',
   calendar: 'Tracking habit',
+  lakas: 'Body rhythm',
   breakdown: 'Trend view',
   accounts: 'Balance view',
   bills: 'Payment habit',
@@ -131,6 +221,10 @@ export default function AppShell({ user }) {
     budgets: [],
     receipts: [],
     transfers: [],
+    lakasWorkouts: [],
+    lakasBodyLogs: [],
+    lakasMeals: [],
+    lakasGoals: [],
   })
   const [profile, setProfile] = useState({})
   const [gamificationReady, setGamificationReady] = useState(false)
@@ -212,7 +306,9 @@ export default function AppShell({ user }) {
 
   function handleRealtimeError(key, error) {
     console.error(`Takda sync failed for ${key}`, error)
-    markLoaded(key)
+    if (Object.prototype.hasOwnProperty.call(loadFlagsRef.current, key)) {
+      markLoaded(key)
+    }
     setSyncIssue({
       title: 'Sync needs a refresh',
       message: 'Some of your data could not update in real time. Check your connection, then refresh Takda.',
@@ -275,6 +371,19 @@ export default function AppShell({ user }) {
     ]
     return () => unsubs.forEach(u => u())
   }, [user])
+
+  useEffect(() => {
+    if (!user || page !== 'lakas') return undefined
+
+    const uid = user.uid
+    const unsubs = LAKAS_COLLECTIONS.map(collectionName => (
+      listenCol(uid, collectionName, rows => {
+        setData(d => ({ ...d, [collectionName]: rows }))
+      }, error => handleRealtimeError(collectionName, error))
+    ))
+
+    return () => unsubs.forEach(unsub => unsub())
+  }, [page, user])
 
   useEffect(() => {
     if (!user?.uid || !data.accounts.length) return
@@ -391,7 +500,8 @@ export default function AppShell({ user }) {
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
     { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
-    { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
+    { id: 'lakas', label: 'Lakas', iconKey: 'lakas', section: 'More' },
+    { id: 'history', label: 'History', iconKey: 'history', section: null },
     { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: null },
     { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
     { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
@@ -399,7 +509,7 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
 
-  const pages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
+  const pages = { dashboard: Dashboard, calendar: Calendar, lakas: Lakas, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
   const PageComponent = pages[page] || Dashboard
   const headerExpLabel = HEADER_EXP_LABELS[page] || ''
 
@@ -410,7 +520,7 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts' },
   ]
   const mobileMoreNav = nav
-    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
+    .filter(item => ['lakas', 'history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
@@ -717,7 +827,11 @@ export default function AppShell({ user }) {
           </div>
         )}
         <main id="app-main" className={`${styles.main} ${page === 'calendar' ? styles.mainCalendar : ''}`}>
-          <PageComponent {...pageProps} />
+          <PageErrorBoundary key={page} onRecover={() => setPage('dashboard')}>
+            <Suspense fallback={<PageLoading />}>
+              <PageComponent {...pageProps} />
+            </Suspense>
+          </PageErrorBoundary>
         </main>
       </div>
       {(quickAddMenuOpen || quickAddSheet.open) && (
