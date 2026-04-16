@@ -688,6 +688,11 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
     'lakasReminders',
     'lakasMeals',
     'lakasGoals',
+    'talaCheckins',
+    'talaJournal',
+    'talaMoods',
+    'talaTasks',
+    'talaGoals',
   ]
 
   if (clearExisting) {

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
-  <title id="title">Takda</title>
-  <desc id="desc">Calendar-first money tracker for Filipinos</desc>
+  <title id="title">Buhay</title>
+  <desc id="desc">All-in-one life tracker for Filipinos</desc>
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#f8faf9" />
@@ -16,21 +16,21 @@
   <rect width="1200" height="630" fill="url(#glow)" rx="40" />
 
   <g transform="translate(82 88)">
-    <text x="0" y="0" fill="#16a34a" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700">Takda</text>
-    <text x="0" y="56" fill="#6d7196" font-family="Outfit, Arial, sans-serif" font-size="26" font-weight="600">Calendar-first money tracker for Filipinos</text>
+    <text x="0" y="0" fill="#16a34a" font-family="Georgia, 'Times New Roman', serif" font-size="64" font-weight="700">Buhay</text>
+    <text x="0" y="56" fill="#6d7196" font-family="Outfit, Arial, sans-serif" font-size="26" font-weight="600">Finance, fitness, mind, and daily life</text>
 
     <text x="0" y="170" fill="#0f1222" font-family="Georgia, 'Times New Roman', serif" font-size="74" font-weight="700">
-      See your month
+      Track your life
     </text>
     <text x="0" y="248" fill="#0f1222" font-family="Georgia, 'Times New Roman', serif" font-size="74" font-weight="700">
-      before it surprises you.
+      without losing the plot.
     </text>
 
     <text x="0" y="336" fill="#50557a" font-family="Outfit, Arial, sans-serif" font-size="32">
-      Daily closing balances, quick logging, imports,
+      Takda for money, Lakas for fitness,
     </text>
     <text x="0" y="380" fill="#50557a" font-family="Outfit, Arial, sans-serif" font-size="32">
-      bills, budgets, and goals in one calm view.
+      Tala for mind and life admin.
     </text>
   </g>
 

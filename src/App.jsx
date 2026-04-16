@@ -72,7 +72,7 @@ function AuthRoute() {
 
   if (!ready || (user && !flashReady)) return <PageLoader />
   if (user && isNew) return <Onboarding user={user} notice={authFlash?.message || ''} onDone={() => navigate('/app', { replace: true })} />
-  if (user) return <PageLoader title={authFlash?.title || 'Takda'} message={authFlash?.message || 'Opening your account...'} />
+  if (user) return <PageLoader title={authFlash?.title || 'Buhay'} message={authFlash?.message || 'Opening your account...'} />
   return <AuthScreen />
 }
 

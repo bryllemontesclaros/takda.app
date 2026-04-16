@@ -5,98 +5,99 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '..
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
-  { icon: '📅', title: 'Calendar-first money tracking', desc: 'See income, expenses, and projected closing balance directly on each day of the month.' },
-  { icon: '🏦', title: 'Account-linked balances', desc: 'Connect entries to cash, bank, e-wallet, credit card, investment, or other accounts so balances stay honest.' },
-  { icon: '🧾', title: 'Receipt box with OCR assist', desc: 'Scan receipts, clean the image, review merchant/date/total/line items, then save the receipt and images.' },
-  { icon: '🛒', title: 'Grocery mode', desc: 'Build a grocery trip from price tags or manual items, then save one clean expense with item details.' },
-  { icon: '🎯', title: 'Budgets, bills, and savings goals', desc: 'Plan category limits, recurring commitments, target dates, and contributions in the same monthly system.' },
-  { icon: '📊', title: 'Breakdown, history, and reports', desc: 'Search transactions, compare months, inspect categories, export data, and print monthly summaries.' },
-  { icon: '🔒', title: 'Privacy mode everywhere', desc: 'Mask sensitive money values across dashboard, calendar, accounts, reports, receipts, and charts.' },
-  { icon: '☁️', title: 'Realtime sync as a PWA', desc: 'Use it on phone or desktop with Firebase sync and installable web-app behavior.' },
+  { icon: '💸', title: 'Takda finance space', desc: 'Daily balances, income, expenses, transfers, bills, budgets, savings goals, receipts, grocery trips, reports, and cashflow forecasting.' },
+  { icon: '🏋️', title: 'Lakas fitness space', desc: 'Workout logs, routines, exercises, sets, reps, weight, duration, rest, meals, activity, body progress, habits, reminders, and goals.' },
+  { icon: '🌙', title: 'Tala mind space', desc: 'Daily check-ins, journal entries, mood, energy, stress, sleep quality, tasks, life goals, calendar dots, tags, triggers, and insights.' },
+  { icon: '📅', title: 'Calendars that explain the day', desc: 'Finance uses projected closing balances, Lakas shows training patterns, and Tala maps check-ins, moods, tasks, and goals.' },
+  { icon: '📷', title: 'Photo-assisted capture', desc: 'Scan receipts for expenses and use meal photo logs for food tracking, with review steps before anything becomes saved data.' },
+  { icon: '🎯', title: 'Goals across life areas', desc: 'Track money targets, workout consistency, body progress, habits, personal milestones, and life goals without juggling separate apps.' },
+  { icon: '🔒', title: 'Privacy and control', desc: 'Mask sensitive values, export backups, restore data, delete records, manage notifications, and keep each user under scoped Firebase data.' },
+  { icon: '☁️', title: 'Installable real-time PWA', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive mobile-first screens, service worker caching, and app-like navigation.' },
 ]
 
 const USE_CASES = [
   {
-    title: 'Know the day your month gets tight',
-    desc: 'The calendar shows projected daily closing balances, so you can adjust before a bill or spending day catches you off guard.',
+    title: 'One account for the things people actually track',
+    desc: 'Money, workouts, meals, body progress, moods, journal entries, tasks, goals, reminders, and backups live in one signed-in app.',
   },
   {
-    title: 'Log fast without messy data',
-    desc: 'Quick add, receipt import, wallet screenshots, and grocery mode all end in the same reviewed transaction flow.',
+    title: 'Separate spaces, not a messy mega-tab',
+    desc: 'Takda, Lakas, and Tala each keep focused tabs and data while Buhay gives them shared navigation, settings, privacy, and sync.',
   },
   {
-    title: 'Keep the whole money picture together',
-    desc: 'Accounts, budgets, bills, receipts, savings goals, and reports all point back to one monthly picture.',
+    title: 'Capture fast, review before saving',
+    desc: 'Quick finance entries, receipt scans, grocery trips, meal photos, workouts, habits, moods, and notes all stay editable and user-reviewed.',
   },
 ]
 
 const HERO_CELLS = [
-  { day: '15', balance: '42,860', tone: 'healthy' },
-  { day: '16', balance: '41,520', tone: 'expense' },
-  { day: '17', balance: '41,520', tone: 'healthy' },
-  { day: '18', balance: '38,940', tone: 'tight' },
-  { day: '19', balance: '52,940', tone: 'healthy' },
-  { day: '20', balance: '50,710', tone: 'expense' },
-  { day: '21', balance: '47,300', tone: 'expense' },
-  { day: '22', balance: '47,300', tone: 'selected' },
+  { day: 'Takda', balance: 'Money', tone: 'healthy' },
+  { day: 'Lakas', balance: 'Fitness', tone: 'expense' },
+  { day: 'Tala', balance: 'Mind', tone: 'tight' },
+  { day: 'Bills', balance: 'Due', tone: 'expense' },
+  { day: 'Meals', balance: 'Photo', tone: 'healthy' },
+  { day: 'Mood', balance: 'Check-in', tone: 'tight' },
+  { day: 'Goals', balance: 'Progress', tone: 'healthy' },
+  { day: 'Today', balance: 'Review', tone: 'selected' },
 ]
 
 const HERO_PROOF = [
-  { label: 'Main view', value: 'Home, Calendar, Accounts, Savings' },
-  { label: 'Smart capture', value: 'Receipts, wallet screenshots, grocery trips' },
-  { label: 'Control layer', value: 'Budgets, reports, privacy, backups' },
+  { label: 'Takda', value: 'Balances, bills, receipts, budgets, savings' },
+  { label: 'Lakas', value: 'Workouts, meals, habits, body, activity' },
+  { label: 'Tala', value: 'Journal, mood, tasks, goals, insights' },
 ]
 
 const PRODUCT_TOUR = [
   {
-    eyebrow: 'Home',
-    title: 'Your month at a glance',
-    desc: 'Balance, net flow, budget health, savings progress, recent activity, and EXP all sit on the dashboard.',
+    eyebrow: 'Takda',
+    title: 'Finance that starts with the calendar',
+    desc: 'See daily closing balances, account-linked transactions, recurring bills, receipt proof, grocery trips, budgets, savings goals, reports, and exports in one finance space.',
     stat: '₱47.3K',
     meta: 'Projected balance',
     tone: 'green',
   },
   {
-    eyebrow: 'Calendar',
-    title: 'Tap a day, see the closing balance',
-    desc: 'Daily income, expenses, account movement, and manual balance overrides stay tied to the date they affect.',
-    stat: 'Apr 22',
-    meta: 'Selected day',
+    eyebrow: 'Lakas',
+    title: 'Fitness logging with routines and meals',
+    desc: 'Build routines, log exercises, sets, reps, weight, duration, rest, activity, habits, reminders, body measurements, progress photos, and meal photo logs.',
+    stat: '12',
+    meta: 'Workout tools',
     tone: 'blue',
   },
   {
-    eyebrow: 'Receipts',
-    title: 'Scan, review, save proof',
-    desc: 'Receipt photos are cleaned, optionally OCR-read, reviewed by the user, then saved with image and line-item data.',
-    stat: '24',
-    meta: 'Receipts saved',
+    eyebrow: 'Tala',
+    title: 'Mind, journal, and life admin',
+    desc: 'Track daily check-ins, mood, energy, stress, sleep, gratitude, private journal entries, tags, triggers, tasks, life goals, calendar dots, and insights.',
+    stat: '7d',
+    meta: 'Journal streak',
     tone: 'amber',
   },
   {
-    eyebrow: 'Accounts',
-    title: 'Balances stay connected',
-    desc: 'Cash, bank, e-wallet, credit card, investments, and other accounts update from linked transactions.',
-    stat: '6',
-    meta: 'Account types',
+    eyebrow: 'Buhay',
+    title: 'Shared safety and app controls',
+    desc: 'Buhay keeps account security, privacy mode, notifications, backups, restore, data deletion, legal pages, and PWA navigation consistent across every space.',
+    stat: '1',
+    meta: 'Secure account',
     tone: 'purple',
   },
 ]
 
 const INCLUDED_TOOLS = [
-  'Home dashboard with balance, net flow, budget health, savings, and recent activity',
-  'Calendar forecast with daily closing balances and date/month/year jump',
-  'Income and expense tracking with categories, subcategories, recurrence, and account links',
-  'Accounts for cash, bank, e-wallet, credit card, investment, and other balances',
-  'Receipt scanner, editable receipt review, receipt box, thumbnails, filters, and analytics',
-  'Grocery mode for price-tag scanning and one-trip expense saving',
-  'Savings goals with target date, contribution updates, and progress summaries',
-  'Budgets, spending breakdowns, searchable history, exports, restores, and printable reports',
+  'Takda home dashboard with balance, net flow, budget health, savings progress, recent activity, EXP, and privacy masking',
+  'Takda calendar forecast with daily closing balances, selected-day details, date/month/year jump, and account-linked entries',
+  'Income, expense, transfer, bill payment, overdue bill, budget, savings, receipt, grocery, history, breakdown, and report tools',
+  'OCR-assisted receipt scanner with image cleanup, editable review, receipt box, thumbnails, merchant/category summaries, and expense saving',
+  'Lakas workouts with routines/plans, exercises, sets, reps, weight, duration, rest time, notes, records, and workout calendar patterns',
+  'Lakas meals with photo meal logs, activity, steps/cardio, body weight, measurements, progress photos, habits, reminders, and fitness goals',
+  'Tala daily check-ins with mood, energy, stress, sleep quality, gratitude, reflection, journal privacy, tags, and triggers',
+  'Tala tasks, life goals, calendar dots, insights, streaks, mood trends, data export, and Tala-only reset controls',
+  'Whole-app email/password auth, onboarding, settings, feedback, notifications, legal pages, backup/restore, account deletion, and PWA install support',
 ]
 
 const PRIVACY_POINTS = [
-  { title: 'Client-side cleanup first', desc: 'Receipt images are cleaned locally before optional OCR, and users review details before saving.' },
-  { title: 'Per-user Firestore data', desc: 'App data is stored under each signed-in user and protected by user-scoped Firestore rules.' },
-  { title: 'Privacy mode built in', desc: 'Financial values can be masked across the app for safer use in public or while screen sharing.' },
+  { title: 'Review before save', desc: 'Receipts, imports, commands, meal logs, workouts, tasks, and goals are user-reviewed instead of silently changing data.' },
+  { title: 'Per-user Firestore data', desc: 'Finance, fitness, and mind data are stored under each signed-in user and protected by user-scoped Firestore rules.' },
+  { title: 'Privacy mode built in', desc: 'Sensitive money and personal values can be masked across dashboards, calendars, reports, receipts, charts, and logs.' },
 ]
 
 export default function LandingPage() {
@@ -110,16 +111,16 @@ export default function LandingPage() {
   return (
     <div className={styles.page}>
       <RouteMeta
-        title="Takda — Calendar-First Finance App for Daily Balances, Receipts, Budgets, and Goals"
-        description="Track income, expenses, accounts, receipts, budgets, savings goals, and daily closing balances in one mobile-first finance app."
+        title="Buhay — All-in-One Life Tracker for Finance, Fitness, Mind, and Goals"
+        description="Track Takda finance, Lakas workouts and meals, Tala journal and mood, plus tasks, goals, receipts, budgets, backups, and daily life patterns in one app."
         path="/"
       />
       <a href="#landing-main" className="skipLink">Skip to main content</a>
       <nav className={styles.nav}>
         <div className={styles.navInner}>
           <div className={styles.navBrand}>
-            <div className={styles.navLogo}>Takda</div>
-            <div className={styles.navTag}>Calendar-first finance, receipts, budgets, and goals</div>
+            <div className={styles.navLogo}>Buhay</div>
+            <div className={styles.navTag}>Takda finance, Lakas fitness, Tala mind</div>
           </div>
           <div className={styles.navActions}>
             <button className={styles.navLink} onClick={goLogin}>Log in</button>
@@ -131,19 +132,19 @@ export default function LandingPage() {
       <main id="landing-main">
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <div className={styles.heroBadge}>Bawat piso, sinusubaybayan.</div>
+          <div className={styles.heroBadge}>Bawat araw, mas malinaw.</div>
           <h1 className={styles.heroTitle}>
-            Your money app should show
-            <span className={styles.heroAccent}> what happens next.</span>
+            Your finance, fitness, and mind
+            <span className={styles.heroAccent}> finally share one home.</span>
           </h1>
           <p className={styles.heroSub}>
-            Takda is a calendar-first finance app for daily closing balances, account-linked transactions, OCR-assisted receipts, budgets, savings goals, reports, and privacy-first money tracking.
+            Buhay is an all-in-one Filipino life tracker: Takda for money, Lakas for workouts and meals, and Tala for journal, mood, tasks, goals, and daily reflection.
           </p>
           <div className={styles.heroBtns}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
-          <div className={styles.heroNote}>Full access. Installable PWA. Works on phone and desktop.</div>
+          <div className={styles.heroNote}>Full access. Installable PWA. Real-time sync. Built for phone and desktop.</div>
           <div className={styles.heroProof}>
             {HERO_PROOF.map(item => (
               <div key={item.label} className={styles.heroProofCard}>
@@ -160,14 +161,14 @@ export default function LandingPage() {
               <span />
               <span />
             </div>
-            <div className={styles.heroPanelApp}>Takda app preview</div>
+            <div className={styles.heroPanelApp}>Buhay app preview</div>
             <div className={styles.heroPanelSync}>Realtime view</div>
           </div>
           <div className={styles.heroPanelTop}>
             <div>
-              <div className={styles.heroPanelEyebrow}>Projected closing balance</div>
-              <div className={styles.heroPanelTitle}>April 2026</div>
-              <div className={styles.heroPanelMeta}>Sample calendar view with income, expenses, and account-linked balance movement</div>
+              <div className={styles.heroPanelEyebrow}>Today across Buhay</div>
+              <div className={styles.heroPanelTitle}>3 spaces, 1 account</div>
+              <div className={styles.heroPanelMeta}>A sample command view across finance, fitness, meals, journal, mood, tasks, and goals</div>
             </div>
             <div className={styles.heroPill}>Privacy-ready</div>
           </div>
@@ -184,29 +185,29 @@ export default function LandingPage() {
           </div>
           <div className={styles.heroBalanceBar}>
             <div>
-              <div className={styles.heroBalanceBarLabel}>Selected day: Apr 22, 2026</div>
-              <div className={styles.heroBalanceBarMeta}>Transactions, receipts, budgets, and accounts roll into one daily number.</div>
+              <div className={styles.heroBalanceBarLabel}>Today&apos;s review</div>
+              <div className={styles.heroBalanceBarMeta}>Money, workouts, meals, mood, tasks, goals, and reminders stay separate but easy to reach.</div>
             </div>
-            <div className={styles.heroBalanceBarValue}>₱47,300</div>
+            <div className={styles.heroBalanceBarValue}>3 spaces</div>
           </div>
           <div className={styles.heroMetrics}>
             <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Receipt box</div>
-              <div className={styles.heroMetricValue}>24 saved</div>
+              <div className={styles.heroMetricLabel}>Finance</div>
+              <div className={styles.heroMetricValue}>Takda</div>
             </div>
             <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Budget health</div>
-              <div className={styles.heroMetricValue}>82%</div>
+              <div className={styles.heroMetricLabel}>Fitness</div>
+              <div className={styles.heroMetricValue}>Lakas</div>
             </div>
             <div className={styles.heroMetric}>
-              <div className={styles.heroMetricLabel}>Money habit</div>
-              <div className={styles.heroMetricValue}>Lv 7</div>
+              <div className={styles.heroMetricLabel}>Mind</div>
+              <div className={styles.heroMetricValue}>Tala</div>
             </div>
           </div>
           <div className={styles.heroInsight}>
-            <div className={styles.heroInsightKicker}>Why calendar-first matters</div>
+            <div className={styles.heroInsightKicker}>Why one life app matters</div>
             <div className={styles.heroInsightText}>
-              A ledger tells you what happened. Takda shows what your balance could look like on each day before the month is over.
+              A life app should not flatten everything into one messy feed. Buhay keeps each space focused while sharing login, privacy, backup, and navigation.
             </div>
           </div>
         </div>
@@ -216,10 +217,10 @@ export default function LandingPage() {
           <div className={styles.sectionTop}>
             <div className={styles.sectionIntro}>
               <div className={styles.sectionLabel}>Why it feels different</div>
-              <h2 className={styles.sectionTitle}>Takda connects planning, tracking, and proof.</h2>
+              <h2 className={styles.sectionTitle}>Buhay covers the whole routine without becoming chaotic.</h2>
             </div>
             <p className={styles.sectionLead}>
-            Most finance apps stop at lists. Takda turns your entries into a daily operating view for the month.
+            Most apps solve one slice of life. Buhay gives finance, fitness, meals, journal, mood, tasks, goals, and reminders their own places under one roof.
             </p>
           </div>
         <div className={styles.useCaseGrid}>
@@ -236,10 +237,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>10-second tour</div>
-            <h2 className={styles.sectionTitle}>The app is built around four daily habits.</h2>
+            <h2 className={styles.sectionTitle}>The app is built around three focused spaces.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Check the dashboard, inspect the calendar, capture proof, and keep account balances connected.
+            Open Takda for money, Lakas for training and meals, and Tala for reflection, mood, tasks, and life goals.
           </p>
         </div>
         <div className={styles.productTourGrid}>
@@ -265,10 +266,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>What the app does</div>
-            <h2 className={styles.sectionTitle}>A full money system, not just expense logging</h2>
+            <h2 className={styles.sectionTitle}>A life system, not another scattered folder of apps</h2>
           </div>
           <p className={styles.sectionLead}>
-            The dashboard, calendar, receipts, accounts, budgets, savings, history, breakdowns, and settings all share one source of truth.
+            Money, workouts, meals, body progress, habits, journal entries, moods, tasks, goals, reminders, reports, and backups stay organized by space but feel like one product.
           </p>
         </div>
         <div className={styles.featureGrid}>
@@ -291,10 +292,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>How it works</div>
-            <h2 className={styles.sectionTitle}>Set a baseline, log reality, read the month</h2>
+            <h2 className={styles.sectionTitle}>Set your baseline, log reality, review patterns</h2>
           </div>
           <p className={styles.sectionLead}>
-            Onboarding gives Takda your starting point. Daily use keeps the forecast and reports useful.
+            Start with the finance baseline, then add workouts, meals, body progress, mood, journal, tasks, and goals as your routine grows.
           </p>
         </div>
         <div className={styles.steps}>
@@ -302,7 +303,7 @@ export default function LandingPage() {
             <div className={styles.stepNum}>1</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>{isSignedIn ? 'Open the app and set your baseline' : 'Create your account and set your baseline'}</div>
-              <div className={styles.stepDesc}>Choose currency, add accounts, and add recurring bills so the app starts from real balances and known commitments.</div>
+              <div className={styles.stepDesc}>Choose currency, add accounts, and add recurring bills so Takda starts from real balances and known commitments.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
@@ -310,15 +311,15 @@ export default function LandingPage() {
             <div className={styles.stepNum}>2</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>Log what actually happens</div>
-              <div className={styles.stepDesc}>Use quick add, receipt scanning, wallet screenshot import, or grocery mode. Review before anything is saved.</div>
+              <div className={styles.stepDesc}>Capture expenses, receipts, grocery trips, workouts, meals, activity, habits, mood, journal entries, tasks, and goals.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
           <div className={styles.step}>
             <div className={styles.stepNum}>3</div>
             <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Use the calendar to stay ahead</div>
-              <div className={styles.stepDesc}>Watch each day’s projected closing balance, inspect breakdowns, adjust budgets, and export reports when needed.</div>
+              <div className={styles.stepTitle}>Review patterns and stay in control</div>
+              <div className={styles.stepDesc}>Use calendars, charts, insights, reminders, privacy mode, exports, restores, and settings to keep the app trustworthy.</div>
             </div>
           </div>
         </div>
@@ -328,7 +329,7 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>What’s inside</div>
-            <h2 className={styles.sectionTitle}>The signed-in app already has the full toolkit.</h2>
+            <h2 className={styles.sectionTitle}>The signed-in app already has the full Buhay toolkit.</h2>
           </div>
           <p className={styles.sectionLead}>
             These are not future marketing promises. This landing page now reflects the current app experience.
@@ -336,9 +337,9 @@ export default function LandingPage() {
         </div>
         <div className={styles.accessCard}>
           <div className={styles.accessIntro}>
-            <div className={styles.accessTitle}>One account, one financial cockpit</div>
+            <div className={styles.accessTitle}>One account, three life spaces</div>
             <div className={styles.accessDesc}>
-              Takda brings daily balances, transaction capture, receipts, planning, and reporting into one mobile-first workspace instead of scattering them across separate tools.
+              Buhay brings finance, fitness, meals, body progress, journal, mood, tasks, goals, receipts, planning, reports, and privacy controls into one mobile-first workspace.
             </div>
           </div>
           <div className={styles.accessFeatureGrid}>
@@ -353,10 +354,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>Trust and control</div>
-            <h2 className={styles.sectionTitle}>Private enough for real money behavior.</h2>
+            <h2 className={styles.sectionTitle}>Private enough for real life behavior.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Money apps need calm UX, clear review steps, and sensible defaults before users can trust them.
+            Life apps need calm UX, clear review steps, scoped data, exports, deletion controls, and privacy masking before users can trust them.
           </p>
         </div>
         <div className={styles.privacyGrid}>
@@ -372,8 +373,8 @@ export default function LandingPage() {
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
           <div className={styles.ctaCopy}>
-            <h2 className={styles.ctaTitle}>Start with a month you can actually read.</h2>
-            <p className={styles.ctaSub}>Create your account, add your balances and bills, then use Takda as your daily command center for money decisions.</p>
+            <h2 className={styles.ctaTitle}>Start with one space, grow into the whole system.</h2>
+            <p className={styles.ctaSub}>Create your account, set up Takda finance first, then bring in Lakas workouts and Tala reflection when you are ready.</p>
           </div>
           <div className={styles.ctaAction}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
@@ -385,8 +386,8 @@ export default function LandingPage() {
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
-            <div className={styles.footerLogo}>Takda</div>
-            <div className={styles.footerTagline}>Daily balances, receipts, goals, and budgets in one calm app.</div>
+            <div className={styles.footerLogo}>Buhay</div>
+            <div className={styles.footerTagline}>Finance, fitness, mind, and life admin in one calm app.</div>
             <div className={styles.footerMeta}>
               Operated by {LEGAL_OPERATOR_NAME}. Support and privacy:{' '}
               <a className={styles.footerAnchor} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a>
@@ -401,7 +402,7 @@ export default function LandingPage() {
             <span>·</span>
             <Link className={styles.footerAnchor} to="/terms">Terms</Link>
           </div>
-          <div className={styles.footerCopy}>© {new Date().getFullYear()} Takda. Bawat piso, sinusubaybayan.</div>
+          <div className={styles.footerCopy}>© {new Date().getFullYear()} Buhay. Bawat araw, mas malinaw.</div>
         </div>
       </footer>
     </div>

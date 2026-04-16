@@ -150,30 +150,30 @@ export default function AuthScreen() {
   const authTitle = showForgot
     ? 'Reset your password'
     : tab === 'register'
-      ? 'Create your Takda account'
+      ? 'Create your Buhay account'
       : 'Welcome back'
   const authSubtitle = showForgot
     ? 'Enter your email and we will send a reset link so you can get back into your money calendar.'
     : tab === 'register'
-      ? 'Set up your account, then Takda will guide you through currency, accounts, and bills.'
-      : 'Open your dashboard, calendar, receipts, budgets, savings goals, and account balances.'
+      ? 'Set up your account, then Buhay will guide you through money, fitness, journal, tasks, and goals.'
+      : 'Open your finance, fitness, journal, tasks, goals, and daily dashboards.'
 
   return (
     <div className={styles.screen}>
       <RouteMeta
-        title="Log in or create your account — Takda"
-        description="Access Takda to track daily closing balances, income, expenses, bills, budgets, and goals in one calendar-first app."
+        title="Log in or create your account — Buhay"
+        description="Access Buhay to track finance, fitness, journal entries, tasks, goals, and daily life patterns in one app."
         path="/login"
         robots="noindex, nofollow"
       />
       <div className={styles.shell}>
         <aside className={styles.storyPanel}>
           <div>
-            <div className={styles.logo}>Takda</div>
-            <div className={styles.storyKicker}>Bawat piso, sinusubaybayan.</div>
-            <h1 className={styles.storyTitle}>Your daily money cockpit.</h1>
+            <div className={styles.logo}>Buhay</div>
+            <div className={styles.storyKicker}>Bawat araw, mas malinaw.</div>
+            <h1 className={styles.storyTitle}>Your daily life cockpit.</h1>
             <p className={styles.storyText}>
-              Track the calendar, scan receipts, connect accounts, set budgets, and keep your savings goals moving from one calm workspace.
+              Switch between Takda for money, Lakas for fitness, and Tala for mind, journal, tasks, and goals from one calm workspace.
             </p>
           </div>
 
@@ -202,7 +202,7 @@ export default function AuthScreen() {
 
         <div className={styles.card}>
         <div className={styles.cardHeader}>
-          <div className={styles.cardBrand}>Takda</div>
+          <div className={styles.cardBrand}>Buhay</div>
           <div className={styles.cardEyebrow}>{showForgot ? 'Account recovery' : tab === 'register' ? 'Start setup' : 'Secure sign in'}</div>
           <div className={styles.cardTitle}>{authTitle}</div>
           <div className={styles.cardSubtitle}>{authSubtitle}</div>
@@ -249,7 +249,7 @@ export default function AuthScreen() {
                 <button type="button" className={styles.forgotLink} onClick={() => { setShowForgot(true); setResetEmail(form.email); setError('') }}>Forgot password?</button>
                 <button className={styles.btnPrimary} type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Log in'}</button>
                 <p className={styles.legalNotice}>
-                  By continuing, you agree to Takda&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
+                  By continuing, you agree to Buhay&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
                 </p>
               </form>
             ) : (
@@ -300,7 +300,7 @@ export default function AuthScreen() {
                 </div>
                 <button className={styles.btnPrimary} type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Create account'}</button>
                 <p className={styles.legalNotice}>
-                  By creating an account, you agree to Takda&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
+                  By creating an account, you agree to Buhay&apos;s <Link className={styles.legalLink} to="/terms">Terms of Use</Link> and acknowledge the <Link className={styles.legalLink} to="/privacy">Privacy Policy</Link>.
                 </p>
               </form>
             )}

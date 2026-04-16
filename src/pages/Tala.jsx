@@ -1,0 +1,1174 @@
+import { useEffect, useMemo, useState } from 'react'
+import { fsAdd, fsDel, fsSetProfile, fsUpdate } from '../lib/firestore'
+import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { formatDisplayDate, today } from '../lib/utils'
+import styles from './Page.module.css'
+import tStyles from './Tala.module.css'
+
+const MOOD_OPTIONS = ['Great', 'Good', 'Okay', 'Low', 'Heavy']
+const ENERGY_OPTIONS = ['1', '2', '3', '4', '5']
+const STRESS_OPTIONS = ['1', '2', '3', '4', '5']
+const PRIORITIES = ['Low', 'Medium', 'High']
+const LIFE_AREAS = ['Self', 'Family', 'Work', 'School', 'Health', 'Money', 'Faith', 'Creative', 'Custom']
+const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+const DEFAULT_TALA_SETTINGS = {
+  reminderTime: '20:30',
+  weeklyReviewDay: 'Sunday',
+  promptStyle: 'Gentle',
+  privateByDefault: true,
+  showMoodInsights: true,
+}
+
+const TALA_TAB_COPY = {
+  today: {
+    eyebrow: 'Tala today',
+    title: 'Start with one honest check-in.',
+    sub: 'Mood, energy, gratitude, priority, and reflection in one quiet daily space.',
+    guide: ['Check mood', 'Name one priority', 'Write the truth'],
+  },
+  journal: {
+    eyebrow: 'Journal',
+    title: 'A private place to put the day down.',
+    sub: 'Capture long-form thoughts, memories, decisions, lessons, tags, and small notes you want to find later.',
+    guide: ['Write freely', 'Add tags', 'Review patterns'],
+  },
+  mood: {
+    eyebrow: 'Mood tracker',
+    title: 'Notice patterns before they get loud.',
+    sub: 'Track mood, energy, stress, sleep quality, triggers, and notes with a lightweight daily log.',
+    guide: ['Log mood', 'Mark trigger', 'Watch trend'],
+  },
+  tasks: {
+    eyebrow: 'Tasks',
+    title: 'Keep life admin from floating away.',
+    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without becoming a full project manager.',
+    guide: ['Add task', 'Set due date', 'Clear the list'],
+  },
+  goals: {
+    eyebrow: 'Life goals',
+    title: 'Make the bigger thing visible.',
+    sub: 'Track personal goals, milestones, areas of life, progress, and notes over time.',
+    guide: ['Choose area', 'Set target', 'Update progress'],
+  },
+  calendar: {
+    eyebrow: 'Calendar',
+    title: 'See your inner life across the month.',
+    sub: 'Dots show check-ins, journal entries, mood logs, tasks, and goal dates so patterns become visible.',
+    guide: ['Scan month', 'Spot gaps', 'Return gently'],
+  },
+  insights: {
+    eyebrow: 'Insights',
+    title: 'Tiny signals, calmer decisions.',
+    sub: 'Review streaks, mood averages, task completion, top tags, and common triggers.',
+    guide: ['Check streak', 'Read mood', 'Adjust next week'],
+  },
+  settings: {
+    eyebrow: 'Tala settings',
+    title: 'Tune Tala to feel safe and useful.',
+    sub: 'Set reminder time, weekly review day, prompt style, privacy defaults, and data controls.',
+    guide: ['Set reminder', 'Choose privacy', 'Export anytime'],
+  },
+}
+
+function normalizeRows(rows = []) {
+  return Array.isArray(rows) ? rows : []
+}
+
+function sortNewest(rows = []) {
+  return [...rows].sort((a, b) => {
+    const dateCompare = String(b.date || b.dueDate || b.targetDate || '').localeCompare(String(a.date || a.dueDate || a.targetDate || ''))
+    if (dateCompare) return dateCompare
+    return Number(b.createdAt || 0) - Number(a.createdAt || 0)
+  })
+}
+
+function numberOrZero(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : 0
+}
+
+function formatNumber(value, maximumFractionDigits = 0) {
+  return numberOrZero(value).toLocaleString('en-PH', { maximumFractionDigits })
+}
+
+function moodScore(mood) {
+  return {
+    Great: 5,
+    Good: 4,
+    Okay: 3,
+    Low: 2,
+    Heavy: 1,
+  }[mood] || 3
+}
+
+function moodTone(mood) {
+  return {
+    Great: 'great',
+    Good: 'good',
+    Okay: 'okay',
+    Low: 'low',
+    Heavy: 'heavy',
+  }[mood] || 'okay'
+}
+
+function dateDaysAgo(days) {
+  const base = new Date(`${today()}T00:00:00`)
+  base.setDate(base.getDate() - days)
+  return `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, '0')}-${String(base.getDate()).padStart(2, '0')}`
+}
+
+function getLastDateKeys(days = 7) {
+  return Array.from({ length: days }, (_, index) => dateDaysAgo(days - 1 - index))
+}
+
+function addMonths(monthKey, delta) {
+  const [year, month] = String(monthKey || today().slice(0, 7)).split('-').map(Number)
+  const base = new Date(year || new Date().getFullYear(), (month || 1) - 1 + delta, 1)
+  return `${base.getFullYear()}-${String(base.getMonth() + 1).padStart(2, '0')}`
+}
+
+function getMonthDays(monthKey) {
+  const [year, month] = String(monthKey || today().slice(0, 7)).split('-').map(Number)
+  const start = new Date(year, month - 1, 1)
+  const end = new Date(year, month, 0)
+  const leading = start.getDay()
+  const days = []
+
+  for (let index = 0; index < leading; index += 1) {
+    days.push({ key: `empty-${index}`, empty: true })
+  }
+
+  for (let day = 1; day <= end.getDate(); day += 1) {
+    const key = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    days.push({ key, day, empty: false })
+  }
+
+  return days
+}
+
+function createDateMap(rows = [], dateField = 'date') {
+  return normalizeRows(rows).reduce((map, row) => {
+    const key = row[dateField]
+    if (!key) return map
+    if (!map[key]) map[key] = []
+    map[key].push(row)
+    return map
+  }, {})
+}
+
+function splitTags(value = '') {
+  return String(value || '')
+    .split(',')
+    .map(tag => tag.trim())
+    .filter(Boolean)
+}
+
+function getTalaSettings(profile = {}) {
+  return {
+    ...DEFAULT_TALA_SETTINGS,
+    ...(profile?.talaSettings || {}),
+  }
+}
+
+function sanitizeTalaSettings(settings = {}) {
+  return {
+    reminderTime: settings.reminderTime || DEFAULT_TALA_SETTINGS.reminderTime,
+    weeklyReviewDay: WEEK_DAYS.includes(settings.weeklyReviewDay) ? settings.weeklyReviewDay : DEFAULT_TALA_SETTINGS.weeklyReviewDay,
+    promptStyle: settings.promptStyle || DEFAULT_TALA_SETTINGS.promptStyle,
+    privateByDefault: settings.privateByDefault !== false,
+    showMoodInsights: settings.showMoodInsights !== false,
+  }
+}
+
+function createTodayForm() {
+  return {
+    date: today(),
+    mood: 'Good',
+    energy: '3',
+    stress: '2',
+    sleepQuality: '3',
+    priority: '',
+    gratitude: '',
+    reflection: '',
+  }
+}
+
+function createJournalForm(settings = DEFAULT_TALA_SETTINGS) {
+  return {
+    date: today(),
+    title: '',
+    mood: 'Good',
+    tags: '',
+    body: '',
+    private: settings.privateByDefault !== false,
+  }
+}
+
+function createMoodForm() {
+  return {
+    date: today(),
+    mood: 'Good',
+    energy: '3',
+    stress: '2',
+    sleepQuality: '3',
+    triggers: '',
+    notes: '',
+  }
+}
+
+function createTaskForm() {
+  return {
+    title: '',
+    dueDate: today(),
+    priority: 'Medium',
+    notes: '',
+  }
+}
+
+function createGoalForm() {
+  return {
+    name: '',
+    area: 'Self',
+    targetDate: '',
+    progress: '0',
+    notes: '',
+  }
+}
+
+function MiniTrend({ title, rows, hidden = false }) {
+  const maxValue = Math.max(5, ...rows.map(row => numberOrZero(row.value)))
+  return (
+    <div className={tStyles.chartCard}>
+      <div className={tStyles.chartTitle}>{title}</div>
+      <div className={tStyles.barChart}>
+        {rows.map(row => (
+          <div key={row.key} className={tStyles.barSlot}>
+            <div className={tStyles.barTrack}>
+              <div className={tStyles.barFill} style={{ height: `${Math.max(8, (numberOrZero(row.value) / maxValue) * 100)}%` }} />
+            </div>
+            <span>{row.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className={tStyles.chartMeta}>{hidden ? 'Private' : `${formatNumber(rows.reduce((sum, row) => sum + numberOrZero(row.value), 0) / Math.max(1, rows.length), 1)} avg`}</div>
+    </div>
+  )
+}
+
+export default function Tala({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today' }) {
+  const talaSettings = getTalaSettings(profile)
+  const [todayForm, setTodayForm] = useState(createTodayForm)
+  const [journalForm, setJournalForm] = useState(() => createJournalForm(talaSettings))
+  const [moodForm, setMoodForm] = useState(createMoodForm)
+  const [taskForm, setTaskForm] = useState(createTaskForm)
+  const [goalForm, setGoalForm] = useState(createGoalForm)
+  const [goalProgress, setGoalProgress] = useState({})
+  const [settingsForm, setSettingsForm] = useState(talaSettings)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [deletingTalaData, setDeletingTalaData] = useState(false)
+  const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
+  const settingsKey = JSON.stringify(profile?.talaSettings || {})
+
+  const checkins = sortNewest(normalizeRows(data.talaCheckins))
+  const journal = sortNewest(normalizeRows(data.talaJournal))
+  const moods = sortNewest(normalizeRows(data.talaMoods))
+  const tasks = sortNewest(normalizeRows(data.talaTasks))
+  const goals = sortNewest(normalizeRows(data.talaGoals))
+
+  useEffect(() => {
+    const nextSettings = getTalaSettings(profile)
+    setSettingsForm(nextSettings)
+    setJournalForm(current => ({ ...current, private: nextSettings.privateByDefault !== false }))
+  }, [settingsKey])
+
+  const insights = useMemo(() => {
+    const weekStart = dateDaysAgo(6)
+    const lastSevenDays = getLastDateKeys(7)
+    const todaysCheckin = checkins.find(row => row.date === today()) || null
+    const moodLogsThisWeek = moods.filter(row => row.date >= weekStart)
+    const avgMood = moodLogsThisWeek.length
+      ? moodLogsThisWeek.reduce((sum, row) => sum + moodScore(row.mood), 0) / moodLogsThisWeek.length
+      : 0
+    const openTasks = tasks.filter(row => row.done !== true)
+    const doneTasks = tasks.filter(row => row.done === true)
+    const dueToday = openTasks.filter(row => row.dueDate === today())
+    const overdue = openTasks.filter(row => row.dueDate && row.dueDate < today())
+    const activeGoals = goals.filter(goal => numberOrZero(goal.progress) < 100)
+    const completeGoals = goals.filter(goal => numberOrZero(goal.progress) >= 100)
+    const moodTrend = lastSevenDays.map(day => {
+      const dayRows = moods.filter(row => row.date === day)
+      const value = dayRows.length
+        ? dayRows.reduce((sum, row) => sum + moodScore(row.mood), 0) / dayRows.length
+        : 0
+      return { key: day, label: day.slice(8), value }
+    })
+    const energyTrend = lastSevenDays.map(day => {
+      const dayRows = moods.filter(row => row.date === day)
+      const value = dayRows.length
+        ? dayRows.reduce((sum, row) => sum + numberOrZero(row.energy), 0) / dayRows.length
+        : 0
+      return { key: day, label: day.slice(8), value }
+    })
+    const allTags = journal.flatMap(row => normalizeRows(row.tags))
+    const allTriggers = moods.flatMap(row => normalizeRows(row.triggers))
+    const journalDates = new Set(journal.map(row => row.date).filter(Boolean))
+    let streak = 0
+    let cursor = today()
+    while (journalDates.has(cursor)) {
+      streak += 1
+      cursor = dateDaysAgo(streak)
+    }
+
+    return {
+      todaysCheckin,
+      avgMood,
+      moodLogsThisWeek,
+      openTasks,
+      doneTasks,
+      dueToday,
+      overdue,
+      activeGoals,
+      completeGoals,
+      moodTrend,
+      energyTrend,
+      journalStreak: streak,
+      topTags: [...new Set(allTags)].slice(0, 6),
+      topTriggers: [...new Set(allTriggers)].slice(0, 6),
+    }
+  }, [checkins, goals, journal, moods, tasks])
+
+  const calendarData = useMemo(() => {
+    const checkinMap = createDateMap(checkins)
+    const journalMap = createDateMap(journal)
+    const moodMap = createDateMap(moods)
+    const taskMap = createDateMap(tasks, 'dueDate')
+    const goalMap = createDateMap(goals, 'targetDate')
+    return getMonthDays(calendarMonth).map(day => {
+      if (day.empty) return day
+      return {
+        ...day,
+        checkins: checkinMap[day.key] || [],
+        journal: journalMap[day.key] || [],
+        moods: moodMap[day.key] || [],
+        tasks: taskMap[day.key] || [],
+        goals: goalMap[day.key] || [],
+      }
+    })
+  }, [calendarMonth, checkins, goals, journal, moods, tasks])
+
+  const currentTab = activeTab || 'today'
+  const tabCopy = TALA_TAB_COPY[currentTab] || TALA_TAB_COPY.today
+  const showToday = currentTab === 'today'
+  const showJournal = currentTab === 'journal'
+  const showMood = currentTab === 'mood'
+  const showTasks = currentTab === 'tasks'
+  const showGoals = currentTab === 'goals'
+  const showCalendar = currentTab === 'calendar'
+  const showInsights = currentTab === 'insights'
+  const showSettings = currentTab === 'settings'
+  const avgMoodLabel = insights.avgMood ? `${formatNumber(insights.avgMood, 1)}/5` : 'No log'
+
+  const tabHeroCard = {
+    today: {
+      label: 'Today',
+      value: privacyMode ? '...' : insights.todaysCheckin?.mood || 'No check-in',
+      meta: insights.dueToday.length ? `${insights.dueToday.length} tasks due today` : 'Clear space for one honest note',
+    },
+    journal: {
+      label: 'Journal streak',
+      value: `${privacyMode ? '...' : insights.journalStreak} days`,
+      meta: `${journal.length} entries saved`,
+    },
+    mood: {
+      label: '7-day mood',
+      value: privacyMode ? '...' : avgMoodLabel,
+      meta: `${insights.moodLogsThisWeek.length} mood logs this week`,
+    },
+    tasks: {
+      label: 'Open tasks',
+      value: privacyMode ? '...' : String(insights.openTasks.length),
+      meta: `${insights.dueToday.length} due today · ${insights.overdue.length} overdue`,
+    },
+    goals: {
+      label: 'Active goals',
+      value: privacyMode ? '...' : String(insights.activeGoals.length),
+      meta: `${insights.completeGoals.length} completed`,
+    },
+    calendar: {
+      label: 'This month',
+      value: calendarMonth,
+      meta: 'Journal, mood, tasks, and goal dates',
+    },
+    insights: {
+      label: 'Pattern view',
+      value: privacyMode ? '...' : avgMoodLabel,
+      meta: `${insights.topTags.length} tags · ${insights.topTriggers.length} triggers`,
+    },
+    settings: {
+      label: 'Privacy',
+      value: talaSettings.privateByDefault ? 'Private' : 'Open',
+      meta: `${talaSettings.reminderTime} reminder · ${talaSettings.weeklyReviewDay} review`,
+    },
+  }[currentTab] || {}
+
+  const tabStats = ({
+    today: [
+      { label: 'Mood', value: privacyMode ? '...' : insights.todaysCheckin?.mood || 'No check-in', meta: 'Today' },
+      { label: 'Energy', value: privacyMode ? '...' : insights.todaysCheckin?.energy || '-', meta: '1 to 5' },
+      { label: 'Due', value: privacyMode ? '...' : String(insights.dueToday.length), meta: 'Tasks today' },
+      { label: 'Journal', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current streak' },
+    ],
+    journal: [
+      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Saved notes' },
+      { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current' },
+      { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Recent themes' },
+      { label: 'Private', value: privacyMode ? '...' : String(journal.filter(row => row.private).length), meta: 'Locked entries' },
+    ],
+    mood: [
+      { label: 'Average', value: privacyMode ? '...' : avgMoodLabel, meta: 'Last 7 days' },
+      { label: 'Logs', value: privacyMode ? '...' : String(moods.length), meta: 'All time' },
+      { label: 'Energy', value: privacyMode ? '...' : formatNumber(insights.energyTrend.reduce((sum, row) => sum + numberOrZero(row.value), 0) / Math.max(1, insights.energyTrend.filter(row => row.value).length), 1), meta: '7-day avg' },
+      { label: 'Triggers', value: privacyMode ? '...' : String(insights.topTriggers.length), meta: 'Recent' },
+    ],
+    tasks: [
+      { label: 'Open', value: privacyMode ? '...' : String(insights.openTasks.length), meta: 'To do' },
+      { label: 'Due', value: privacyMode ? '...' : String(insights.dueToday.length), meta: 'Today' },
+      { label: 'Overdue', value: privacyMode ? '...' : String(insights.overdue.length), meta: 'Need attention' },
+      { label: 'Done', value: privacyMode ? '...' : String(insights.doneTasks.length), meta: 'Completed' },
+    ],
+    goals: [
+      { label: 'Active', value: privacyMode ? '...' : String(insights.activeGoals.length), meta: 'In progress' },
+      { label: 'Done', value: privacyMode ? '...' : String(insights.completeGoals.length), meta: 'Completed' },
+      { label: 'Areas', value: privacyMode ? '...' : String(new Set(goals.map(goal => goal.area)).size), meta: 'Life areas' },
+      { label: 'Total', value: privacyMode ? '...' : String(goals.length), meta: 'Tracked goals' },
+    ],
+    calendar: [
+      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Journal' },
+      { label: 'Mood logs', value: privacyMode ? '...' : String(moods.length), meta: 'Mood' },
+      { label: 'Tasks', value: privacyMode ? '...' : String(tasks.length), meta: 'Task dates' },
+      { label: 'Goals', value: privacyMode ? '...' : String(goals.length), meta: 'Target dates' },
+    ],
+    insights: [
+      { label: 'Mood avg', value: privacyMode ? '...' : avgMoodLabel, meta: 'Last 7 days' },
+      { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Journal' },
+      { label: 'Tasks done', value: privacyMode ? '...' : String(insights.doneTasks.length), meta: 'All time' },
+      { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Themes' },
+    ],
+    settings: [
+      { label: 'Reminder', value: talaSettings.reminderTime, meta: 'Daily check-in' },
+      { label: 'Review', value: talaSettings.weeklyReviewDay, meta: 'Weekly reset' },
+      { label: 'Prompt', value: talaSettings.promptStyle, meta: 'Tone' },
+      { label: 'Privacy', value: talaSettings.privateByDefault ? 'Private' : 'Open', meta: 'Journal default' },
+    ],
+  })[currentTab] || []
+
+  async function handleSaveToday() {
+    if (!todayForm.date || (!todayForm.priority.trim() && !todayForm.gratitude.trim() && !todayForm.reflection.trim())) {
+      notifyApp({ title: 'Check-in needs a note', message: 'Add a priority, gratitude, or reflection before saving.', tone: 'warning' })
+      return
+    }
+
+    const existing = checkins.find(row => row.date === todayForm.date)
+    const payload = {
+      ...todayForm,
+      energy: numberOrZero(todayForm.energy),
+      stress: numberOrZero(todayForm.stress),
+      sleepQuality: numberOrZero(todayForm.sleepQuality),
+      priority: todayForm.priority.trim(),
+      gratitude: todayForm.gratitude.trim(),
+      reflection: todayForm.reflection.trim(),
+      source: 'tala',
+    }
+    if (existing?._id) {
+      await fsUpdate(user.uid, 'talaCheckins', existing._id, payload)
+    } else {
+      await fsAdd(user.uid, 'talaCheckins', payload)
+    }
+    setTodayForm(createTodayForm())
+    notifyApp({ title: 'Tala check-in saved', message: 'Today has a little more shape now.', tone: 'success' })
+  }
+
+  async function handleAddJournal() {
+    if (!journalForm.title.trim() && !journalForm.body.trim()) {
+      notifyApp({ title: 'Journal needs words', message: 'Add a title or write an entry before saving.', tone: 'warning' })
+      return
+    }
+
+    await fsAdd(user.uid, 'talaJournal', {
+      date: journalForm.date,
+      title: journalForm.title.trim() || 'Untitled entry',
+      mood: journalForm.mood,
+      tags: splitTags(journalForm.tags),
+      body: journalForm.body.trim(),
+      private: Boolean(journalForm.private),
+      source: 'tala',
+    })
+    setJournalForm(createJournalForm(talaSettings))
+    notifyApp({ title: 'Journal saved', message: 'Your Tala entry was added.', tone: 'success' })
+  }
+
+  async function handleAddMood() {
+    if (!moodForm.date) {
+      notifyApp({ title: 'Mood needs a date', message: 'Choose a date before saving.', tone: 'warning' })
+      return
+    }
+
+    await fsAdd(user.uid, 'talaMoods', {
+      date: moodForm.date,
+      mood: moodForm.mood,
+      energy: numberOrZero(moodForm.energy),
+      stress: numberOrZero(moodForm.stress),
+      sleepQuality: numberOrZero(moodForm.sleepQuality),
+      triggers: splitTags(moodForm.triggers),
+      notes: moodForm.notes.trim(),
+      source: 'tala',
+    })
+    setMoodForm(createMoodForm())
+    notifyApp({ title: 'Mood logged', message: 'Mood pattern updated.', tone: 'success' })
+  }
+
+  async function handleAddTask() {
+    if (!taskForm.title.trim()) {
+      notifyApp({ title: 'Task needs a title', message: 'Add the task you want to remember.', tone: 'warning' })
+      return
+    }
+
+    await fsAdd(user.uid, 'talaTasks', {
+      title: taskForm.title.trim(),
+      dueDate: taskForm.dueDate,
+      priority: taskForm.priority,
+      notes: taskForm.notes.trim(),
+      done: false,
+      source: 'tala',
+    })
+    setTaskForm(createTaskForm())
+    notifyApp({ title: 'Task added', message: 'Tala task saved.', tone: 'success' })
+  }
+
+  async function handleAddGoal() {
+    if (!goalForm.name.trim()) {
+      notifyApp({ title: 'Goal needs a name', message: 'Name the goal before saving.', tone: 'warning' })
+      return
+    }
+
+    await fsAdd(user.uid, 'talaGoals', {
+      name: goalForm.name.trim(),
+      area: goalForm.area,
+      targetDate: goalForm.targetDate,
+      progress: Math.min(100, numberOrZero(goalForm.progress)),
+      notes: goalForm.notes.trim(),
+      source: 'tala',
+    })
+    setGoalForm(createGoalForm())
+    notifyApp({ title: 'Tala goal saved', message: 'Your life goal is now visible.', tone: 'success' })
+  }
+
+  async function handleGoalProgress(goal) {
+    const value = Math.max(0, Math.min(100, numberOrZero(goalProgress[goal._id])))
+    await fsUpdate(user.uid, 'talaGoals', goal._id, { progress: value })
+    setGoalProgress(current => ({ ...current, [goal._id]: '' }))
+  }
+
+  async function handleSaveSettings() {
+    setSavingSettings(true)
+    try {
+      const nextSettings = sanitizeTalaSettings(settingsForm)
+      await fsSetProfile(user.uid, { talaSettings: nextSettings })
+      setSettingsForm(nextSettings)
+      notifyApp({ title: 'Tala settings saved', message: 'Your mind-space defaults were updated.', tone: 'success' })
+    } catch {
+      notifyApp({ title: 'Settings not saved', message: 'Check your connection and try again.', tone: 'error' })
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  function handleExportTalaData() {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      profile: {
+        talaSettings: sanitizeTalaSettings(settingsForm),
+      },
+      talaCheckins: checkins,
+      talaJournal: journal,
+      talaMoods: moods,
+      talaTasks: tasks,
+      talaGoals: goals,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `buhay-tala-backup-${today()}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    notifyApp({ title: 'Tala export ready', message: 'Your Tala backup was downloaded.', tone: 'success' })
+  }
+
+  async function handleDeleteTalaData() {
+    const confirmed = await confirmDeleteApp('all Tala data')
+    if (!confirmed) return
+
+    setDeletingTalaData(true)
+    try {
+      const collections = [
+        ['talaCheckins', checkins],
+        ['talaJournal', journal],
+        ['talaMoods', moods],
+        ['talaTasks', tasks],
+        ['talaGoals', goals],
+      ]
+      await Promise.all(collections.flatMap(([collectionName, rows]) => (
+        normalizeRows(rows)
+          .filter(row => row._id)
+          .map(row => fsDel(user.uid, collectionName, row._id))
+      )))
+      notifyApp({ title: 'Tala data cleared', message: 'Tala logs were deleted. Tala settings were kept.', tone: 'success' })
+    } catch {
+      notifyApp({ title: 'Could not clear Tala', message: 'Some data may still remain. Check your connection and try again.', tone: 'error' })
+    } finally {
+      setDeletingTalaData(false)
+    }
+  }
+
+  function updateSettings(field, value) {
+    setSettingsForm(current => ({ ...current, [field]: value }))
+  }
+
+  return (
+    <div className={`${styles.page} ${tStyles.page}`}>
+      <div className={tStyles.hero}>
+        <div>
+          <div className={tStyles.eyebrow}>{tabCopy.eyebrow}</div>
+          <div className={tStyles.title}>{tabCopy.title}</div>
+          <div className={tStyles.sub}>{tabCopy.sub}</div>
+        </div>
+        <div className={tStyles.heroCard}>
+          <div className={tStyles.heroCardLabel}>{tabHeroCard.label}</div>
+          <div className={tStyles.heroCardValue}>{tabHeroCard.value}</div>
+          <div className={tStyles.heroCardMeta}>{tabHeroCard.meta}</div>
+        </div>
+      </div>
+
+      <div className={tStyles.statsGrid}>
+        {tabStats.map(stat => (
+          <div key={stat.label} className={tStyles.statCard}>
+            <span>{stat.label}</span>
+            <strong>{stat.value}</strong>
+            <small>{stat.meta}</small>
+          </div>
+        ))}
+      </div>
+
+      <div className={tStyles.quickWins}>
+        {tabCopy.guide.map((item, index) => (
+          <div key={item} className={tStyles.quickWinCard}>
+            <span className={tStyles.quickWinIndex}>{index + 1}</span>
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+
+      {showToday && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Daily check-in</div>
+              <h3>How are you really?</h3>
+              <p className={tStyles.sectionHint}>A tiny daily snapshot: mood, energy, stress, priority, gratitude, and reflection.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label>
+              <span>Date</span>
+              <input type="date" value={todayForm.date} onChange={event => setTodayForm(current => ({ ...current, date: event.target.value }))} />
+            </label>
+            <label>
+              <span>Mood</span>
+              <select value={todayForm.mood} onChange={event => setTodayForm(current => ({ ...current, mood: event.target.value }))}>
+                {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Energy</span>
+              <select value={todayForm.energy} onChange={event => setTodayForm(current => ({ ...current, energy: event.target.value }))}>
+                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Stress</span>
+              <select value={todayForm.stress} onChange={event => setTodayForm(current => ({ ...current, stress: event.target.value }))}>
+                {STRESS_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Sleep quality</span>
+              <select value={todayForm.sleepQuality} onChange={event => setTodayForm(current => ({ ...current, sleepQuality: event.target.value }))}>
+                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Top priority</span>
+              <input value={todayForm.priority} placeholder="One thing that matters today" onChange={event => setTodayForm(current => ({ ...current, priority: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Gratitude</span>
+              <input value={todayForm.gratitude} placeholder="Something small but real" onChange={event => setTodayForm(current => ({ ...current, gratitude: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Reflection</span>
+              <textarea value={todayForm.reflection} placeholder="What should future you remember about today?" onChange={event => setTodayForm(current => ({ ...current, reflection: event.target.value }))} />
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleSaveToday}>Save check-in</button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Today focus</div>
+              <h3>What needs your attention?</h3>
+              <p className={tStyles.sectionHint}>Tala keeps the day simple: current check-in, due tasks, and one soft prompt.</p>
+            </div>
+          </div>
+          <div className={tStyles.focusCard}>
+            <span>Prompt</span>
+            <strong>{talaSettings.promptStyle === 'Direct' ? 'What are you avoiding that deserves a small first step?' : 'What would make today feel a little lighter?'}</strong>
+          </div>
+          <div className={tStyles.routineList}>
+            {!insights.dueToday.length ? <div className={tStyles.empty}>No tasks due today.</div> : insights.dueToday.slice(0, 4).map(task => (
+              <div key={task._id} className={tStyles.rowCard}>
+                <div>
+                  <strong>{task.title}</strong>
+                  <span>{task.priority} · Due today</span>
+                </div>
+                <button type="button" onClick={() => fsUpdate(user.uid, 'talaTasks', task._id, { done: true, completedAt: Date.now() })}>Done</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+      )}
+
+      {showJournal && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Journal</div>
+              <h3>Write an entry</h3>
+              <p className={tStyles.sectionHint}>Use tags like family, work, decision, gratitude, idea, or stress.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label>
+              <span>Date</span>
+              <input type="date" value={journalForm.date} onChange={event => setJournalForm(current => ({ ...current, date: event.target.value }))} />
+            </label>
+            <label>
+              <span>Mood</span>
+              <select value={journalForm.mood} onChange={event => setJournalForm(current => ({ ...current, mood: event.target.value }))}>
+                {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={tStyles.full}>
+              <span>Title</span>
+              <input value={journalForm.title} placeholder="What is this entry about?" onChange={event => setJournalForm(current => ({ ...current, title: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Tags</span>
+              <input value={journalForm.tags} placeholder="family, work, gratitude" onChange={event => setJournalForm(current => ({ ...current, tags: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Entry</span>
+              <textarea value={journalForm.body} placeholder="Write without performing. Tala can hold it." onChange={event => setJournalForm(current => ({ ...current, body: event.target.value }))} />
+            </label>
+            <label>
+              <span>Privacy</span>
+              <select value={journalForm.private ? 'private' : 'open'} onChange={event => setJournalForm(current => ({ ...current, private: event.target.value === 'private' }))}>
+                <option value="private">Private</option>
+                <option value="open">Open</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleAddJournal}>Save journal</button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Recent</div>
+              <h3>Journal entries</h3>
+              <p className={tStyles.sectionHint}>Private entries are masked when privacy mode is on.</p>
+            </div>
+          </div>
+          {!journal.length ? <div className={tStyles.empty}>No journal entries yet.</div> : journal.slice(0, 8).map(entry => (
+            <div key={entry._id} className={tStyles.entryCard}>
+              <div>
+                <span>{formatDisplayDate(entry.date)} · {entry.mood} · {entry.private ? 'Private' : 'Open'}</span>
+                <strong>{entry.title}</strong>
+                <p>{privacyMode && entry.private ? 'Private entry hidden.' : entry.body || 'No body text.'}</p>
+                {!!normalizeRows(entry.tags).length && <small>{normalizeRows(entry.tags).join(' · ')}</small>}
+              </div>
+              <button type="button" onClick={async () => { if (await confirmDeleteApp(entry.title)) await fsDel(user.uid, 'talaJournal', entry._id) }}>Delete</button>
+            </div>
+          ))}
+        </section>
+      </div>
+      )}
+
+      {showMood && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Mood</div>
+              <h3>Log mood</h3>
+              <p className={tStyles.sectionHint}>Add tags for triggers: commute, family, money, work, sleep, health.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label>
+              <span>Date</span>
+              <input type="date" value={moodForm.date} onChange={event => setMoodForm(current => ({ ...current, date: event.target.value }))} />
+            </label>
+            <label>
+              <span>Mood</span>
+              <select value={moodForm.mood} onChange={event => setMoodForm(current => ({ ...current, mood: event.target.value }))}>
+                {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Energy</span>
+              <select value={moodForm.energy} onChange={event => setMoodForm(current => ({ ...current, energy: event.target.value }))}>
+                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Stress</span>
+              <select value={moodForm.stress} onChange={event => setMoodForm(current => ({ ...current, stress: event.target.value }))}>
+                {STRESS_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Sleep quality</span>
+              <select value={moodForm.sleepQuality} onChange={event => setMoodForm(current => ({ ...current, sleepQuality: event.target.value }))}>
+                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Triggers</span>
+              <input value={moodForm.triggers} placeholder="work, sleep, money" onChange={event => setMoodForm(current => ({ ...current, triggers: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Notes</span>
+              <input value={moodForm.notes} placeholder="What affected your mood?" onChange={event => setMoodForm(current => ({ ...current, notes: event.target.value }))} />
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleAddMood}>Save mood</button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Trend</div>
+              <h3>Mood patterns</h3>
+              <p className={tStyles.sectionHint}>Mood and energy use a 1 to 5 scale for the last 7 days.</p>
+            </div>
+          </div>
+          <div className={tStyles.chartGrid}>
+            <MiniTrend title="Mood" rows={insights.moodTrend} hidden={privacyMode || !talaSettings.showMoodInsights} />
+            <MiniTrend title="Energy" rows={insights.energyTrend} hidden={privacyMode || !talaSettings.showMoodInsights} />
+          </div>
+          <div className={tStyles.routineList}>
+            {!moods.length ? <div className={tStyles.empty}>No mood logs yet.</div> : moods.slice(0, 5).map(row => (
+              <div key={row._id} className={tStyles.rowCard}>
+                <div>
+                  <strong><span className={`${tStyles.moodDot} ${tStyles[moodTone(row.mood)]}`} /> {row.mood}</strong>
+                  <span>{formatDisplayDate(row.date)} · Energy {row.energy || '-'} · Stress {row.stress || '-'}</span>
+                  {!!normalizeRows(row.triggers).length && <small>{normalizeRows(row.triggers).join(' · ')}</small>}
+                </div>
+                <button type="button" onClick={async () => { if (await confirmDeleteApp('this mood log')) await fsDel(user.uid, 'talaMoods', row._id) }}>Delete</button>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+      )}
+
+      {showTasks && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Tasks</div>
+              <h3>Add personal task</h3>
+              <p className={tStyles.sectionHint}>For errands, life admin, reminders, and small commitments.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label className={tStyles.full}>
+              <span>Task</span>
+              <input value={taskForm.title} placeholder="Book appointment, call family, clean desk" onChange={event => setTaskForm(current => ({ ...current, title: event.target.value }))} />
+            </label>
+            <label>
+              <span>Due date</span>
+              <input type="date" value={taskForm.dueDate} onChange={event => setTaskForm(current => ({ ...current, dueDate: event.target.value }))} />
+            </label>
+            <label>
+              <span>Priority</span>
+              <select value={taskForm.priority} onChange={event => setTaskForm(current => ({ ...current, priority: event.target.value }))}>
+                {PRIORITIES.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label className={tStyles.full}>
+              <span>Notes</span>
+              <input value={taskForm.notes} placeholder="Optional details" onChange={event => setTaskForm(current => ({ ...current, notes: event.target.value }))} />
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleAddTask}>Add task</button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>List</div>
+              <h3>Tasks</h3>
+              <p className={tStyles.sectionHint}>Mark done when complete. Finished tasks stay visible for momentum.</p>
+            </div>
+          </div>
+          {!tasks.length ? <div className={tStyles.empty}>No tasks yet.</div> : tasks.slice(0, 10).map(task => (
+            <div key={task._id} className={`${tStyles.rowCard} ${task.done ? tStyles.rowDone : ''}`}>
+              <div>
+                <strong>{task.title}</strong>
+                <span>{task.dueDate ? formatDisplayDate(task.dueDate) : 'No due date'} · {task.priority} · {task.done ? 'Done' : 'Open'}</span>
+                {task.notes && <small>{task.notes}</small>}
+              </div>
+              <div className={tStyles.rowActions}>
+                <button type="button" onClick={() => fsUpdate(user.uid, 'talaTasks', task._id, { done: !task.done, completedAt: task.done ? 0 : Date.now() })}>{task.done ? 'Reopen' : 'Done'}</button>
+                <button type="button" onClick={async () => { if (await confirmDeleteApp(task.title)) await fsDel(user.uid, 'talaTasks', task._id) }}>Delete</button>
+              </div>
+            </div>
+          ))}
+        </section>
+      </div>
+      )}
+
+      {showGoals && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Goals</div>
+              <h3>Add life goal</h3>
+              <p className={tStyles.sectionHint}>Keep it measurable enough to revisit, but gentle enough to keep honest.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label className={tStyles.full}>
+              <span>Goal</span>
+              <input value={goalForm.name} placeholder="Read 12 books, repair sleep, finish portfolio" onChange={event => setGoalForm(current => ({ ...current, name: event.target.value }))} />
+            </label>
+            <label>
+              <span>Area</span>
+              <select value={goalForm.area} onChange={event => setGoalForm(current => ({ ...current, area: event.target.value }))}>
+                {LIFE_AREAS.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Target date</span>
+              <input type="date" value={goalForm.targetDate} onChange={event => setGoalForm(current => ({ ...current, targetDate: event.target.value }))} />
+            </label>
+            <label>
+              <span>Progress %</span>
+              <input type="number" min="0" max="100" inputMode="numeric" value={goalForm.progress} onChange={event => setGoalForm(current => ({ ...current, progress: event.target.value }))} />
+            </label>
+            <label className={tStyles.full}>
+              <span>Notes</span>
+              <input value={goalForm.notes} placeholder="Why this matters, first step, milestone" onChange={event => setGoalForm(current => ({ ...current, notes: event.target.value }))} />
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleAddGoal}>Save goal</button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Goal board</div>
+              <h3>Tracked goals</h3>
+              <p className={tStyles.sectionHint}>Update progress directly from the card.</p>
+            </div>
+          </div>
+          {!goals.length ? <div className={tStyles.empty}>No Tala goals yet.</div> : goals.map(goal => (
+            <div key={goal._id} className={tStyles.goalCard}>
+              <div className={tStyles.goalTop}>
+                <div>
+                  <strong>{goal.name}</strong>
+                  <span>{goal.area} · {goal.targetDate ? formatDisplayDate(goal.targetDate) : 'No target date'} · {formatNumber(goal.progress)}%</span>
+                  {goal.notes && <small>{goal.notes}</small>}
+                </div>
+                <button type="button" onClick={async () => { if (await confirmDeleteApp(goal.name)) await fsDel(user.uid, 'talaGoals', goal._id) }}>Delete</button>
+              </div>
+              <div className={tStyles.track}><div style={{ width: `${Math.min(100, numberOrZero(goal.progress))}%` }} /></div>
+              <div className={tStyles.goalUpdate}>
+                <input type="number" min="0" max="100" inputMode="numeric" placeholder="New %" value={goalProgress[goal._id] || ''} onChange={event => setGoalProgress(current => ({ ...current, [goal._id]: event.target.value }))} />
+                <button type="button" onClick={() => handleGoalProgress(goal)}>Set</button>
+              </div>
+            </div>
+          ))}
+        </section>
+      </div>
+      )}
+
+      {showCalendar && (
+      <section className={tStyles.panel}>
+        <div className={tStyles.sectionHeader}>
+          <div>
+            <div className={tStyles.sectionKicker}>Calendar</div>
+            <h3>Tala month view</h3>
+            <p className={tStyles.sectionHint}>Dots show check-ins, journal entries, mood logs, task due dates, and goal target dates.</p>
+          </div>
+          <div className={tStyles.monthControls}>
+            <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, -1))}>Prev</button>
+            <strong>{calendarMonth}</strong>
+            <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, 1))}>Next</button>
+          </div>
+        </div>
+        <div className={tStyles.calendarGrid}>
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, index) => <div key={`${label}-${index}`} className={tStyles.calendarHead}>{label}</div>)}
+          {calendarData.map(day => (
+            <div key={day.key} className={`${tStyles.calendarDay} ${day.empty ? tStyles.calendarEmpty : ''} ${day.key === today() ? tStyles.calendarToday : ''}`}>
+              {!day.empty && (
+                <>
+                  <strong>{day.day}</strong>
+                  <div className={tStyles.calendarDots}>
+                    {!!day.checkins.length && <span title="Check-in" className={tStyles.dotCheckin} />}
+                    {!!day.journal.length && <span title="Journal" className={tStyles.dotJournal} />}
+                    {!!day.moods.length && <span title="Mood" className={tStyles.dotMood} />}
+                    {!!day.tasks.length && <span title="Task" className={tStyles.dotTask} />}
+                    {!!day.goals.length && <span title="Goal" className={tStyles.dotGoal} />}
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className={tStyles.legendRow}>
+          <span><i className={tStyles.dotCheckin} /> Check-in</span>
+          <span><i className={tStyles.dotJournal} /> Journal</span>
+          <span><i className={tStyles.dotMood} /> Mood</span>
+          <span><i className={tStyles.dotTask} /> Task</span>
+          <span><i className={tStyles.dotGoal} /> Goal</span>
+        </div>
+      </section>
+      )}
+
+      {showInsights && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Insights</div>
+              <h3>Patterns</h3>
+              <p className={tStyles.sectionHint}>Not diagnosis, not advice. Just your logged patterns made easier to see.</p>
+            </div>
+          </div>
+          <div className={tStyles.chartGrid}>
+            <MiniTrend title="Mood" rows={insights.moodTrend} hidden={privacyMode || !talaSettings.showMoodInsights} />
+            <MiniTrend title="Energy" rows={insights.energyTrend} hidden={privacyMode || !talaSettings.showMoodInsights} />
+          </div>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Themes</div>
+              <h3>Tags and triggers</h3>
+              <p className={tStyles.sectionHint}>Useful for noticing what keeps repeating.</p>
+            </div>
+          </div>
+          <div className={tStyles.tagCloud}>
+            {!insights.topTags.length ? <span>No journal tags yet</span> : insights.topTags.map(tag => <span key={tag}>{tag}</span>)}
+          </div>
+          <div className={tStyles.tagCloud}>
+            {!insights.topTriggers.length ? <span>No mood triggers yet</span> : insights.topTriggers.map(trigger => <span key={trigger}>{trigger}</span>)}
+          </div>
+        </section>
+      </div>
+      )}
+
+      {showSettings && (
+      <div className={tStyles.grid}>
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Settings</div>
+              <h3>Tala preferences</h3>
+              <p className={tStyles.sectionHint}>Keep the mind space gentle, private, and exportable.</p>
+            </div>
+          </div>
+          <div className={tStyles.formGrid}>
+            <label>
+              <span>Reminder time</span>
+              <input type="time" value={settingsForm.reminderTime} onChange={event => updateSettings('reminderTime', event.target.value)} />
+            </label>
+            <label>
+              <span>Weekly review</span>
+              <select value={settingsForm.weeklyReviewDay} onChange={event => updateSettings('weeklyReviewDay', event.target.value)}>
+                {WEEK_DAYS.map(day => <option key={day}>{day}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Prompt style</span>
+              <select value={settingsForm.promptStyle} onChange={event => updateSettings('promptStyle', event.target.value)}>
+                <option>Gentle</option>
+                <option>Direct</option>
+                <option>Reflective</option>
+              </select>
+            </label>
+            <label>
+              <span>Journal privacy</span>
+              <select value={settingsForm.privateByDefault ? 'private' : 'open'} onChange={event => updateSettings('privateByDefault', event.target.value === 'private')}>
+                <option value="private">Private by default</option>
+                <option value="open">Open by default</option>
+              </select>
+            </label>
+            <label className={tStyles.full}>
+              <span>Mood insights</span>
+              <select value={settingsForm.showMoodInsights ? 'show' : 'hide'} onChange={event => updateSettings('showMoodInsights', event.target.value === 'show')}>
+                <option value="show">Show mood insights</option>
+                <option value="hide">Hide mood insights</option>
+              </select>
+            </label>
+          </div>
+          <button type="button" className={tStyles.primaryBtn} onClick={handleSaveSettings} disabled={savingSettings}>
+            {savingSettings ? 'Saving settings...' : 'Save Tala settings'}
+          </button>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Data controls</div>
+              <h3>Tala-only backup and reset</h3>
+              <p className={tStyles.sectionHint}>Export or clear Tala data without touching Takda finance or Lakas fitness records.</p>
+            </div>
+          </div>
+          <div className={tStyles.settingsActions}>
+            <button type="button" className={tStyles.secondaryBtn} onClick={handleExportTalaData}>Export Tala data</button>
+            <button type="button" className={tStyles.ghostBtn} onClick={handleDeleteTalaData} disabled={deletingTalaData}>
+              {deletingTalaData ? 'Deleting...' : 'Delete Tala logs'}
+            </button>
+          </div>
+          <div className={tStyles.empty}>Settings are kept when logs are deleted.</div>
+        </section>
+      </div>
+      )}
+    </div>
+  )
+}

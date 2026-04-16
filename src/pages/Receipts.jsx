@@ -552,7 +552,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
           <div className={receiptStyles.sectionEyebrow}>Scan flow</div>
           <div className={receiptStyles.sectionTitle}>Capture the next receipt</div>
           <div className={receiptStyles.sectionCopy}>
-            Takda cleans the image locally first, then runs OCR so you can review the merchant, total, and date before saving.
+            Buhay cleans the image locally first, then runs OCR so you can review the merchant, total, and date before saving.
           </div>
           <div className={receiptStyles.captureActions}>
             <button className={receiptStyles.primaryButton} onClick={() => {
@@ -619,7 +619,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 </div>
               </>
             ) : (
-              <div className={receiptStyles.summaryEmpty}>Save a few receipts and Takda will start surfacing your merchant and category patterns here.</div>
+              <div className={receiptStyles.summaryEmpty}>Save a few receipts and Buhay will start surfacing your merchant and category patterns here.</div>
             )}
           </div>
         </div>

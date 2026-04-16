@@ -159,7 +159,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         </div>
         <div className={styles.summaryHint}>
-          Keep importing photos or add items manually. When you’re done, Takda will save one grocery expense with the item breakdown attached.
+          Keep importing photos or add items manually. When you’re done, Buhay will save one grocery expense with the item breakdown attached.
         </div>
       </div>
 

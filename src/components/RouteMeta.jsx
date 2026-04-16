@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 const DEFAULT_ORIGIN = 'https://takda-app.vercel.app'
 const DEFAULT_OG_IMAGE = `${DEFAULT_ORIGIN}/og-image.svg`
-const DEFAULT_OG_IMAGE_ALT = 'Takda calendar-first money tracker for Filipinos'
+const DEFAULT_OG_IMAGE_ALT = 'Buhay all-in-one life tracker for Filipinos'
 
 function upsertMetaByName(name, content) {
   if (typeof document === 'undefined') return
@@ -60,7 +60,7 @@ export default function RouteMeta({
     upsertMetaByProperty('og:description', description)
     upsertMetaByProperty('og:image', image)
     upsertMetaByProperty('og:image:alt', imageAlt)
-    upsertMetaByProperty('og:site_name', 'Takda')
+    upsertMetaByProperty('og:site_name', 'Buhay')
     upsertMetaByProperty('og:locale', 'en_PH')
 
     upsertMetaByName('twitter:card', 'summary_large_image')

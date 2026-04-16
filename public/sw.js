@@ -1,4 +1,4 @@
-const CACHE = 'takda-v2'
+const CACHE = 'buhay-v1'
 const ASSETS = ['/manifest.json', '/favicon.svg']
 
 self.addEventListener('install', e => {

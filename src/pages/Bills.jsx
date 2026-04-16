@@ -216,7 +216,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add bill</div>
         <p style={{ color: 'var(--text3)', marginTop: 0 }}>
-          The pay-from account is optional. When you mark this bill paid, Takda will create a real expense and update that account balance.
+          The pay-from account is optional. When you mark this bill paid, Buhay will create a real expense and update that account balance.
         </p>
 
         <div className={styles.formGroup}>

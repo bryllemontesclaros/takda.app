@@ -1,7 +1,7 @@
 {
-  "name": "Takda — Bawat piso, sinusubaybayan.",
-  "short_name": "Takda",
-  "description": "Calendar-first personal finance tracker for Filipinos",
+  "name": "Buhay — Finance, Fitness, and Life Tracker",
+  "short_name": "Buhay",
+  "description": "All-in-one life tracker for finance, fitness, journal, goals, and daily routines.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0f",

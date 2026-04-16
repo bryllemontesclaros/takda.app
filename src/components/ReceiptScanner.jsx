@@ -462,7 +462,7 @@ export default function ReceiptScanner({
       })
 
       const sourceName = isGrocery ? 'grocery' : mode === 'wallet' ? 'wallet' : 'receipt'
-      const capturedFile = buildCapturedImageFile(capturedBlob, `takda-${sourceName}-${Date.now()}.jpg`)
+      const capturedFile = buildCapturedImageFile(capturedBlob, `buhay-${sourceName}-${Date.now()}.jpg`)
 
       closeGuidedCamera()
       await processImage(capturedFile)
@@ -562,7 +562,7 @@ export default function ReceiptScanner({
       ? 'Import a GCash or Maya screenshot'
       : 'Import a receipt photo or image'
   const uploadSub = isGrocery
-    ? 'We clean the image locally first. Turn on cloud OCR below if you want Takda to prefill the item and price.'
+    ? 'We clean the image locally first. Turn on cloud OCR below if you want Buhay to prefill the item and price.'
     : receiptOnly
       ? 'We clean the image locally first. Turn on cloud OCR below if you want merchant, date, total, and category auto-fill.'
       : mode === 'wallet'
@@ -731,7 +731,7 @@ export default function ReceiptScanner({
                             : 'Camera preview unavailable'}
                       </div>
                       <div className={rStyles.cameraStateText}>
-                        {cameraStatus === 'error' ? cameraError : 'Hold steady while Takda gets the camera ready.'}
+                        {cameraStatus === 'error' ? cameraError : 'Hold steady while Buhay gets the camera ready.'}
                       </div>
                     </div>
                   </div>

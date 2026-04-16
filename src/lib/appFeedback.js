@@ -6,7 +6,7 @@ export function notifyApp(input, options = {}) {
     : { ...input, ...options }
 
   if (!window.__takdaFeedbackReady) {
-    console.warn(detail.message || detail.title || 'Takda needs your attention.')
+    console.warn(detail.message || detail.title || 'Buhay needs your attention.')
     return
   }
 

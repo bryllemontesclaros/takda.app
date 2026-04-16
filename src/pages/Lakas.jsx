@@ -6,6 +6,7 @@ import {
   fsDeleteLakasMeal,
   fsSaveLakasBodyLog,
   fsSaveLakasMeal,
+  fsSetProfile,
   fsUpdate,
 } from '../lib/firestore'
 import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
@@ -103,6 +104,7 @@ const ROUTINE_FOCUS = ['Strength', 'Hypertrophy', 'Cardio', 'Mobility', 'Conditi
 const ACTIVITY_TYPES = ['Walk', 'Run', 'Cardio', 'Cycling', 'Sport', 'Active day']
 const REMINDER_TYPES = ['Workout', 'Weigh-in', 'Rest day', 'Steps', 'Habit', 'Meal prep']
 const REMINDER_FREQUENCIES = ['once', 'daily', 'weekly', 'monthly']
+const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 const HABIT_OPTIONS = [
   { key: 'water', label: 'Water' },
@@ -112,6 +114,42 @@ const HABIT_OPTIONS = [
   { key: 'restDay', label: 'Rest day' },
   { key: 'vitamins', label: 'Vitamins' },
 ]
+
+const DEFAULT_LAKAS_SETTINGS = {
+  units: {
+    weight: 'kg',
+    body: 'cm',
+    distance: 'km',
+  },
+  targets: {
+    steps: 8000,
+    calories: 2200,
+    protein: 120,
+    water: 8,
+    sleep: 7,
+    workoutsPerWeek: 3,
+  },
+  workoutDefaults: {
+    sets: 3,
+    reps: 10,
+    restSeconds: 90,
+    durationMinutes: 60,
+  },
+  meals: {
+    calorieGoal: 2200,
+    proteinGoal: 120,
+    macroStyle: 'Balanced',
+  },
+  reminders: {
+    workoutTime: '08:00',
+    weighInDay: 'Monday',
+    frequency: 'weekly',
+  },
+  display: {
+    showBmi: true,
+    hideProgressPhotosInPrivacy: true,
+  },
+}
 
 const LAKAS_TAB_COPY = {
   overview: {
@@ -123,7 +161,7 @@ const LAKAS_TAB_COPY = {
   workouts: {
     eyebrow: 'Workout log',
     title: 'Plan the lift. Log the work.',
-    sub: 'Build reusable routines, load them into a session, then edit sets, reps, kg, duration, rest, and notes for today.',
+    sub: 'Build reusable routines, load them into a session, then edit sets, reps, weight, duration, rest, and notes for today.',
     guide: ['Choose a template', 'Adjust today\'s numbers', 'Save the session'],
   },
   activity: {
@@ -162,39 +200,45 @@ const LAKAS_TAB_COPY = {
     sub: 'Schedule workout, weigh-in, rest day, steps, habit, or meal-prep reminders that can be paused when life changes.',
     guide: ['Set the cue', 'Choose repeat', 'Pause anytime'],
   },
+  settings: {
+    eyebrow: 'Lakas settings',
+    title: 'Tune Lakas to how you train.',
+    sub: 'Set units, daily targets, workout defaults, meal goals, reminders, and privacy preferences for the fitness space.',
+    guide: ['Choose units', 'Set targets', 'Save defaults'],
+  },
 }
 
-function createExerciseRow(overrides = {}) {
+function createExerciseRow(overrides = {}, defaults = {}) {
   return {
     rowId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     name: '',
-    sets: '3',
-    reps: '10',
+    sets: String(defaults.sets ?? '3'),
+    reps: String(defaults.reps ?? '10'),
     weight: '',
     duration: '',
-    rest: '90',
+    rest: String(defaults.restSeconds ?? '90'),
     notes: '',
     ...overrides,
   }
 }
 
-function createWorkoutForm() {
+function createWorkoutForm(settings = DEFAULT_LAKAS_SETTINGS) {
   return {
     routineId: '',
     date: today(),
     title: '',
-    duration: '',
-    exercises: [createExerciseRow()],
+    duration: settings.workoutDefaults?.durationMinutes ? String(settings.workoutDefaults.durationMinutes) : '',
+    exercises: [createExerciseRow({}, settings.workoutDefaults)],
     notes: '',
   }
 }
 
-function createRoutineForm() {
+function createRoutineForm(settings = DEFAULT_LAKAS_SETTINGS) {
   return {
     name: '',
     focus: 'Strength',
-    duration: '',
-    exercises: [createExerciseRow()],
+    duration: settings.workoutDefaults?.durationMinutes ? String(settings.workoutDefaults.durationMinutes) : '',
+    exercises: [createExerciseRow({}, settings.workoutDefaults)],
     notes: '',
   }
 }
@@ -262,14 +306,65 @@ function createGoalForm() {
   }
 }
 
-function createReminderForm() {
+function createReminderForm(settings = DEFAULT_LAKAS_SETTINGS) {
   return {
     title: '',
     type: 'Workout',
     date: today(),
-    time: '08:00',
-    frequency: 'weekly',
+    time: settings.reminders?.workoutTime || '08:00',
+    frequency: settings.reminders?.frequency || 'weekly',
     notes: '',
+  }
+}
+
+function getLakasSettings(profile = {}) {
+  const settings = profile?.lakasSettings || {}
+  return {
+    units: { ...DEFAULT_LAKAS_SETTINGS.units, ...(settings.units || {}) },
+    targets: { ...DEFAULT_LAKAS_SETTINGS.targets, ...(settings.targets || {}) },
+    workoutDefaults: { ...DEFAULT_LAKAS_SETTINGS.workoutDefaults, ...(settings.workoutDefaults || {}) },
+    meals: { ...DEFAULT_LAKAS_SETTINGS.meals, ...(settings.meals || {}) },
+    reminders: { ...DEFAULT_LAKAS_SETTINGS.reminders, ...(settings.reminders || {}) },
+    display: { ...DEFAULT_LAKAS_SETTINGS.display, ...(settings.display || {}) },
+  }
+}
+
+function sanitizeLakasSettings(settings = {}) {
+  const next = getLakasSettings({ lakasSettings: settings })
+  return {
+    units: {
+      weight: next.units.weight === 'lb' ? 'lb' : 'kg',
+      body: next.units.body === 'in' ? 'in' : 'cm',
+      distance: next.units.distance === 'mi' ? 'mi' : 'km',
+    },
+    targets: {
+      steps: numberOrZero(next.targets.steps),
+      calories: numberOrZero(next.targets.calories),
+      protein: numberOrZero(next.targets.protein),
+      water: numberOrZero(next.targets.water),
+      sleep: numberOrZero(next.targets.sleep),
+      workoutsPerWeek: numberOrZero(next.targets.workoutsPerWeek),
+    },
+    workoutDefaults: {
+      sets: numberOrZero(next.workoutDefaults.sets),
+      reps: numberOrZero(next.workoutDefaults.reps),
+      restSeconds: numberOrZero(next.workoutDefaults.restSeconds),
+      durationMinutes: numberOrZero(next.workoutDefaults.durationMinutes),
+    },
+    meals: {
+      calorieGoal: numberOrZero(next.meals.calorieGoal),
+      proteinGoal: numberOrZero(next.meals.proteinGoal),
+      macroStyle: next.meals.macroStyle || 'Balanced',
+    },
+    reminders: {
+      workoutTime: next.reminders.workoutTime || '08:00',
+      weighInDay: next.reminders.weighInDay || 'Monday',
+      frequency: REMINDER_FREQUENCIES.includes(next.reminders.frequency) ? next.reminders.frequency : 'weekly',
+    },
+    display: {
+      showBmi: next.display.showBmi !== false,
+      hideProgressPhotosInPrivacy: next.display.hideProgressPhotosInPrivacy !== false,
+    },
   }
 }
 
@@ -348,7 +443,7 @@ function getExerciseTotals(exercises = []) {
   }, { exerciseCount: 0, setCount: 0, volume: 0 })
 }
 
-function formatExerciseLine(row = {}, hidden = false) {
+function formatExerciseLine(row = {}, hidden = false, weightUnit = 'kg') {
   const sets = numberOrZero(row.sets)
   const reps = numberOrZero(row.reps)
   const duration = numberOrZero(row.duration)
@@ -359,7 +454,7 @@ function formatExerciseLine(row = {}, hidden = false) {
     : reps
       ? `${sets || 1}x${formatNumber(reps)}`
       : `${sets || 1} sets`
-  const load = weight && !hidden ? ` @ ${formatNumber(weight, 1)}kg` : ''
+  const load = weight && !hidden ? ` @ ${formatNumber(weight, 1)}${weightUnit}` : ''
   const restText = rest ? `, ${formatNumber(rest)}s rest` : ''
   return `${row.name || 'Exercise'} ${effort}${load}${restText}`
 }
@@ -370,11 +465,13 @@ function displayMetric(value, unit = '', hidden = false, decimals = 1) {
   return `${numeric.toLocaleString('en-PH', { maximumFractionDigits: decimals })}${unit ? ` ${unit}` : ''}`
 }
 
-function calculateBmi(weight, height) {
-  const kg = numberOrZero(weight)
-  const cm = numberOrZero(height)
-  if (!kg || !cm) return 0
-  const meters = cm / 100
+function calculateBmi(weight, height, weightUnit = 'kg', bodyUnit = 'cm') {
+  const rawWeight = numberOrZero(weight)
+  const rawHeight = numberOrZero(height)
+  if (!rawWeight || !rawHeight) return 0
+  const kg = weightUnit === 'lb' ? rawWeight * 0.45359237 : rawWeight
+  const meters = bodyUnit === 'in' ? rawHeight * 0.0254 : rawHeight / 100
+  if (!meters) return 0
   return kg / (meters * meters)
 }
 
@@ -505,9 +602,10 @@ function MiniBarChart({ title, rows, unit = '', hidden = false }) {
   )
 }
 
-export default function Lakas({ user, data = {}, privacyMode = false, activeTab = 'overview' }) {
-  const [routineForm, setRoutineForm] = useState(createRoutineForm)
-  const [workoutForm, setWorkoutForm] = useState(createWorkoutForm)
+export default function Lakas({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'overview' }) {
+  const initialSettings = getLakasSettings(profile)
+  const [routineForm, setRoutineForm] = useState(() => createRoutineForm(initialSettings))
+  const [workoutForm, setWorkoutForm] = useState(() => createWorkoutForm(initialSettings))
   const [mealForm, setMealForm] = useState(createMealForm)
   const [mealPhoto, setMealPhoto] = useState(null)
   const [bodyPhoto, setBodyPhoto] = useState(null)
@@ -516,12 +614,17 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
   const [activityForm, setActivityForm] = useState(createActivityForm)
   const [habitForm, setHabitForm] = useState(createHabitForm)
   const [goalForm, setGoalForm] = useState(createGoalForm)
-  const [reminderForm, setReminderForm] = useState(createReminderForm)
+  const [reminderForm, setReminderForm] = useState(() => createReminderForm(initialSettings))
+  const [settingsForm, setSettingsForm] = useState(initialSettings)
   const [goalProgress, setGoalProgress] = useState({})
   const [savingMeal, setSavingMeal] = useState(false)
   const [savingBody, setSavingBody] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+  const [deletingLakasData, setDeletingLakasData] = useState(false)
   const [photoPreview, setPhotoPreview] = useState('')
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
+  const savedLakasSettings = getLakasSettings(profile)
+  const profileSettingsKey = JSON.stringify(profile?.lakasSettings || {})
 
   const routines = sortNewest(normalizeRows(data.lakasRoutines))
   const workouts = sortNewest(normalizeRows(data.lakasWorkouts))
@@ -531,6 +634,10 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
   const habits = sortNewest(normalizeRows(data.lakasHabits))
   const reminders = sortNewest(normalizeRows(data.lakasReminders))
   const goals = normalizeRows(data.lakasGoals)
+
+  useEffect(() => {
+    setSettingsForm(getLakasSettings(profile))
+  }, [profileSettingsKey])
 
   useEffect(() => {
     if (!mealPhoto) {
@@ -563,7 +670,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
     const proteinToday = todaysMeals.reduce((sum, row) => sum + numberOrZero(row.protein), 0)
     const latestBody = bodyLogs.find(row => numberOrZero(row.weight) > 0 || numberOrZero(row.waist) > 0) || {}
     const latestWeight = latestBody.weight || 0
-    const latestBmi = calculateBmi(latestBody.weight, latestBody.height)
+    const latestBmi = calculateBmi(latestBody.weight, latestBody.height, savedLakasSettings.units.weight, savedLakasSettings.units.body)
     const activeGoals = goals.filter(goal => numberOrZero(goal.current) < numberOrZero(goal.target)).length
     const todayActivity = activities.find(row => row.date === today()) || {}
     const todayHabit = habits.find(row => row.date === today()) || {}
@@ -613,7 +720,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       weightTrend,
       records,
     }
-  }, [activities, bodyLogs, goals, habits, meals, routines.length, workouts])
+  }, [activities, bodyLogs, goals, habits, meals, profileSettingsKey, routines.length, savedLakasSettings.units.body, savedLakasSettings.units.weight, workouts])
 
   const calendarData = useMemo(() => {
     const workoutMap = createDateMap(workouts)
@@ -645,7 +752,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
   function addExerciseRow(formSetter) {
     formSetter(current => ({
       ...current,
-      exercises: [...current.exercises, createExerciseRow()],
+      exercises: [...current.exercises, createExerciseRow({}, savedLakasSettings.workoutDefaults)],
     }))
   }
 
@@ -724,7 +831,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
                 <input type="number" min="0" inputMode="numeric" value={row.reps} onChange={event => updateExerciseRow(formSetter, row.rowId, 'reps', event.target.value)} />
               </label>
               <label>
-                <span>Kg</span>
+                <span>Weight ({savedLakasSettings.units.weight})</span>
                 <input type="number" min="0" inputMode="decimal" value={row.weight} onChange={event => updateExerciseRow(formSetter, row.rowId, 'weight', event.target.value)} />
               </label>
               <label>
@@ -779,7 +886,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       notes: routineForm.notes.trim(),
       source: 'lakas',
     })
-    setRoutineForm(createRoutineForm())
+    setRoutineForm(createRoutineForm(savedLakasSettings))
     notifyApp({ title: 'Routine saved', message: 'You can now load it when logging a workout.', tone: 'success' })
   }
 
@@ -806,7 +913,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       notes: workoutForm.notes.trim(),
       source: 'lakas',
     })
-    setWorkoutForm(createWorkoutForm())
+    setWorkoutForm(createWorkoutForm(savedLakasSettings))
     notifyApp({ title: 'Workout logged', message: 'Your Lakas workout was saved.', tone: 'success' })
   }
 
@@ -857,7 +964,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
         hips: numberOrZero(bodyForm.hips),
         arm: numberOrZero(bodyForm.arm),
         thigh: numberOrZero(bodyForm.thigh),
-        bmi: calculateBmi(bodyForm.weight, bodyForm.height),
+        bmi: calculateBmi(bodyForm.weight, bodyForm.height, savedLakasSettings.units.weight, savedLakasSettings.units.body),
         notes: bodyForm.notes.trim(),
         photoBlob: bodyPhoto,
         fileName: bodyPhoto?.name || '',
@@ -952,7 +1059,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       enabled: true,
       source: 'lakas',
     })
-    setReminderForm(createReminderForm())
+    setReminderForm(createReminderForm(savedLakasSettings))
     notifyApp({ title: 'Reminder saved', message: 'Lakas reminder was added.', tone: 'success' })
   }
 
@@ -968,6 +1075,90 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
     setGoalProgress(current => ({ ...current, [goal._id]: '' }))
   }
 
+  function updateSettingGroup(group, field, value) {
+    setSettingsForm(current => ({
+      ...current,
+      [group]: {
+        ...(current[group] || {}),
+        [field]: value,
+      },
+    }))
+  }
+
+  async function handleSaveLakasSettings() {
+    setSavingSettings(true)
+    try {
+      const nextSettings = sanitizeLakasSettings(settingsForm)
+      await fsSetProfile(user.uid, { lakasSettings: nextSettings })
+      setSettingsForm(nextSettings)
+      notifyApp({ title: 'Lakas settings saved', message: 'Your fitness defaults were updated.', tone: 'success' })
+    } catch {
+      notifyApp({ title: 'Settings not saved', message: 'Check your connection and try again.', tone: 'error' })
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  function handleExportLakasData() {
+    const payload = {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      profile: {
+        lakasSettings: sanitizeLakasSettings(settingsForm),
+      },
+      lakasRoutines: routines,
+      lakasWorkouts: workouts,
+      lakasBodyLogs: bodyLogs,
+      lakasActivities: activities,
+      lakasHabits: habits,
+      lakasReminders: reminders,
+      lakasMeals: meals,
+      lakasGoals: goals,
+    }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `buhay-lakas-backup-${today()}.json`
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(url)
+    notifyApp({ title: 'Lakas export ready', message: 'Your fitness backup was downloaded.', tone: 'success' })
+  }
+
+  async function handleDeleteLakasData() {
+    const confirmed = await confirmDeleteApp('all Lakas fitness data')
+    if (!confirmed) return
+
+    setDeletingLakasData(true)
+    try {
+      const collections = [
+        ['lakasRoutines', routines],
+        ['lakasWorkouts', workouts],
+        ['lakasActivities', activities],
+        ['lakasHabits', habits],
+        ['lakasReminders', reminders],
+        ['lakasGoals', goals],
+      ]
+      const docDeletes = collections.flatMap(([collectionName, rows]) => (
+        normalizeRows(rows)
+          .filter(row => row._id)
+          .map(row => fsDel(user.uid, collectionName, row._id))
+      ))
+      const mediaDeletes = [
+        ...bodyLogs.filter(row => row._id).map(row => fsDeleteLakasBodyLog(user.uid, row)),
+        ...meals.filter(row => row._id).map(row => fsDeleteLakasMeal(user.uid, row)),
+      ]
+      await Promise.all([...docDeletes, ...mediaDeletes])
+      notifyApp({ title: 'Lakas data cleared', message: 'Fitness logs were deleted. Lakas settings were kept.', tone: 'success' })
+    } catch {
+      notifyApp({ title: 'Could not clear Lakas', message: 'Some data may still remain. Check your connection and try again.', tone: 'error' })
+    } finally {
+      setDeletingLakasData(false)
+    }
+  }
+
   const latestBmiLabel = getBmiLabel(insights.latestBmi)
   const upcomingReminders = reminders.filter(row => row.enabled !== false).slice(0, 5)
   const currentTab = activeTab || 'overview'
@@ -979,6 +1170,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
   const showHabits = currentTab === 'habits'
   const showGoals = currentTab === 'goals'
   const showReminders = currentTab === 'reminders'
+  const showSettings = currentTab === 'settings'
   const tabCopy = LAKAS_TAB_COPY[currentTab] || LAKAS_TAB_COPY.overview
   const workoutVolume7d = insights.volumeByDay.reduce((sum, row) => sum + numberOrZero(row.value), 0)
   const mealsToday = meals.filter(row => row.date === today()).length
@@ -995,13 +1187,18 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
   const pausedReminders = reminders.filter(row => row.enabled === false).length
   const todayReminders = reminders.filter(row => row.enabled !== false && row.date === today()).length
   const habitCheckins7d = habits.filter(row => row.date >= dateDaysAgo(6)).length
-  const latestBodyMeta = !latestBodyLog.date && !insights.latestBmi
-    ? 'Add height and weight to calculate BMI'
-    : privacyMode
+  const shouldShowBmi = savedLakasSettings.display.showBmi !== false
+  const hideBodyPhotos = privacyMode && savedLakasSettings.display.hideProgressPhotosInPrivacy !== false
+  let latestBodyMeta = 'Add height and weight to calculate BMI'
+  if (!shouldShowBmi) {
+    latestBodyMeta = 'BMI hidden'
+  } else if (latestBodyLog.date || insights.latestBmi) {
+    latestBodyMeta = privacyMode
       ? 'Private measurements'
       : insights.latestBmi
         ? `BMI ${formatNumber(insights.latestBmi, 1)} · ${latestBmiLabel}`
         : latestBmiLabel
+  }
   const tabHeroCard = {
     overview: {
       label: 'This week',
@@ -1010,7 +1207,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
     },
     workouts: {
       label: 'Training load',
-      value: displayMetric(workoutVolume7d, 'kg', privacyMode, 0),
+      value: displayMetric(workoutVolume7d, savedLakasSettings.units.weight, privacyMode, 0),
       meta: `${displayMetric(insights.workoutsThisWeek, 'workouts', privacyMode, 0)} this week · ${displayMetric(insights.records.workoutStreak, 'day streak', privacyMode, 0)}`,
     },
     activity: {
@@ -1020,7 +1217,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
     },
     body: {
       label: 'Latest body log',
-      value: insights.latestWeight ? displayMetric(insights.latestWeight, 'kg', privacyMode) : 'No log',
+      value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log',
       meta: latestBodyLog.date ? `${formatDisplayDate(latestBodyLog.date)} · ${latestBodyMeta}` : latestBodyMeta,
     },
     meals: {
@@ -1043,6 +1240,11 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       value: displayMetric(enabledReminders, 'active', privacyMode, 0),
       meta: `${displayMetric(todayReminders, 'today', privacyMode, 0)} · ${displayMetric(pausedReminders, 'paused', privacyMode, 0)}`,
     },
+    settings: {
+      label: 'Current units',
+      value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`,
+      meta: `${savedLakasSettings.units.distance} distance · ${savedLakasSettings.display.showBmi ? 'BMI on' : 'BMI hidden'}`,
+    },
   }[currentTab] || {
     label: 'This week',
     value: displayMetric(insights.workoutsThisWeek, 'workouts', privacyMode, 0),
@@ -1053,12 +1255,12 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       { label: 'Workouts', value: displayMetric(insights.workoutsThisWeek, '', privacyMode, 0), meta: 'Last 7 days' },
       { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
       { label: 'Protein', value: displayMetric(insights.proteinToday, 'g', privacyMode, 0), meta: 'Logged today' },
-      { label: 'Body', value: insights.latestWeight ? displayMetric(insights.latestWeight, 'kg', privacyMode) : 'No log', meta: latestBodyMeta },
+      { label: 'Body', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyMeta },
     ],
     workouts: [
       { label: 'Routines', value: displayMetric(insights.routineCount, '', privacyMode, 0), meta: 'Saved templates' },
       { label: 'Workouts', value: displayMetric(insights.workoutsThisWeek, '', privacyMode, 0), meta: 'Last 7 days' },
-      { label: 'Volume', value: displayMetric(workoutVolume7d, 'kg', privacyMode, 0), meta: 'Last 7 days' },
+      { label: 'Volume', value: displayMetric(workoutVolume7d, savedLakasSettings.units.weight, privacyMode, 0), meta: 'Last 7 days' },
       { label: 'Streak', value: displayMetric(insights.records.workoutStreak, 'days', privacyMode, 0), meta: 'Current' },
     ],
     activity: [
@@ -1068,8 +1270,8 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       { label: 'Logs', value: displayMetric(activities.length, '', privacyMode, 0), meta: 'Saved movement' },
     ],
     body: [
-      { label: 'Weight', value: insights.latestWeight ? displayMetric(insights.latestWeight, 'kg', privacyMode) : 'No log', meta: latestBodyLog.date ? formatDisplayDate(latestBodyLog.date) : 'Latest' },
-      { label: 'BMI', value: insights.latestBmi ? displayMetric(insights.latestBmi, '', privacyMode, 1) : 'No BMI', meta: latestBmiLabel },
+      { label: 'Weight', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyLog.date ? formatDisplayDate(latestBodyLog.date) : 'Latest' },
+      { label: 'BMI', value: shouldShowBmi && insights.latestBmi ? displayMetric(insights.latestBmi, '', privacyMode, 1) : shouldShowBmi ? 'No BMI' : 'Hidden', meta: shouldShowBmi ? latestBmiLabel : 'Disabled in settings' },
       { label: 'Logs', value: displayMetric(bodyLogs.length, '', privacyMode, 0), meta: 'Body entries' },
       { label: 'Photos', value: displayMetric(bodyLogs.filter(row => row.photoUrl).length, '', privacyMode, 0), meta: 'Progress photos' },
     ],
@@ -1096,6 +1298,12 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       { label: 'Today', value: displayMetric(todayReminders, '', privacyMode, 0), meta: 'Due today' },
       { label: 'Paused', value: displayMetric(pausedReminders, '', privacyMode, 0), meta: 'Not firing' },
       { label: 'Upcoming', value: displayMetric(upcomingReminders.length, '', privacyMode, 0), meta: 'Visible list' },
+    ],
+    settings: [
+      { label: 'Units', value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`, meta: `${savedLakasSettings.units.distance} distance` },
+      { label: 'Steps target', value: displayMetric(savedLakasSettings.targets.steps, '', privacyMode, 0), meta: 'Daily target' },
+      { label: 'Workout default', value: displayMetric(savedLakasSettings.workoutDefaults.durationMinutes, 'min', privacyMode, 0), meta: `${savedLakasSettings.workoutDefaults.sets}x${savedLakasSettings.workoutDefaults.reps} · ${savedLakasSettings.workoutDefaults.restSeconds}s rest` },
+      { label: 'Meal target', value: displayMetric(savedLakasSettings.meals.calorieGoal, 'kcal', privacyMode, 0), meta: `${savedLakasSettings.meals.proteinGoal}g protein` },
     ],
   })[currentTab] || []
 
@@ -1152,13 +1360,20 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
               ['Longest workout', insights.records.longestWorkout],
               ['Longest cardio', insights.records.longestCardio],
               ['Workout streak', { label: 'Current', value: insights.records.workoutStreak, unit: 'days' }],
-            ].map(([label, record]) => (
-              <div key={label} className={lStyles.recordCard}>
-                <span>{label}</span>
-                <strong>{record ? displayMetric(record.value, record.unit, privacyMode) : 'No record'}</strong>
-                <small>{record?.label || 'Log more to unlock'}</small>
-              </div>
-            ))}
+            ].map(([label, record]) => {
+              const recordUnit = record?.unit === 'kg'
+                ? savedLakasSettings.units.weight
+                : record?.unit === 'kg volume'
+                  ? `${savedLakasSettings.units.weight} volume`
+                  : record?.unit
+              return (
+                <div key={label} className={lStyles.recordCard}>
+                  <span>{label}</span>
+                  <strong>{record ? displayMetric(record.value, recordUnit, privacyMode) : 'No record'}</strong>
+                  <small>{record?.label || 'Log more to unlock'}</small>
+                </div>
+              )
+            })}
           </div>
         </section>
         )}
@@ -1174,9 +1389,9 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
           </div>
           <div className={lStyles.chartGrid}>
             <MiniBarChart title="Workout frequency" rows={insights.workoutFrequency} unit="workouts" hidden={privacyMode} />
-            <MiniBarChart title="Volume lifted" rows={insights.volumeByDay} unit="kg" hidden={privacyMode} />
+            <MiniBarChart title="Volume lifted" rows={insights.volumeByDay} unit={savedLakasSettings.units.weight} hidden={privacyMode} />
             <MiniBarChart title="Steps" rows={insights.stepsByDay} unit="steps" hidden={privacyMode} />
-            <MiniBarChart title="Weight trend" rows={insights.weightTrend.length ? insights.weightTrend : [{ key: 'empty', label: '--', value: 0 }]} unit="kg" hidden={privacyMode} />
+            <MiniBarChart title="Weight trend" rows={insights.weightTrend.length ? insights.weightTrend : [{ key: 'empty', label: '--', value: 0 }]} unit={savedLakasSettings.units.weight} hidden={privacyMode} />
           </div>
         </section>
         )}
@@ -1334,7 +1549,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
                   <strong>{routine.name}</strong>
                   <span>{routine.focus || 'Routine'} · {routine.exerciseCount || 0} exercises · {routine.setCount || 0} sets</span>
                   {Array.isArray(routine.exercises) && routine.exercises.length > 0 && (
-                    <small>{routine.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode)).join(' | ')}</small>
+                    <small>{routine.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode, savedLakasSettings.units.weight)).join(' | ')}</small>
                   )}
                 </div>
                 <div className={lStyles.routineActions}>
@@ -1422,7 +1637,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
               <input type="number" min="0" inputMode="numeric" value={activityForm.activeMinutes} placeholder="45" onChange={event => setActivityForm(current => ({ ...current, activeMinutes: event.target.value }))} />
             </label>
             <label>
-              <span>Distance km</span>
+              <span>Distance ({savedLakasSettings.units.distance})</span>
               <input type="number" min="0" inputMode="decimal" value={activityForm.distance} placeholder="3.5" onChange={event => setActivityForm(current => ({ ...current, distance: event.target.value }))} />
             </label>
             <label>
@@ -1497,31 +1712,31 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
               <input type="date" value={bodyForm.date} onChange={event => setBodyForm(current => ({ ...current, date: event.target.value }))} />
             </label>
             <label>
-              <span>Weight (kg)</span>
+              <span>Weight ({savedLakasSettings.units.weight})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.weight} placeholder="70" onChange={event => setBodyForm(current => ({ ...current, weight: event.target.value }))} />
             </label>
             <label>
-              <span>Height (cm)</span>
+              <span>Height ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.height} placeholder="170" onChange={event => setBodyForm(current => ({ ...current, height: event.target.value }))} />
             </label>
             <label>
-              <span>Waist (cm)</span>
+              <span>Waist ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.waist} placeholder="82" onChange={event => setBodyForm(current => ({ ...current, waist: event.target.value }))} />
             </label>
             <label>
-              <span>Chest (cm)</span>
+              <span>Chest ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.chest} placeholder="96" onChange={event => setBodyForm(current => ({ ...current, chest: event.target.value }))} />
             </label>
             <label>
-              <span>Hips (cm)</span>
+              <span>Hips ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.hips} placeholder="94" onChange={event => setBodyForm(current => ({ ...current, hips: event.target.value }))} />
             </label>
             <label>
-              <span>Arm (cm)</span>
+              <span>Arm ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.arm} placeholder="32" onChange={event => setBodyForm(current => ({ ...current, arm: event.target.value }))} />
             </label>
             <label>
-              <span>Thigh (cm)</span>
+              <span>Thigh ({savedLakasSettings.units.body})</span>
               <input type="number" min="0" inputMode="decimal" value={bodyForm.thigh} placeholder="54" onChange={event => setBodyForm(current => ({ ...current, thigh: event.target.value }))} />
             </label>
             <label className={lStyles.full}>
@@ -1645,6 +1860,190 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       </div>
       )}
 
+      {showSettings && (
+      <div className={lStyles.grid}>
+        <section className={lStyles.panel}>
+          <div className={lStyles.sectionHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Units & display</div>
+              <h3>Lakas preferences</h3>
+              <p className={lStyles.sectionHint}>Set the measurement system and privacy behavior used by the fitness space.</p>
+            </div>
+          </div>
+          <div className={lStyles.formGrid}>
+            <label>
+              <span>Weight</span>
+              <select value={settingsForm.units.weight} onChange={event => updateSettingGroup('units', 'weight', event.target.value)}>
+                <option value="kg">Kilograms (kg)</option>
+                <option value="lb">Pounds (lb)</option>
+              </select>
+            </label>
+            <label>
+              <span>Body measurements</span>
+              <select value={settingsForm.units.body} onChange={event => updateSettingGroup('units', 'body', event.target.value)}>
+                <option value="cm">Centimeters (cm)</option>
+                <option value="in">Inches (in)</option>
+              </select>
+            </label>
+            <label>
+              <span>Distance</span>
+              <select value={settingsForm.units.distance} onChange={event => updateSettingGroup('units', 'distance', event.target.value)}>
+                <option value="km">Kilometers (km)</option>
+                <option value="mi">Miles (mi)</option>
+              </select>
+            </label>
+            <label>
+              <span>Show BMI</span>
+              <select value={settingsForm.display.showBmi ? 'yes' : 'no'} onChange={event => updateSettingGroup('display', 'showBmi', event.target.value === 'yes')}>
+                <option value="yes">Show BMI</option>
+                <option value="no">Hide BMI</option>
+              </select>
+            </label>
+            <label className={lStyles.full}>
+              <span>Progress photos in privacy mode</span>
+              <select value={settingsForm.display.hideProgressPhotosInPrivacy ? 'hide' : 'show'} onChange={event => updateSettingGroup('display', 'hideProgressPhotosInPrivacy', event.target.value === 'hide')}>
+                <option value="hide">Hide progress photos</option>
+                <option value="show">Show progress photos</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section className={lStyles.panel}>
+          <div className={lStyles.sectionHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Daily targets</div>
+              <h3>What a good day means</h3>
+              <p className={lStyles.sectionHint}>These targets guide Lakas summaries without forcing you into a strict plan.</p>
+            </div>
+          </div>
+          <div className={lStyles.formGrid}>
+            <label>
+              <span>Steps</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.targets.steps} onChange={event => updateSettingGroup('targets', 'steps', event.target.value)} />
+            </label>
+            <label>
+              <span>Calories</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.targets.calories} onChange={event => updateSettingGroup('targets', 'calories', event.target.value)} />
+            </label>
+            <label>
+              <span>Protein (g)</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.targets.protein} onChange={event => updateSettingGroup('targets', 'protein', event.target.value)} />
+            </label>
+            <label>
+              <span>Water glasses</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.targets.water} onChange={event => updateSettingGroup('targets', 'water', event.target.value)} />
+            </label>
+            <label>
+              <span>Sleep hours</span>
+              <input type="number" min="0" inputMode="decimal" value={settingsForm.targets.sleep} onChange={event => updateSettingGroup('targets', 'sleep', event.target.value)} />
+            </label>
+            <label>
+              <span>Workouts/week</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.targets.workoutsPerWeek} onChange={event => updateSettingGroup('targets', 'workoutsPerWeek', event.target.value)} />
+            </label>
+          </div>
+        </section>
+
+        <section className={lStyles.panel}>
+          <div className={lStyles.sectionHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Workout defaults</div>
+              <h3>New routine starting point</h3>
+              <p className={lStyles.sectionHint}>New exercise rows use these defaults for faster workout and routine entry.</p>
+            </div>
+          </div>
+          <div className={lStyles.formGrid}>
+            <label>
+              <span>Sets</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.sets} onChange={event => updateSettingGroup('workoutDefaults', 'sets', event.target.value)} />
+            </label>
+            <label>
+              <span>Reps</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.reps} onChange={event => updateSettingGroup('workoutDefaults', 'reps', event.target.value)} />
+            </label>
+            <label>
+              <span>Rest seconds</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.restSeconds} onChange={event => updateSettingGroup('workoutDefaults', 'restSeconds', event.target.value)} />
+            </label>
+            <label>
+              <span>Duration min</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.durationMinutes} onChange={event => updateSettingGroup('workoutDefaults', 'durationMinutes', event.target.value)} />
+            </label>
+          </div>
+        </section>
+
+        <section className={lStyles.panel}>
+          <div className={lStyles.sectionHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Meals & reminders</div>
+              <h3>Fuel and reminder defaults</h3>
+              <p className={lStyles.sectionHint}>Keep nutrition and reminder defaults close to the way you actually live.</p>
+            </div>
+          </div>
+          <div className={lStyles.formGrid}>
+            <label>
+              <span>Calorie goal</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.meals.calorieGoal} onChange={event => updateSettingGroup('meals', 'calorieGoal', event.target.value)} />
+            </label>
+            <label>
+              <span>Protein goal</span>
+              <input type="number" min="0" inputMode="numeric" value={settingsForm.meals.proteinGoal} onChange={event => updateSettingGroup('meals', 'proteinGoal', event.target.value)} />
+            </label>
+            <label>
+              <span>Macro style</span>
+              <select value={settingsForm.meals.macroStyle} onChange={event => updateSettingGroup('meals', 'macroStyle', event.target.value)}>
+                <option>Balanced</option>
+                <option>High protein</option>
+                <option>Cutting</option>
+                <option>Bulking</option>
+              </select>
+            </label>
+            <label>
+              <span>Workout time</span>
+              <input type="time" value={settingsForm.reminders.workoutTime} onChange={event => updateSettingGroup('reminders', 'workoutTime', event.target.value)} />
+            </label>
+            <label>
+              <span>Weigh-in day</span>
+              <select value={settingsForm.reminders.weighInDay} onChange={event => updateSettingGroup('reminders', 'weighInDay', event.target.value)}>
+                {WEEK_DAYS.map(day => <option key={day}>{day}</option>)}
+              </select>
+            </label>
+            <label>
+              <span>Reminder repeat</span>
+              <select value={settingsForm.reminders.frequency} onChange={event => updateSettingGroup('reminders', 'frequency', event.target.value)}>
+                {REMINDER_FREQUENCIES.map(freq => <option key={freq}>{freq}</option>)}
+              </select>
+            </label>
+          </div>
+          <button type="button" className={lStyles.primaryBtn} onClick={handleSaveLakasSettings} disabled={savingSettings}>
+            {savingSettings ? 'Saving settings...' : 'Save Lakas settings'}
+          </button>
+        </section>
+
+        <section className={lStyles.panel}>
+          <div className={lStyles.sectionHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Data controls</div>
+              <h3>Lakas-only backup and reset</h3>
+              <p className={lStyles.sectionHint}>Export or clear fitness data without touching Takda finance records.</p>
+            </div>
+          </div>
+          <div className={lStyles.settingsActions}>
+            <button type="button" className={lStyles.secondaryBtn} onClick={handleExportLakasData}>
+              Export Lakas data
+            </button>
+            <button type="button" className={lStyles.ghostBtn} onClick={handleDeleteLakasData} disabled={deletingLakasData}>
+              {deletingLakasData ? 'Deleting...' : 'Delete Lakas logs'}
+            </button>
+          </div>
+          <div className={lStyles.empty}>
+            Settings are kept when logs are deleted. Progress photos and meal photos are also removed from storage.
+          </div>
+        </section>
+      </div>
+      )}
+
       {(showWorkouts || showActivity || showMeals || showBody || showHabits || showGoals) && (
       <div className={lStyles.timelineGrid}>
         {showWorkouts && (
@@ -1660,9 +2059,9 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
             <div key={workout._id} className={lStyles.rowCard}>
               <div>
                 <strong>{workout.title}</strong>
-                <span>{formatDisplayDate(workout.date)} · {workout.duration ? `${workout.duration} min` : 'No duration'} · {workout.exerciseCount || 0} exercises · {workout.setCount || 0} sets · {formatNumber(workout.volume || getExerciseTotals(workout.exercises).volume)} kg volume</span>
+                <span>{formatDisplayDate(workout.date)} · {workout.duration ? `${workout.duration} min` : 'No duration'} · {workout.exerciseCount || 0} exercises · {workout.setCount || 0} sets · {formatNumber(workout.volume || getExerciseTotals(workout.exercises).volume)} {savedLakasSettings.units.weight} volume</span>
                 {Array.isArray(workout.exercises) && workout.exercises.length > 0 && (
-                  <small>{workout.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode)).join(' | ')}</small>
+                  <small>{workout.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode, savedLakasSettings.units.weight)).join(' | ')}</small>
                 )}
                 {typeof workout.exercises === 'string' && workout.exercises && (
                   <small>{workout.exercises.split('\n').slice(0, 2).join(' | ')}</small>
@@ -1730,11 +2129,11 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
           </div>
           {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : bodyLogs.slice(0, 6).map(log => (
             <div key={log._id} className={lStyles.mealRow}>
-              {log.photoUrl && !privacyMode ? <img src={log.photoUrl} alt="" /> : <div className={lStyles.photoPlaceholder}>{log.photoUrl ? 'Hidden' : 'Body'}</div>}
+              {log.photoUrl && !hideBodyPhotos ? <img src={log.photoUrl} alt="" /> : <div className={lStyles.photoPlaceholder}>{log.photoUrl ? 'Hidden' : 'Body'}</div>}
               <div>
                 <strong>{formatDisplayDate(log.date)}</strong>
-                <span>{log.weight ? displayMetric(log.weight, 'kg', privacyMode) : 'No weight'} · {log.waist ? displayMetric(log.waist, 'cm waist', privacyMode) : 'No waist'} · {privacyMode && log.bmi ? 'BMI ...' : log.bmi ? `BMI ${formatNumber(log.bmi, 1)}` : 'No BMI'}</span>
-                <small>{privacyMode ? 'Private measurements' : ['chest', 'hips', 'arm', 'thigh'].map(key => log[key] ? `${key} ${formatNumber(log[key], 1)}cm` : '').filter(Boolean).join(' · ') || log.notes || 'No measurements'}</small>
+                <span>{log.weight ? displayMetric(log.weight, savedLakasSettings.units.weight, privacyMode) : 'No weight'} · {log.waist ? displayMetric(log.waist, `${savedLakasSettings.units.body} waist`, privacyMode) : 'No waist'} · {!shouldShowBmi ? 'BMI hidden' : privacyMode && log.bmi ? 'BMI ...' : log.bmi ? `BMI ${formatNumber(log.bmi, 1)}` : 'No BMI'}</span>
+                <small>{privacyMode ? 'Private measurements' : ['chest', 'hips', 'arm', 'thigh'].map(key => log[key] ? `${key} ${formatNumber(log[key], 1)}${savedLakasSettings.units.body}` : '').filter(Boolean).join(' · ') || log.notes || 'No measurements'}</small>
               </div>
               <button type="button" onClick={async () => { if (await confirmDeleteApp('this body log')) await fsDeleteLakasBodyLog(user.uid, log) }}>Delete</button>
             </div>

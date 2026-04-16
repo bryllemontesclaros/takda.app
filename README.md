@@ -1,61 +1,138 @@
-# Takda
+# Buhay
 
-> Bawat piso, sinusubaybayan. — Every peso, tracked.
+> Bawat araw, mas malinaw. Every day, clearer.
 
-Takda is a calendar-first money tracker built for Filipinos. The current app focuses on daily closing balances, budgeting, savings goals, account balances, OCR-assisted imports, and monthly insights powered by React, Firebase Auth, and Firestore.
+Buhay is an all-in-one life tracker built for Filipinos. It brings three focused spaces into one installable React + Firebase app:
 
-## Current App Sections
+- Takda: finance, daily balances, bills, receipts, budgets, savings, reports, and cashflow.
+- Lakas: fitness, workouts, routines, meals, activity, body progress, habits, and goals.
+- Tala: mind, journal, mood, tasks, life goals, calendar patterns, and insights.
+
+## App Spaces
+
+Takda finance:
 
 - Home
 - Calendar
+- Savings
+- Accounts
 - History
+- Receipts
 - Breakdown
 - Budget
-- Accounts
-- Savings Goals
+- Bills
 - Settings
 
-## Current Features
+Lakas fitness:
 
-- Email/password authentication with registration, login, logout, remember-me, and password reset
-- First-run onboarding for preferred currency, account balances, and recurring bills
-- Dashboard with current balance, monthly income/expense summary, savings rate, budget health, recent transactions, and projected month-end balance
-- Calendar-based income and expense tracking with add, edit, delete, and day-level summaries
-- Recurring transactions with projected entries and cash-flow forecasting
-- OCR-assisted import for GCash/Maya screenshots and receipt images
-- Transaction history with search, filters, sorting, and inline editing
-- Spending breakdown charts with category pie chart and 6-month comparisons
-- Category budgets with overspending warnings and unbudgeted spending visibility
-- Accounts tracking for cash, bank, e-wallet, credit card, investment, and other balances
-- Savings goals with progress tracking and contribution updates
-- Privacy mode for masking financial values across the app
-- Light and dark theme toggle
-- In-app alerts for budgets, bills, goals, and high-spend days
-- Data export to CSV and JSON, plus a printable monthly report
-- Firestore-backed real-time sync across devices
-- Installable PWA with a basic service worker
-- Built-in EXP and level-based gamification tied to money activity
-- Full feature access for everyone
+- Overview
+- Workouts
+- Meals
+- Activity
+- Habits
+- Body
+- Goals
+- Reminders
+- Settings
+
+Tala mind and life admin:
+
+- Today
+- Journal
+- Mood
+- Tasks
+- Goals
+- Calendar
+- Insights
+- Settings
+
+## Core Features
+
+- Email/password authentication with registration, login, logout, remember-me, password reset, and email verification support.
+- First-run onboarding for preferred currency, opening account balances, recurring bills, and optional bill pay-from accounts.
+- Mobile-first all-in-one app shell with separate Takda, Lakas, and Tala spaces.
+- Desktop sidebar and mobile bottom navigation with per-space tabs and More sheets.
+- Liquid-glass inspired UI, light/dark theme, privacy mode, and responsive desktop/mobile layouts.
+- Firestore-backed real-time sync for signed-in users.
+- Installable PWA with service worker caching.
+- JSON backup/restore, CSV export, printable monthly finance reports, and account/data deletion controls.
+- Settings for account security, profile, email, password, notifications, legal links, feedback, support, currency, exchange-rate context, data tools, and storage summary.
+
+## Takda Finance
+
+- Dashboard with current balance, monthly income/expense summary, savings rate, budget health, recent transactions, gamification status, and projected month-end balance.
+- Calendar-based finance tracking with daily closing balances, selected-day detail, date/month/year jump, and privacy-safe display.
+- Income and expense tracking with categories, subcategories, recurrence, notes, account links, add/edit/delete flows, and quick add.
+- Transfers between accounts.
+- Bills with recurring schedules, due/overdue handling, pay-from account support, and mark-paid behavior that can create a real expense and update balances.
+- Accounts for cash, bank, e-wallet, credit card, investment, and other balances.
+- Savings goals with target dates, progress tracking, contribution updates, and summaries.
+- Budgets with category limits, overspending warnings, unbudgeted spending visibility, and budget status.
+- Receipts with camera/upload flow, local image cleanup, optional OCR.Space parsing, editable receipt review, receipt box, thumbnails, merchant/category summaries, and expense saving.
+- Grocery mode for price-tag scanning/manual items and one-trip expense saving.
+- History with search, filters, sorting, and inline editing.
+- Breakdown charts with category views, trends, and month comparisons.
+- Ask Takda command sheet for finance commands with preview/confirmation before write actions.
+- EXP and level-based gamification focused on real finance habits rather than raw fake transaction volume.
+
+## Lakas Fitness
+
+- Overview dashboard for fitness stats, recent activity, goals, and quick actions.
+- Workout log for exercises, sets, reps, weight, duration, rest time, and notes.
+- Routines/plans such as Push/Pull/Legs, full body, home workout, cardio, and custom routines.
+- Meal tracking with photo meal logs and editable meal details.
+- Body progress with weight, measurements, BMI/body trend, notes, and progress photos.
+- Steps and activity tracking for walking, cardio minutes, active days, distance, and activity notes.
+- Habit check-ins for water, protein, sleep, stretching, rest day, vitamins, and custom habits.
+- Fitness goals for weight, muscle, steps, workout frequency, habits, activity, and body progress.
+- Reminders for workouts, weigh-ins, rest days, meals, habits, and custom reminders.
+- Calendar and trend-style views for workout days, activity consistency, meals, habits, and progress.
+- Lakas settings for units, workout defaults, meal defaults, reminders, privacy, export, and Lakas-only data deletion.
+
+## Tala Mind And Life Admin
+
+- Today check-in with mood, energy, stress, sleep quality, priority, gratitude, and reflection.
+- Journal with title, body, mood, tags, private/open setting, and privacy-mode masking.
+- Mood tracker with mood, energy, stress, sleep quality, triggers, notes, and trends.
+- Tasks with due dates, priorities, notes, open/done status, and overdue visibility.
+- Life goals with area, target date, progress percentage, notes, and direct progress updates.
+- Calendar view with dots for check-ins, journal entries, mood logs, task due dates, and goal target dates.
+- Insights for journal streaks, mood averages, energy trends, task completion, top tags, and common triggers.
+- Tala settings for reminder time, weekly review day, prompt style, journal privacy default, mood insight visibility, export, and Tala-only data deletion.
+- Clear disclaimer behavior: Tala is for tracking/reflection, not diagnosis or medical/mental-health advice.
+
+## Privacy And Safety
+
+- Per-user Firestore data under `users/{uid}`.
+- Firestore rules restrict user data to the authenticated owner.
+- Firebase Storage rules should restrict user images to the authenticated owner.
+- Privacy mode masks sensitive money and personal values across app views.
+- Receipt, import, command, meal, workout, task, and goal flows use review-before-save behavior where relevant.
+- JSON backups include app data and image metadata links, but image files are not re-uploaded from backups.
+- Account deletion and data reset tools are available in Settings.
+- Legal pages explain privacy, terms, third-party services, OCR/import behavior, and product limits.
 
 ## Tech Stack
 
-- **Frontend** — React + Vite
-- **Auth** — Firebase Authentication (Email/Password)
-- **Database** — Firestore (real-time, per-user, secured)
-- **Hosting** — Vercel
-- **PWA** — Installable web app with service worker caching
-- **OCR Import** — OCR.Space for screenshot and receipt parsing
+- Frontend: React + Vite
+- Auth: Firebase Authentication, Email/Password
+- Database: Firestore, real-time per-user collections
+- Storage: Firebase Storage for receipt, meal, and body progress images
+- Hosting: Vercel
+- PWA: Installable web app with service worker caching
+- OCR/import: OCR.Space for receipt, wallet screenshot, and image-assisted parsing when enabled
 
 ## Getting Started
 
 ```bash
-git clone <your-takda-repo-url>
-cd <your-takda-folder>
+git clone <your-buhay-repo-url>
+cd <your-buhay-folder>
 npm install
 cp .env.example .env.local
-# Fill in your Firebase config in .env.local
 npm run dev
 ```
+
+Fill in Firebase and OCR values in `.env.local`.
 
 ## Environment Variables
 
@@ -70,52 +147,83 @@ VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 VITE_OCR_SPACE_API_KEY=your_ocr_space_api_key
 ```
 
-`VITE_OCR_SPACE_API_KEY` is optional, but recommended for receipt and wallet screenshot import.
+`VITE_OCR_SPACE_API_KEY` is optional, but recommended for receipt, wallet screenshot, and image-assisted import features.
 
-## Deploy Firestore Security Rules
+## Deploy Firestore And Storage Rules
 
 ```bash
 npm install -g firebase-tools
 firebase login
-firebase deploy --only firestore:rules
+firebase deploy --only firestore:rules,storage
 ```
 
-## Deploy to Vercel
+## Deploy To Vercel
 
-1. Push to GitHub
-2. Import the repo into Vercel
-3. Add all `VITE_FIREBASE_*` env vars in Vercel project settings
-4. Add `VITE_OCR_SPACE_API_KEY` if you want OCR import enabled in production
-5. Deploy
-6. Add your Vercel domain to Firebase Console → Authentication → Authorized domains
+1. Push to GitHub.
+2. Import the repo into Vercel.
+3. Add all `VITE_FIREBASE_*` environment variables in Vercel project settings.
+4. Add `VITE_OCR_SPACE_API_KEY` if OCR import should be enabled in production.
+5. Deploy.
+6. Add the Vercel domain to Firebase Console > Authentication > Authorized domains.
 
-## PWA — Install on Mobile
+## PWA Install
 
-1. Open the deployed URL in Chrome (Android) or Safari (iOS)
-2. Android: tap the menu → "Add to Home Screen"
-3. iOS: tap the Share icon → "Add to Home Screen"
+1. Open the deployed URL in Chrome on Android or Safari on iOS.
+2. Android: tap the browser menu, then Add to Home Screen.
+3. iOS: tap Share, then Add to Home Screen.
 
 ## Firestore Structure
 
 ```text
 users/{uid}/
-  income/       { desc, amount, date, cat, recur, type, accountId, createdAt }
-  expenses/     { desc, amount, date, cat, recur, type, accountId, createdAt }
-  bills/        { name, amount, due, cat, freq, paid, type, createdAt }
-  goals/        { name, target, current, date, createdAt }
-  accounts/     { name, type, balance, color, notes, createdAt }
-  budgets/      { cat, limit, createdAt }
-  feedback/     { kind, rating, message, allowFeature, email, createdBy, createdAt }
-  profile/main  { currency, privacyMode, notificationPrefs }
+  profile/main      { currency, privacyMode, notificationPrefs, lakasSettings, talaSettings, ... }
+  income/           { desc, amount, date, cat, subcat, recur, accountId, source, createdAt, ... }
+  expenses/         { desc, amount, date, cat, subcat, recur, accountId, source, createdAt, ... }
+  transfers/        { amount, date, fromAccountId, fromAccountName, toAccountId, toAccountName, desc, source, createdAt }
+  bills/            { name, amount, due, cat, subcat, freq, accountId, accountName, paid, createdAt, ... }
+  goals/            { name, target, current, date, createdAt, ... }
+  accounts/         { name, type, balance, color, notes, createdAt, ... }
+  budgets/          { cat, limit, createdAt, ... }
+  receipts/         { imageUrl, cleanedImageUrl, extractedData, merchant, total, date, source, createdAt, ... }
+  calendarEvents/   { title, date, notes, source, createdAt, ... }
+  feedback/         { kind, rating, message, allowFeature, email, createdBy, createdAt }
+  lakasRoutines/    { name, focus, exercises, exerciseCount, setCount, duration, notes, createdAt, ... }
+  lakasWorkouts/    { title, date, exercises, exerciseCount, duration, notes, createdAt, ... }
+  lakasMeals/       { name, date, mealType, calories, photoUrl, notes, createdAt, ... }
+  lakasBodyLogs/    { date, weight, measurements, bmi, photoUrl, notes, createdAt, ... }
+  lakasActivities/  { date, type, steps, activeMinutes, cardioMinutes, distance, notes, createdAt, ... }
+  lakasHabits/      { date, habits, score, notes, createdAt, ... }
+  lakasReminders/   { title, date, time, type, frequency, notes, createdAt, ... }
+  lakasGoals/       { name, type, target, current, unit, targetDate, notes, createdAt, ... }
+  talaCheckins/     { date, mood, energy, stress, sleepQuality, priority, gratitude, reflection, createdAt, ... }
+  talaJournal/      { date, title, mood, tags, body, private, createdAt, ... }
+  talaMoods/        { date, mood, energy, stress, sleepQuality, triggers, notes, createdAt, ... }
+  talaTasks/        { title, dueDate, priority, notes, done, completedAt, createdAt, ... }
+  talaGoals/        { name, area, targetDate, progress, notes, createdAt, ... }
+```
+
+## Storage Structure
+
+```text
+users/{uid}/
+  receipts/{receiptId}/original.{ext}
+  receipts/{receiptId}/cleaned.{ext}
+  lakas/meals/{mealId}/photo.{ext}
+  lakas/body/{bodyLogId}/photo.{ext}
 ```
 
 ## Notes
 
-- The public landing page lives at `/`, auth lives at `/login`, and the signed-in app lives at `/app`.
-- A marketing landing page and some older standalone pages still exist in the repo, but the main in-app experience is driven by the sections listed above.
-- Google Sign-In is not currently enabled in the active auth screen.
-- Wallet transfer imports can be detected during OCR review, but transfers are not stored as a dedicated transaction type yet.
-- Bills are supported in Firestore, exports, reports, and alerts, but there is no dedicated Bills section in the current main app shell navigation.
+- The public landing page lives at `/`.
+- Auth lives at `/login`.
+- The signed-in app lives at `/app`.
+- The whole product is named Buhay.
+- The finance space inside Buhay is still named Takda.
+- Ask Takda is intentionally finance-focused for now.
+- Google Sign-In is not enabled in the active auth screen.
+- OCR import depends on `VITE_OCR_SPACE_API_KEY` when cloud OCR is enabled.
+- JSON backup/restore covers Takda, Lakas, Tala, profile settings, and metadata links for images.
+- Build verification requires Node/npm. If this environment has no Node/npm installed, `npm run build` cannot run.
 
 ## License
 

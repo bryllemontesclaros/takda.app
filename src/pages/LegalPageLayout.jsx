@@ -17,7 +17,7 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
   return (
     <div className={styles.page}>
       <RouteMeta
-        title={metaTitle || `${title} — Takda`}
+        title={metaTitle || `${title} — Buhay`}
         description={metaDescription || intro}
         path={metaPath || '/'}
       />
@@ -25,8 +25,8 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
       <nav className={styles.nav}>
         <div className={styles.navInner}>
           <Link to="/" className={styles.navBrand}>
-            <div className={styles.navLogo}>Takda</div>
-            <div className={styles.navTag}>Calendar-first money tracking for Filipinos</div>
+            <div className={styles.navLogo}>Buhay</div>
+            <div className={styles.navTag}>Finance, fitness, mind, and daily life for Filipinos</div>
           </Link>
           <div className={styles.navActions}>
             <Link className={styles.navLink} to="/">Home</Link>
@@ -91,8 +91,8 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
-            <div className={styles.footerLogo}>Takda</div>
-            <div className={styles.footerTagline}>Mas klaro ang buwan, araw-araw.</div>
+            <div className={styles.footerLogo}>Buhay</div>
+            <div className={styles.footerTagline}>Bawat araw, mas malinaw.</div>
             <div className={styles.footerCopy}>Support and privacy: <a className={styles.contactLink} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a></div>
           </div>
           <div className={styles.footerLinks}>

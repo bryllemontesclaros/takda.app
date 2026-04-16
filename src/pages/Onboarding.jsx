@@ -8,7 +8,7 @@ import styles from './Onboarding.module.css'
 
 const STEPS = ['welcome', 'currency', 'accounts', 'bills', 'review']
 const STEP_DETAILS = [
-  { label: 'Intro', desc: 'What Takda will set up' },
+  { label: 'Intro', desc: 'What Buhay will set up' },
   { label: 'Currency', desc: 'Money format across the app' },
   { label: 'Accounts', desc: 'Opening balances across your accounts' },
   { label: 'Bills', desc: 'Recurring monthly commitments' },
@@ -310,7 +310,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
       <div className={styles.shell}>
         <aside className={styles.sideRail}>
           <div className={styles.brandBlock}>
-            <div className={styles.logo}>Takda</div>
+            <div className={styles.logo}>Buhay</div>
             <div className={styles.sideKicker}>First-time setup</div>
             <div className={styles.sideTitle}>Set up a month you can trust.</div>
             <div className={styles.sideSub}>
@@ -349,7 +349,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.liveKicker}>Live setup preview</div>
             <div className={styles.liveValue}>{fmt(startingBalance, symbol)}</div>
             <div className={styles.liveSub}>
-              The real balance Takda will start from based on the accounts you have entered so far.
+              The real balance Takda Finance will start from based on the accounts you have entered so far.
             </div>
             <div className={styles.liveMetrics}>
               <div className={styles.liveMetric}>
@@ -430,7 +430,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               </div>
 
               <div className={styles.featureList}>
-                <div className={styles.feature}><span className={styles.featureIcon}>💱</span><span>Choose the currency Takda should use across balances, entries, and reports.</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>💱</span><span>Choose the currency Buhay should use across balances, entries, and reports.</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>🏦</span><span>Add the accounts you already use and the money in them today.</span></div>
                 <div className={styles.feature}><span className={styles.featureIcon}>🧾</span><span>Add recurring bills now so month-end stays useful from day one.</span></div>
               </div>
@@ -445,7 +445,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 1 of 4</div>
               <div className={styles.stepTitle}>Currency</div>
-              <div className={styles.stepSub}>Choose the money format Takda should use everywhere. You can still log any income or expense manually later.</div>
+              <div className={styles.stepSub}>Choose the money format Buhay should use in the Takda finance space. You can still log any income or expense manually later.</div>
 
               <div className={styles.sectionCard}>
                 <div className={styles.sectionTitle}>Currency</div>
@@ -485,7 +485,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepTitle}>Accounts and balances</div>
               <div className={styles.stepSub}>Add the accounts you already use. These balances become your starting point for forecasts and net worth.</div>
               <div className={styles.stepHint}>
-                Not ready? Skip this step and Takda will start from zero until you add accounts later.
+                Not ready? Skip this step and Takda Finance will start from zero until you add accounts later.
               </div>
 
               <div className={styles.dynamicStack}>
@@ -512,7 +512,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                         <input type="number" min="0" placeholder="0.00" value={account.balance} onChange={event => updateAccountRow(account.id, 'balance', event.target.value)} />
                         <div className={styles.helper}>
                           {account.type === 'Credit Card'
-                            ? 'Enter what you currently owe. Takda treats credit card balances as debt in your total.'
+                            ? 'Enter what you currently owe. Takda Finance treats credit card balances as debt in your total.'
                             : 'Enter the money available in this account today. This becomes part of your starting balance.'}
                         </div>
                       </div>
@@ -659,7 +659,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 4 of 4</div>
               <div className={styles.stepTitle}>Review your baseline</div>
-              <div className={styles.stepSub}>This is what Takda will save to build your first usable forecast. You can refine any of it later.</div>
+              <div className={styles.stepSub}>This is what Buhay will save to build your first usable finance forecast. You can refine any of it later.</div>
 
               <div className={styles.summaryGrid}>
                 <div className={styles.summaryCard}>
@@ -703,7 +703,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                 <div className={styles.insightLabel}>Starting balance</div>
                 <div className={styles.insightValue}>{fmt(startingBalance, symbol)}</div>
                 <div className={styles.insightSub}>
-                  Takda starts from your saved account balances. Recurring bills are saved separately and will shape your calendar after setup.
+                  Takda Finance starts from your saved account balances. Recurring bills are saved separately and will shape your calendar after setup.
                 </div>
               </div>
 
@@ -712,22 +712,22 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                   <div className={styles.finalSaveLabel}>Ready to save</div>
                   <div className={styles.finalSaveTitle}>This creates your baseline, not a permanent decision.</div>
                   <div className={styles.finalSaveText}>
-                    Takda will open with your selected currency, account balances, and recurring bill entries. Paying a bill later will create a real expense and can update the selected account.
+                    Buhay will open with your selected currency, account balances, and recurring bill entries. Paying a bill later will create a real expense and can update the selected account.
                   </div>
                 </div>
                 <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length} setup item{preparedAccounts.length + preparedBills.length === 1 ? '' : 's'}</div>
               </div>
 
               <div className={styles.seedList}>
-                <div className={styles.seedItem}>Takda will create {seededExpenses.length} recurring forecast expense{seededExpenses.length === 1 ? '' : 's'} from your bills.</div>
-                <div className={styles.seedItem}>Takda will save {preparedAccounts.length} opening account{preparedAccounts.length === 1 ? '' : 's'}.</div>
-                <div className={styles.seedItem}>Takda will save {preparedBills.length} recurring bill{preparedBills.length === 1 ? '' : 's'}.</div>
+                <div className={styles.seedItem}>Buhay will create {seededExpenses.length} recurring forecast expense{seededExpenses.length === 1 ? '' : 's'} from your bills.</div>
+                <div className={styles.seedItem}>Buhay will save {preparedAccounts.length} opening account{preparedAccounts.length === 1 ? '' : 's'}.</div>
+                <div className={styles.seedItem}>Buhay will save {preparedBills.length} recurring bill{preparedBills.length === 1 ? '' : 's'}.</div>
               </div>
 
               <div className={styles.actionBar}>
                 <button className={styles.btnSkip} onClick={goBack}>← Back</button>
                 <button className={styles.btnFinish} onClick={handleFinish} disabled={saving}>
-                  {saving ? 'Setting up...' : 'Start using Takda →'}
+                  {saving ? 'Setting up...' : 'Start using Buhay →'}
                 </button>
               </div>
             </div>

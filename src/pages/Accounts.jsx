@@ -303,7 +303,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
       {!accounts.length ? (
         <div className={accStyles.emptyCard}>
           <div className={accStyles.emptyTitle}>No accounts yet</div>
-          <div className={accStyles.emptyBody}>Add one above to give Takda a real starting balance and make the rest of the app more trustworthy.</div>
+          <div className={accStyles.emptyBody}>Add one above to give Buhay a real starting balance and make the rest of the app more trustworthy.</div>
         </div>
       ) : (
         <div className={accStyles.accountsGrid}>

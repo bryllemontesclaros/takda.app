@@ -27,7 +27,7 @@ const VERSION = '1.0.0'
 const FEEDBACK_PRESETS = {
   feedback: {
     title: 'Send Feedback',
-    prompt: 'Share suggestions or ideas that would make Takda more helpful for you.',
+    prompt: 'Share suggestions or ideas that would make Buhay more helpful for you.',
   },
   bug: {
     title: 'Report a Bug',
@@ -35,11 +35,11 @@ const FEEDBACK_PRESETS = {
   },
   rating: {
     title: 'Rate Your Experience',
-    prompt: 'How is Takda working for you so far?',
+    prompt: 'How is Buhay working for you so far?',
   },
   testimonial: {
     title: 'Share a Testimonial',
-    prompt: 'Write a short quote we can feature on the Takda landing page if you consent.',
+    prompt: 'Write a short quote we can feature on the Buhay landing page if you consent.',
   },
 }
 
@@ -83,6 +83,11 @@ const BACKUP_COLLECTIONS = [
   { key: 'lakasReminders', label: 'Lakas reminders' },
   { key: 'lakasMeals', label: 'Lakas meals' },
   { key: 'lakasGoals', label: 'Lakas goals' },
+  { key: 'talaCheckins', label: 'Tala check-ins' },
+  { key: 'talaJournal', label: 'Tala journal entries' },
+  { key: 'talaMoods', label: 'Tala mood logs' },
+  { key: 'talaTasks', label: 'Tala tasks' },
+  { key: 'talaGoals', label: 'Tala goals' },
 ]
 
 const DONATION_WALLETS = [
@@ -160,6 +165,11 @@ function parseBackupPayload(raw) {
     lakasReminders: normalizeBackupArray(raw.lakasReminders),
     lakasMeals: normalizeBackupArray(raw.lakasMeals),
     lakasGoals: normalizeBackupArray(raw.lakasGoals),
+    talaCheckins: normalizeBackupArray(raw.talaCheckins),
+    talaJournal: normalizeBackupArray(raw.talaJournal),
+    talaMoods: normalizeBackupArray(raw.talaMoods),
+    talaTasks: normalizeBackupArray(raw.talaTasks),
+    talaGoals: normalizeBackupArray(raw.talaGoals),
     profile: sanitizeProfileBackup(raw.profile || {}),
   }
 }
@@ -534,7 +544,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `takda-export-${today()}.csv`
+    anchor.download = `buhay-export-${today()}.csv`
     anchor.click()
     URL.revokeObjectURL(url)
     setExportDone(true)
@@ -561,13 +571,18 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       lakasReminders: data.lakasReminders || [],
       lakasMeals: data.lakasMeals || [],
       lakasGoals: data.lakasGoals || [],
+      talaCheckins: data.talaCheckins || [],
+      talaJournal: data.talaJournal || [],
+      talaMoods: data.talaMoods || [],
+      talaTasks: data.talaTasks || [],
+      talaGoals: data.talaGoals || [],
       profile: sanitizeProfileBackup(profile),
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = `takda-backup-${today()}.json`
+    anchor.download = `buhay-backup-${today()}.json`
     anchor.click()
     URL.revokeObjectURL(url)
     setJsonExportDone(true)
@@ -603,8 +618,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, Lakas data, and profile data with this backup. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.'
-        : 'This will merge the backup into your current Takda data. Matching document ids will be updated. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, Lakas data, Tala data, and profile data with this backup. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.'
+        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, and Tala if present. Matching document ids will be updated. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -664,7 +679,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     }
 
     const confirmed = await confirmApp({
-      title: 'Delete Takda account?',
+      title: 'Delete Buhay account?',
       message: 'This removes your financial records, profile, feedback, and login. This cannot be undone.',
       confirmLabel: 'Delete account',
       cancelLabel: 'Keep account',
@@ -789,7 +804,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settStyles.heroSection}>
         <div className={settStyles.heroCopy}>
           <div className={settStyles.pageEyebrow}>Settings</div>
-          <div className={settStyles.pageTitle}>Keep Takda secure, personal, and easy to recover.</div>
+          <div className={settStyles.pageTitle}>Keep Buhay secure, personal, and easy to recover.</div>
           <div className={settStyles.pageSub}>
             Everything sensitive lives here: account identity, notifications, backups, legal controls, and the tools you need if something goes wrong.
           </div>
@@ -797,7 +812,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
         <div className={settStyles.heroAside}>
           <div className={settStyles.heroAsideLabel}>Account profile</div>
-          <div className={settStyles.heroAsideValue}>{currentDisplayName || 'Takda account'}</div>
+          <div className={settStyles.heroAsideValue}>{currentDisplayName || 'Buhay account'}</div>
           <div className={settStyles.heroAsideTrack}>
             <div className={settStyles.heroAsideFill} style={{ width: `${settingsReadiness}%` }} />
           </div>
@@ -847,7 +862,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Identity"
           title="Account & security"
-          description="Update your display name, verification status, and the email details tied to your Takda account."
+          description="Update your display name, verification status, and the email details tied to your Buhay account."
         />
         <StatusBanner message={accountMsg} />
 
@@ -888,7 +903,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <div className={settStyles.subsection}>
           <div className={settStyles.subsectionTitle}>Change email</div>
           <p className={settStyles.subsectionCopy}>
-            Takda will ask Firebase to verify the new address before the change is applied.
+            Buhay will ask Firebase to verify the new address before the change is applied.
           </p>
           <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
             <div className={styles.formGroup}>
@@ -910,7 +925,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Security"
           title="Change password"
-          description="Keep your login secure and update your password without leaving Takda."
+          description="Keep your login secure and update your password without leaving Buhay."
         />
         {pwMsg.text && (
           <div className={`${settStyles.statusBanner} ${pwMsg.ok ? settStyles.statusBannerOk : settStyles.statusBannerError}`} style={{ marginBottom: 12 }}>
@@ -940,7 +955,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Alerts"
           title="Notifications"
-          description="Choose which alerts Takda shows and whether this browser can send notifications."
+          description="Choose which alerts Buhay shows and whether this browser can send notifications."
         />
         <StatusBanner message={notifMsg} />
 
@@ -994,14 +1009,14 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Trust"
           title="Legal & privacy"
-          description="Review Takda&apos;s terms, understand how data is handled, and reach the privacy contact if you need help with access, correction, export, deletion, or a complaint."
+          description="Review Buhay&apos;s terms, understand how data is handled, and reach the privacy contact if you need help with access, correction, export, deletion, or a complaint."
         />
         <StatusBanner message={legalMsg} />
 
         <div className={settStyles.preferenceRow}>
           <div>
             <div className={settStyles.preferenceTitle}>Privacy Policy</div>
-            <div className={settStyles.preferenceMeta}>How Takda handles account data, app data, imports, exports, deletion, and privacy rights.</div>
+            <div className={settStyles.preferenceMeta}>How Buhay handles account data, app data, imports, exports, deletion, and privacy rights.</div>
           </div>
           <Link className={settStyles.btnExportLink} to="/privacy">Open policy</Link>
         </div>
@@ -1009,7 +1024,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <div className={settStyles.preferenceRow} style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 12 }}>
           <div>
             <div className={settStyles.preferenceTitle}>Terms of Use</div>
-            <div className={settStyles.preferenceMeta}>What Takda provides, what it does not provide, and your responsibilities when using the app.</div>
+            <div className={settStyles.preferenceMeta}>What Buhay provides, what it does not provide, and your responsibilities when using the app.</div>
           </div>
           <Link className={settStyles.btnExportLink} to="/terms">Open terms</Link>
         </div>
@@ -1036,7 +1051,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Formatting"
           title="Currency & rates"
-          description="Choose the currency Takda should use across the app and view indicative exchange rates for context."
+          description="Choose the currency Buhay should use across the finance space and view indicative exchange rates for context."
         />
 
         <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
@@ -1172,7 +1187,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, Lakas records, receipt and meal metadata links, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, Lakas records, Tala records, receipt and meal metadata links, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
@@ -1191,7 +1206,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <div className={settStyles.subsection}>
           <div className={settStyles.subsectionTitle}>Restore backup</div>
           <p className={settStyles.subsectionCopy}>
-            Load a Takda JSON backup, review what it contains, then merge it or replace your current app data.
+            Load a Buhay JSON backup, review what it contains, then merge it or replace your current app data.
           </p>
           <StatusBanner message={restoreMsg} />
           <input
@@ -1205,7 +1220,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           <div className={settStyles.preferenceRow}>
             <div>
               <div className={settStyles.preferenceTitle}>Backup file</div>
-              <div className={settStyles.preferenceMeta}>Expected format: a JSON backup exported from Takda.</div>
+              <div className={settStyles.preferenceMeta}>Expected format: a JSON backup exported from Buhay.</div>
             </div>
             <button className={settStyles.btnExport} onClick={() => restoreInputRef.current?.click()}>
               Upload JSON backup
@@ -1256,7 +1271,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Snapshot"
           title="Your data"
-          description="A quick read of how much information is currently stored in Takda."
+          description="A quick read of how much information is currently stored in Buhay."
         />
         <div className={settStyles.summaryGrid}>
           <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.income.length}</div><div className={settStyles.summaryLabel}>Income entries</div></div>
@@ -1291,7 +1306,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           </button>
           <button className={settStyles.feedbackAction} onClick={() => openFeedback('rating')}>
             <strong>Rate Your Experience</strong>
-            <span>1-5 stars stored inside Takda</span>
+            <span>1-5 stars stored inside Buhay</span>
           </button>
           <button className={settStyles.feedbackAction} onClick={() => openFeedback('testimonial')}>
             <strong>Share a Testimonial</strong>
@@ -1307,7 +1322,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           description="Version, brand details, and the account currently signed in."
         />
         <div className={settStyles.aboutBlock}>
-          <div className={settStyles.aboutLogo}>Takda</div>
+          <div className={settStyles.aboutLogo}>Buhay</div>
           <div className={settStyles.aboutTagline}>Bawat piso, sinusubaybayan.</div>
           <div className={settStyles.aboutMeta}>Version {VERSION}</div>
           <div className={settStyles.aboutDesc}>
@@ -1320,8 +1335,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Support"
-          title="Support Takda"
-          description="If Takda helps you, you can support the app with a coffee using the wallets below."
+          title="Support Buhay"
+          description="If Buhay helps you, you can support the app with a coffee using the wallets below."
         />
         <StatusBanner message={donationMsg} />
         <div className={settStyles.donateGrid}>
@@ -1363,7 +1378,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Danger zone"
           title="Delete account and all data"
-          description="This fully removes your Takda account, tracked financial data, saved profile, and feedback records. Use this if you want to leave permanently or submit a full deletion request through the app."
+          description="This fully removes your Buhay account, tracked app data, saved profile, and feedback records. Use this if you want to leave permanently or submit a full deletion request through the app."
           badge="Irreversible"
         />
         <StatusBanner message={deleteAccountMsg} />
@@ -1449,7 +1464,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
                   checked={feedbackForm.allowFeature}
                   onChange={event => setFeedbackForm(current => ({ ...current, allowFeature: event.target.checked }))}
                 />
-                <span>Can we feature this on the Takda landing page?</span>
+                <span>Can we feature this on the Buhay landing page?</span>
               </label>
             )}
 

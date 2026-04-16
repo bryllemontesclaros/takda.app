@@ -21,7 +21,7 @@ export function EmptyState({ icon, title, sub, action, onAction }) {
   )
 }
 
-export function PageLoader({ title = 'Takda', message = '' }) {
+export function PageLoader({ title = 'Buhay', message = '' }) {
   return (
     <div className={styles.pageLoader}>
       <div className={styles.loaderLogo}>{title}</div>
