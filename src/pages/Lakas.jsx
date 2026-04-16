@@ -1121,6 +1121,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
       {(showWorkouts || showActivity || showHabits) && (
       <div className={lStyles.grid}>
         {showWorkouts && (
+        <>
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
@@ -1213,6 +1214,7 @@ export default function Lakas({ user, data = {}, privacyMode = false, activeTab 
           {renderExerciseEditor(workoutForm.exercises, setWorkoutForm, 'Workout exercises')}
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddWorkout}>Save workout</button>
         </section>
+        </>
         )}
 
         {showActivity && (
