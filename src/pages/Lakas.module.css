@@ -147,6 +147,64 @@
   font-size: 12px;
 }
 
+.quickWins {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.quickWinCard {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 64%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 46%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.quickWinCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 22%, transparent), transparent 56%);
+}
+
+.quickWinIndex,
+.quickWinText {
+  position: relative;
+  z-index: 1;
+}
+
+.quickWinIndex {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: #06120d;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, white 12%), color-mix(in srgb, var(--accent) 76%, var(--blue) 24%));
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 42%, transparent);
+}
+
+.quickWinText {
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
 .insightGrid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -287,6 +345,14 @@
   font-size: 18px;
   line-height: 1.1;
   letter-spacing: -0.03em;
+}
+
+.sectionHint {
+  max-width: 560px;
+  margin: 6px 0 0;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .formGrid {
@@ -899,6 +965,14 @@
 
   .formGrid {
     grid-template-columns: 1fr;
+  }
+
+  .quickWins {
+    grid-template-columns: 1fr;
+  }
+
+  .quickWinCard {
+    min-height: 52px;
   }
 
   .exerciseRowTop,
