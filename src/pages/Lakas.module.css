@@ -219,8 +219,24 @@
   gap: 10px;
 }
 
+.phaseGrid,
+.formGuideGrid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.formGuideGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .recordCard,
-.chartCard {
+.chartCard,
+.phaseCard,
+.formGuideCard {
   border-radius: 22px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
   background:
@@ -228,6 +244,24 @@
     color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
   padding: 12px;
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 24%, transparent);
+}
+
+.phaseCard strong,
+.formGuideCard strong {
+  display: block;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.phaseCard span,
+.formGuideCard span,
+.formGuideCard small {
+  display: block;
+  margin-top: 6px;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .recordCard span,
@@ -255,6 +289,232 @@
   color: var(--text3);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.gymSessionPanel {
+  grid-column: 1 / -1;
+}
+
+.sessionPicker {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sessionChip {
+  min-height: 76px;
+  padding: 11px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 10%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  color: var(--text2);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.sessionChip strong,
+.sessionChip span {
+  display: block;
+}
+
+.sessionChip strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.sessionChip span {
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.sessionChip:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+}
+
+.sessionChipActive {
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 44%),
+    color-mix(in srgb, var(--accent) 12%, var(--glass-1));
+}
+
+.gymSessionLayout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.78fr) minmax(0, 1.22fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.gymSessionSummary,
+.gymExerciseCard,
+.gymSessionSafety {
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 46%),
+    color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 24%, transparent);
+}
+
+.gymSessionSummary {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.gymSessionEyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.gymSessionSummary h4 {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 0.94;
+  letter-spacing: -0.055em;
+}
+
+.gymSessionSummary p {
+  margin: 12px 0 0;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.gymSessionStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.gymSessionStats span {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 70%, transparent);
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.gymSessionActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.gymSessionActions .primaryBtn,
+.gymSessionActions .ghostBtn {
+  width: 100%;
+  margin-top: 0;
+}
+
+.gymExerciseList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gymExerciseCard {
+  padding: 12px;
+}
+
+.gymExerciseTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.gymExerciseTop span {
+  display: inline-flex;
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 15%, var(--surface2));
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.gymExerciseTop strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.gymExerciseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.gymExerciseMeta span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface3) 68%, transparent);
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.gymExerciseCard p,
+.gymExerciseCard small {
+  display: block;
+  margin: 9px 0 0;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gymExerciseCard a {
+  display: inline-flex;
+  margin-top: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.gymExerciseCard a:hover {
+  text-decoration: underline;
+}
+
+.gymSessionSafety {
+  position: relative;
+  z-index: 1;
+  margin-top: 12px;
+  padding: 12px;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .chartGrid {
@@ -537,6 +797,7 @@
 .secondaryBtn:hover,
 .ghostBtn:hover,
 .chip:hover,
+.templateCard:hover,
 .monthControls button:hover,
 .habitPill:hover,
 .routineActions button:hover,
@@ -561,10 +822,57 @@
 .templateRow {
   position: relative;
   z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 14px;
+}
+
+.templateCard {
+  min-height: 96px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 74%, var(--surface2) 26%);
+  color: var(--text2);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.templateCardBeginner {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 78%, var(--surface2) 22%);
+}
+
+.templateCard strong,
+.templateCard span,
+.templateCard small {
+  display: block;
+}
+
+.templateCard strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.templateCard span {
+  margin-top: 5px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.templateCard small {
+  margin-top: 7px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 .monthControls {
@@ -714,6 +1022,29 @@
   color: var(--text3);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.formGuide {
+  display: grid;
+  gap: 6px;
+  padding: 11px 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+}
+
+.formGuide strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.formGuide span,
+.formGuide small {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .routineActions {
@@ -951,6 +1282,20 @@
   .recordGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .phaseGrid,
+  .formGuideGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sessionPicker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gymSessionLayout,
+  .gymExerciseList {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -996,6 +1341,22 @@
   .recordGrid,
   .habitGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .templateRow {
+    grid-template-columns: 1fr;
+  }
+
+  .sessionPicker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sessionChip {
+    min-height: 68px;
+  }
+
+  .gymSessionActions {
+    grid-template-columns: 1fr;
   }
 
   .settingsActions {

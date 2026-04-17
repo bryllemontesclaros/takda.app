@@ -6,13 +6,54 @@ import { findBillPresetByLabel, getBillPresetByKey, getBillPresetGroups, getTran
 import { CURRENCIES, RECUR_OPTIONS, fmt, normalizeDate } from '../lib/utils'
 import styles from './Onboarding.module.css'
 
-const STEPS = ['welcome', 'currency', 'accounts', 'bills', 'review']
+const STEPS = ['welcome', 'spaces', 'currency', 'accounts', 'bills', 'quickstart', 'review']
 const STEP_DETAILS = [
-  { label: 'Intro', desc: 'What Buhay will set up' },
+  { label: 'Intro', desc: 'Meet the three spaces' },
+  { label: 'Spaces', desc: 'Choose where to start' },
   { label: 'Currency', desc: 'Money format across the app' },
   { label: 'Accounts', desc: 'Opening balances across your accounts' },
   { label: 'Bills', desc: 'Recurring monthly commitments' },
+  { label: 'Quick starts', desc: 'Optional Lakas and Tala defaults' },
   { label: 'Review', desc: 'Save your baseline and begin' },
+]
+const SPACE_OPTIONS = [
+  {
+    id: 'takda',
+    label: 'Takda',
+    meta: 'Finance',
+    icon: '💸',
+    tone: 'takda',
+    title: 'Start with money clarity',
+    desc: 'Set currency, accounts, balances, bills, and your first useful calendar forecast.',
+    recommended: true,
+  },
+  {
+    id: 'lakas',
+    label: 'Lakas',
+    meta: 'Fitness',
+    icon: '🏋️',
+    tone: 'lakas',
+    title: 'Start with training rhythm',
+    desc: 'Prepare workout targets, routines, meals, body progress, habits, and reminders.',
+  },
+  {
+    id: 'tala',
+    label: 'Tala',
+    meta: 'Mind',
+    icon: '🌙',
+    tone: 'tala',
+    title: 'Start with daily reflection',
+    desc: 'Prepare mood check-ins, journal privacy, tasks, life goals, and gentle reminders.',
+  },
+  {
+    id: 'explore',
+    label: 'Explore first',
+    meta: 'No pressure',
+    icon: '✨',
+    tone: 'buhay',
+    title: 'Enter with only basics',
+    desc: 'Choose currency now, skip detailed setup, and add real data later inside each space.',
+  },
 ]
 const ACCOUNT_TYPES = ['Cash', 'Bank', 'E-wallet', 'Credit Card', 'Investment', 'Other']
 const ACCOUNT_COLORS = ['#22d87a', '#6eb5ff', '#ffb347', '#ff5370', '#b48eff', '#2dd4bf', '#f472b6', '#9090b0']
@@ -45,6 +86,23 @@ function createBillRow() {
     presetKey: '',
     freq: 'monthly',
     accountId: '',
+  }
+}
+
+function createQuickStarts() {
+  return {
+    lakas: {
+      enabled: false,
+      goal: 'Build consistency',
+      workoutsPerWeek: '3',
+      currentWeight: '',
+    },
+    tala: {
+      enabled: false,
+      focus: 'Feel calmer',
+      reminderTime: '20:30',
+      privateByDefault: true,
+    },
   }
 }
 
@@ -94,9 +152,11 @@ function getLatestDueAnchorDate(dueDay) {
 export default function Onboarding({ user, onDone, notice = '' }) {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState({
+    startingSpace: 'takda',
     currency: 'PHP',
     accounts: [createAccountRow()],
     bills: [createBillRow()],
+    quickStarts: createQuickStarts(),
   })
   const [saving, setSaving] = useState(false)
 
@@ -178,6 +238,44 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     setForm(current => ({ ...current, bills: current.bills.filter(row => row.id !== id) }))
   }
 
+  function chooseStartingSpace(spaceId) {
+    setForm(current => ({
+      ...current,
+      startingSpace: spaceId,
+      quickStarts: {
+        ...current.quickStarts,
+        lakas: { ...current.quickStarts.lakas, enabled: spaceId === 'explore' ? false : current.quickStarts.lakas.enabled || spaceId === 'lakas' },
+        tala: { ...current.quickStarts.tala, enabled: spaceId === 'explore' ? false : current.quickStarts.tala.enabled || spaceId === 'tala' },
+      },
+    }))
+  }
+
+  function toggleQuickStart(spaceKey) {
+    setForm(current => ({
+      ...current,
+      quickStarts: {
+        ...current.quickStarts,
+        [spaceKey]: {
+          ...current.quickStarts[spaceKey],
+          enabled: !current.quickStarts[spaceKey].enabled,
+        },
+      },
+    }))
+  }
+
+  function updateQuickStart(spaceKey, key, value) {
+    setForm(current => ({
+      ...current,
+      quickStarts: {
+        ...current.quickStarts,
+        [spaceKey]: {
+          ...current.quickStarts[spaceKey],
+          [key]: value,
+        },
+      },
+    }))
+  }
+
   const name = user.displayName?.split(' ')[0] || 'there'
   const curr = CURRENCIES.find(currency => currency.code === form.currency)
   const symbol = curr?.symbol || '₱'
@@ -228,6 +326,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   const startingBalance = getCurrentBalance(preparedAccounts)
   const fixedBillsEstimate = preparedBills.reduce((sum, bill) => sum + getMonthlyEquivalent(bill.amount, bill.freq), 0)
   const progressPercent = Math.round((step / (STEPS.length - 1)) * 100)
+  const totalSetupSteps = STEPS.length - 1
+  const progressValue = step === 0 ? 'Introduction' : `Step ${step} of ${totalSetupSteps}`
+  const startingSpace = SPACE_OPTIONS.find(option => option.id === form.startingSpace) || SPACE_OPTIONS[0]
+  const quickStartCount = (form.quickStarts.lakas.enabled ? 1 : 0) + (form.quickStarts.tala.enabled ? 1 : 0)
 
   function validateAccountsStep() {
     for (const row of form.accounts.filter(hasAccountContent)) {
@@ -262,8 +364,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   }
 
   function goNext() {
-    if (step === 2 && !validateAccountsStep()) return
-    if (step === 3 && !validateBillsStep()) return
+    if (step === 3 && !validateAccountsStep()) return
+    if (step === 4 && !validateBillsStep()) return
     setStep(current => Math.min(current + 1, STEPS.length - 1))
   }
 
@@ -273,22 +375,56 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   function skipAccountsStep() {
     setForm(current => ({ ...current, accounts: [createAccountRow()] }))
-    setStep(3)
+    setStep(4)
   }
 
   function skipBillsStep() {
     setForm(current => ({ ...current, bills: [createBillRow()] }))
-    setStep(4)
+    setStep(5)
   }
 
   async function handleFinish() {
     if (!validateAccountsStep() || !validateBillsStep()) return
     setSaving(true)
     try {
-      await fsCompleteOnboarding(user.uid, {
-        profile: {
-          currency: form.currency,
+      const profilePayload = {
+        currency: form.currency,
+        preferredSpace: form.startingSpace === 'explore' ? 'takda' : form.startingSpace,
+        onboarding: {
+          startingSpace: form.startingSpace,
+          quickStarts: {
+            lakas: {
+              enabled: form.quickStarts.lakas.enabled,
+              goal: form.quickStarts.lakas.goal.trim() || null,
+              workoutsPerWeek: Number(form.quickStarts.lakas.workoutsPerWeek) || null,
+              currentWeight: hasValue(form.quickStarts.lakas.currentWeight) ? roundMoney(form.quickStarts.lakas.currentWeight) : null,
+            },
+            tala: {
+              enabled: form.quickStarts.tala.enabled,
+              focus: form.quickStarts.tala.focus.trim() || null,
+              reminderTime: form.quickStarts.tala.reminderTime || null,
+              privateByDefault: form.quickStarts.tala.privateByDefault !== false,
+            },
+          },
         },
+      }
+      if (form.quickStarts.lakas.enabled) {
+        profilePayload.lakasSettings = {
+          targets: {
+            workoutsPerWeek: Number(form.quickStarts.lakas.workoutsPerWeek) || 3,
+          },
+        }
+      }
+      if (form.quickStarts.tala.enabled) {
+        profilePayload.talaSettings = {
+          reminderTime: form.quickStarts.tala.reminderTime || '20:30',
+          privateByDefault: form.quickStarts.tala.privateByDefault !== false,
+          promptStyle: 'Gentle',
+          showMoodInsights: true,
+        }
+      }
+      await fsCompleteOnboarding(user.uid, {
+        profile: profilePayload,
         income: [],
         expenses: seededExpenses,
         accounts: preparedAccounts,
@@ -312,9 +448,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.brandBlock}>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.sideKicker}>First-time setup</div>
-            <div className={styles.sideTitle}>Set up a month you can trust.</div>
+            <div className={styles.sideTitle}>Start Buhay without the heavy setup.</div>
             <div className={styles.sideSub}>
-              A few real numbers here make your calendar, balances, and forecast useful right away.
+              Choose where to begin, set Takda’s finance baseline if you want, then keep Lakas and Tala light until you need them.
             </div>
           </div>
 
@@ -322,7 +458,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.progressHeader}>
               <div>
                 <div className={styles.progressLabel}>Setup progress</div>
-                <div className={styles.progressValue}>{step === 0 ? 'Introduction' : `Step ${step} of 4`}</div>
+                <div className={styles.progressValue}>{progressValue}</div>
               </div>
               <div className={styles.progressPct}>{progressPercent}%</div>
             </div>
@@ -349,9 +485,17 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.liveKicker}>Live setup preview</div>
             <div className={styles.liveValue}>{fmt(startingBalance, symbol)}</div>
             <div className={styles.liveSub}>
-              The real balance Takda Finance will start from based on the accounts you have entered so far.
+              Takda’s real starting balance comes from accounts. Lakas and Tala quick starts save preferences only.
             </div>
             <div className={styles.liveMetrics}>
+              <div className={styles.liveMetric}>
+                <div className={styles.liveMetricLabel}>Starting space</div>
+                <div className={styles.liveMetricValue}>{startingSpace.label}</div>
+              </div>
+              <div className={styles.liveMetric}>
+                <div className={styles.liveMetricLabel}>Quick starts</div>
+                <div className={styles.liveMetricValue}>{quickStartCount}</div>
+              </div>
               <div className={styles.liveMetric}>
                 <div className={styles.liveMetricLabel}>Currency</div>
                 <div className={styles.liveMetricValue}>{curr?.code || 'PHP'}</div>
@@ -374,7 +518,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.tipCard}>
             <div className={styles.tipTitle}>This is a starting point</div>
             <div className={styles.tipText}>
-              You can skip accounts or bills for now. The goal is a usable first forecast, not a perfect ledger.
+              Buhay will not create fake workouts, meals, journals, or moods. Real logs begin when you add them yourself.
             </div>
           </div>
         </aside>
@@ -384,7 +528,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.mobileSetupTop}>
               <div>
                 <div className={styles.mobileSetupLabel}>Setup progress</div>
-                <div className={styles.mobileSetupValue}>{step === 0 ? 'Introduction' : `Step ${step} of 4`}</div>
+                <div className={styles.mobileSetupValue}>{progressValue}</div>
               </div>
               <div className={styles.mobileSetupPct}>{progressPercent}%</div>
             </div>
@@ -395,22 +539,32 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 0 && (
             <div className={`${styles.stepWrap} ${styles.stepWrapWelcome}`}>
               <div className={styles.kicker}>Before you start</div>
-              <div className={styles.stepTitle}>Let’s set up your real starting point, {name}.</div>
+              <div className={styles.stepTitle}>Welcome to Buhay, {name}.</div>
               <div className={styles.stepSub}>
-                Currency is the only required setup. Accounts and bills are optional, but they make your first forecast and reminders more useful.
+                Buhay has three focused spaces: Takda for money, Lakas for fitness, and Tala for mind and life admin. You can start simple and add real data later.
+              </div>
+              <div className={styles.spaceGrid}>
+                {SPACE_OPTIONS.slice(0, 3).map(option => (
+                  <div key={option.id} className={`${styles.spaceCard} ${styles[`spaceCard${option.tone[0].toUpperCase()}${option.tone.slice(1)}`]}`}>
+                    <div className={styles.spaceIcon}>{option.icon}</div>
+                    <div className={styles.spaceMeta}>{option.meta}</div>
+                    <div className={styles.spaceName}>{option.label}</div>
+                    <div className={styles.spaceDesc}>{option.desc}</div>
+                  </div>
+                ))}
               </div>
               <div className={styles.setupPromise}>
                 <div className={styles.setupPromiseItem}>
-                  <strong>Optional where needed</strong>
-                  <span>Skip accounts or bills if you do not have the numbers yet. You can add them later.</span>
+                  <strong>Progressive setup</strong>
+                  <span>Only currency is required. Everything else can be skipped and added later.</span>
                 </div>
                 <div className={styles.setupPromiseItem}>
-                  <strong>No hidden subtraction</strong>
-                  <span>Account balances start the app. Bills are saved separately for the calendar.</span>
+                  <strong>No fake records</strong>
+                  <span>Lakas and Tala quick starts save preferences, not fake history.</span>
                 </div>
                 <div className={styles.setupPromiseItem}>
                   <strong>Editable later</strong>
-                  <span>Settings, Accounts, Bills, and Budget can refine everything after setup.</span>
+                  <span>Each space has settings and tabs for deeper setup when you are ready.</span>
                 </div>
               </div>
 
@@ -420,19 +574,19 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                   <strong>{curr?.symbol} {curr?.code}</strong>
                 </div>
                 <div className={styles.welcomeStat}>
-                  <span>Current balances</span>
-                  <strong>{preparedAccounts.length ? fmt(startingBalance, symbol) : 'Add accounts in step 2'}</strong>
+                  <span>Starting space</span>
+                  <strong>{startingSpace.label}</strong>
                 </div>
                 <div className={styles.welcomeStat}>
-                  <span>Recurring bills</span>
-                  <strong>{preparedBills.length ? fmt(fixedBillsEstimate, symbol) : 'Add bills in step 3'}</strong>
+                  <span>Quick starts</span>
+                  <strong>{quickStartCount ? `${quickStartCount} selected` : 'Optional later'}</strong>
                 </div>
               </div>
 
               <div className={styles.featureList}>
-                <div className={styles.feature}><span className={styles.featureIcon}>💱</span><span>Choose the currency Buhay should use across balances, entries, and reports.</span></div>
-                <div className={styles.feature}><span className={styles.featureIcon}>🏦</span><span>Add the accounts you already use and the money in them today.</span></div>
-                <div className={styles.feature}><span className={styles.featureIcon}>🧾</span><span>Add recurring bills now so month-end stays useful from day one.</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>💱</span><span>Choose the currency Buhay should use across balances, goals, and reports.</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>🏦</span><span>Takda can use accounts and bills for a stronger first forecast.</span></div>
+                <div className={styles.feature}><span className={styles.featureIcon}>🧭</span><span>Lakas and Tala can start with tiny preferences instead of long forms.</span></div>
               </div>
 
               <div className={styles.actionBar}>
@@ -443,7 +597,51 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
           {step === 1 && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 1 of 4</div>
+              <div className={styles.kicker}>Step 1 of {totalSetupSteps}</div>
+              <div className={styles.stepTitle}>Where do you want to start?</div>
+              <div className={styles.stepSub}>Takda is recommended because finance needs baseline data. Lakas and Tala stay available either way.</div>
+
+              <div className={styles.choiceGrid}>
+                {SPACE_OPTIONS.map(option => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={`${styles.choiceCard} ${styles[`choiceCard${option.tone[0].toUpperCase()}${option.tone.slice(1)}`]} ${form.startingSpace === option.id ? styles.choiceCardActive : ''}`}
+                    onClick={() => chooseStartingSpace(option.id)}
+                  >
+                    <span className={styles.choiceTop}>
+                      <span className={styles.choiceIcon}>{option.icon}</span>
+                      <span className={styles.choiceMeta}>{option.meta}</span>
+                      {option.recommended && <span className={styles.choiceBadge}>Recommended</span>}
+                    </span>
+                    <span className={styles.choiceTitle}>{option.title}</span>
+                    <span className={styles.choiceDesc}>{option.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className={styles.insightCard}>
+                <div className={styles.insightLabel}>Selected start</div>
+                <div className={styles.insightValue}>{startingSpace.label}</div>
+                <div className={styles.insightSub}>
+                  {form.startingSpace === 'takda'
+                    ? 'You will continue into currency, accounts, bills, and a finance baseline review.'
+                    : form.startingSpace === 'explore'
+                      ? 'You will choose currency, skip detailed setup if you want, and enter Buhay quickly.'
+                      : `We will turn on the ${startingSpace.label} quick start later, without forcing a long setup.`}
+                </div>
+              </div>
+
+              <div className={styles.actionBar}>
+                <button className={styles.btnSkip} onClick={goBack}>← Back</button>
+                <button className={styles.btnNext} onClick={goNext}>Continue →</button>
+              </div>
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className={styles.stepWrap}>
+              <div className={styles.kicker}>Step 2 of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Currency</div>
               <div className={styles.stepSub}>Choose the money format Buhay should use in the Takda finance space. You can still log any income or expense manually later.</div>
 
@@ -479,9 +677,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 2 of 4</div>
+              <div className={styles.kicker}>Step 3 of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Accounts and balances</div>
               <div className={styles.stepSub}>Add the accounts you already use. These balances become your starting point for forecasts and net worth.</div>
               <div className={styles.stepHint}>
@@ -540,9 +738,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 3 of 4</div>
+              <div className={styles.kicker}>Step 4 of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Recurring bills</div>
               <div className={styles.stepSub}>Add the recurring bills that shape each month. One-off charges can wait until later.</div>
               <div className={styles.stepHint}>
@@ -650,16 +848,94 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.actionBar}>
                 <button className={styles.btnSkip} onClick={goBack}>← Back</button>
                 <button className={styles.btnSkip} onClick={skipBillsStep}>Skip bills</button>
+                <button className={styles.btnNext} onClick={goNext}>Quick starts →</button>
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className={styles.stepWrap}>
+              <div className={styles.kicker}>Step 5 of {totalSetupSteps}</div>
+              <div className={styles.stepTitle}>Optional Lakas and Tala quick starts</div>
+              <div className={styles.stepSub}>Keep this light. These save preferences only, not fake workouts, meals, journals, or mood logs.</div>
+
+              <div className={styles.quickStartGrid}>
+                <div className={`${styles.quickStartCard} ${styles.quickStartLakas} ${form.quickStarts.lakas.enabled ? styles.quickStartActive : ''}`}>
+                  <div className={styles.quickStartHeader}>
+                    <div>
+                      <div className={styles.quickStartKicker}>Lakas fitness</div>
+                      <div className={styles.quickStartTitle}>Workout rhythm</div>
+                    </div>
+                    <button type="button" className={styles.toggleBtn} onClick={() => toggleQuickStart('lakas')}>
+                      {form.quickStarts.lakas.enabled ? 'On' : 'Off'}
+                    </button>
+                  </div>
+                  <div className={styles.quickStartText}>Set a simple weekly target so Lakas opens with the right expectation.</div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.inputGroup}>
+                      <label>Fitness goal</label>
+                      <input value={form.quickStarts.lakas.goal} onChange={event => updateQuickStart('lakas', 'goal', event.target.value)} placeholder="Build consistency" disabled={!form.quickStarts.lakas.enabled} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Workouts / week</label>
+                      <input type="number" min="0" max="14" value={form.quickStarts.lakas.workoutsPerWeek} onChange={event => updateQuickStart('lakas', 'workoutsPerWeek', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>Current weight (optional)</label>
+                    <input type="number" min="0" placeholder="kg" value={form.quickStarts.lakas.currentWeight} onChange={event => updateQuickStart('lakas', 'currentWeight', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
+                    <div className={styles.helper}>Saved as a quick-start note only. It will not create a body log.</div>
+                  </div>
+                </div>
+
+                <div className={`${styles.quickStartCard} ${styles.quickStartTala} ${form.quickStarts.tala.enabled ? styles.quickStartActive : ''}`}>
+                  <div className={styles.quickStartHeader}>
+                    <div>
+                      <div className={styles.quickStartKicker}>Tala mind</div>
+                      <div className={styles.quickStartTitle}>Daily check-in defaults</div>
+                    </div>
+                    <button type="button" className={styles.toggleBtn} onClick={() => toggleQuickStart('tala')}>
+                      {form.quickStarts.tala.enabled ? 'On' : 'Off'}
+                    </button>
+                  </div>
+                  <div className={styles.quickStartText}>Set the tone for journal privacy and gentle check-in reminders.</div>
+                  <div className={styles.formGrid}>
+                    <div className={styles.inputGroup}>
+                      <label>Main focus</label>
+                      <input value={form.quickStarts.tala.focus} onChange={event => updateQuickStart('tala', 'focus', event.target.value)} placeholder="Feel calmer" disabled={!form.quickStarts.tala.enabled} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Check-in time</label>
+                      <input type="time" value={form.quickStarts.tala.reminderTime} onChange={event => updateQuickStart('tala', 'reminderTime', event.target.value)} disabled={!form.quickStarts.tala.enabled} />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>Journal privacy default</label>
+                    <select value={form.quickStarts.tala.privateByDefault ? 'private' : 'open'} onChange={event => updateQuickStart('tala', 'privateByDefault', event.target.value === 'private')} disabled={!form.quickStarts.tala.enabled}>
+                      <option value="private">Private by default</option>
+                      <option value="open">Open by default</option>
+                    </select>
+                    <div className={styles.helper}>This changes Tala settings only. It will not create a journal entry.</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.actionBar}>
+                <button className={styles.btnSkip} onClick={goBack}>← Back</button>
+                <button className={styles.btnSkip} onClick={() => {
+                  setForm(current => ({ ...current, quickStarts: createQuickStarts() }))
+                  setStep(6)
+                }}>Skip quick starts</button>
                 <button className={styles.btnNext} onClick={goNext}>Review →</button>
               </div>
             </div>
           )}
 
-          {step === 4 && (
+          {step === 6 && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 4 of 4</div>
+              <div className={styles.kicker}>Step 6 of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Review your baseline</div>
-              <div className={styles.stepSub}>This is what Buhay will save to build your first usable finance forecast. You can refine any of it later.</div>
+              <div className={styles.stepSub}>This is what Buhay will save. Takda gets real baseline data; Lakas and Tala only get lightweight preferences if selected.</div>
 
               <div className={styles.summaryGrid}>
                 <div className={styles.summaryCard}>
@@ -670,8 +946,12 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                       <span>{curr?.symbol} {curr?.code}</span>
                     </div>
                     <div className={styles.summaryRow}>
+                      <span>Starting space</span>
+                      <span>{startingSpace.label}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
                       <span>What gets saved</span>
-                      <span>{preparedAccounts.length} account{preparedAccounts.length === 1 ? '' : 's'}, {preparedBills.length} bill{preparedBills.length === 1 ? '' : 's'}</span>
+                      <span>{preparedAccounts.length} account{preparedAccounts.length === 1 ? '' : 's'}, {preparedBills.length} bill{preparedBills.length === 1 ? '' : 's'}, {quickStartCount} quick start{quickStartCount === 1 ? '' : 's'}</span>
                     </div>
                   </div>
                 </div>
@@ -697,6 +977,42 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                     </div>
                   </div>
                 </div>
+
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryTitle}>Lakas quick start</div>
+                  <div className={styles.summary}>
+                    <div className={styles.summaryRow}>
+                      <span>Status</span>
+                      <span>{form.quickStarts.lakas.enabled ? 'Prepared' : 'Skipped'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Goal</span>
+                      <span>{form.quickStarts.lakas.enabled ? form.quickStarts.lakas.goal || 'Build consistency' : 'Add later'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Weekly target</span>
+                      <span>{form.quickStarts.lakas.enabled ? `${form.quickStarts.lakas.workoutsPerWeek || 3} workouts` : 'Add later'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={styles.summaryCard}>
+                  <div className={styles.summaryTitle}>Tala quick start</div>
+                  <div className={styles.summary}>
+                    <div className={styles.summaryRow}>
+                      <span>Status</span>
+                      <span>{form.quickStarts.tala.enabled ? 'Prepared' : 'Skipped'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Focus</span>
+                      <span>{form.quickStarts.tala.enabled ? form.quickStarts.tala.focus || 'Feel calmer' : 'Add later'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Privacy</span>
+                      <span>{form.quickStarts.tala.enabled ? (form.quickStarts.tala.privateByDefault ? 'Private journal' : 'Open journal') : 'Add later'}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               <div className={styles.insightCard}>
@@ -712,16 +1028,17 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                   <div className={styles.finalSaveLabel}>Ready to save</div>
                   <div className={styles.finalSaveTitle}>This creates your baseline, not a permanent decision.</div>
                   <div className={styles.finalSaveText}>
-                    Buhay will open with your selected currency, account balances, and recurring bill entries. Paying a bill later will create a real expense and can update the selected account.
+                    Buhay will open with your selected currency, account balances, recurring bill entries, starting space, and optional Lakas/Tala preferences. Real logs still start when you add them.
                   </div>
                 </div>
-                <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length} setup item{preparedAccounts.length + preparedBills.length === 1 ? '' : 's'}</div>
+                <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length + quickStartCount} setup item{preparedAccounts.length + preparedBills.length + quickStartCount === 1 ? '' : 's'}</div>
               </div>
 
               <div className={styles.seedList}>
                 <div className={styles.seedItem}>Buhay will create {seededExpenses.length} recurring forecast expense{seededExpenses.length === 1 ? '' : 's'} from your bills.</div>
                 <div className={styles.seedItem}>Buhay will save {preparedAccounts.length} opening account{preparedAccounts.length === 1 ? '' : 's'}.</div>
                 <div className={styles.seedItem}>Buhay will save {preparedBills.length} recurring bill{preparedBills.length === 1 ? '' : 's'}.</div>
+                <div className={styles.seedItem}>Buhay will save {quickStartCount} Lakas/Tala quick-start preference{quickStartCount === 1 ? '' : 's'} and no fake history.</div>
               </div>
 
               <div className={styles.actionBar}>

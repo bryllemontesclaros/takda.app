@@ -1,14 +1,34 @@
 .screen {
+  --takda-accent: #67e2ba;
+  --takda-glow: rgba(103, 226, 186, 0.18);
+  --lakas-accent: #fb923c;
+  --lakas-glow: rgba(251, 146, 60, 0.18);
+  --tala-accent: #8b8cff;
+  --tala-glow: rgba(139, 140, 255, 0.18);
+  --buhay-accent: #c4b5fd;
+  --buhay-glow: rgba(196, 181, 253, 0.16);
   position: fixed;
   inset: 0;
   z-index: 100;
   overflow-y: auto;
   padding: 1.5rem;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--accent) 14%, transparent), transparent 28%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 12%, transparent), transparent 34%),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--takda-accent) 13%, transparent), transparent 28%),
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 58% 112%, color-mix(in srgb, var(--tala-accent) 14%, transparent), transparent 38%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, #ffffff 6%), var(--bg));
   -webkit-overflow-scrolling: touch;
+}
+
+:global([data-theme="light"]) .screen {
+  --takda-accent: #16b88a;
+  --takda-glow: rgba(22, 184, 138, 0.14);
+  --lakas-accent: #ea580c;
+  --lakas-glow: rgba(234, 88, 12, 0.13);
+  --tala-accent: #6366f1;
+  --tala-glow: rgba(99, 102, 241, 0.13);
+  --buhay-accent: #8b5cf6;
+  --buhay-glow: rgba(139, 92, 246, 0.12);
 }
 
 .notice {
@@ -71,8 +91,11 @@
 .logo {
   font-family: var(--font-display);
   font-size: 30px;
-  color: var(--accent);
+  color: transparent;
   letter-spacing: -1px;
+  background: linear-gradient(90deg, var(--takda-accent), var(--lakas-accent), var(--tala-accent));
+  -webkit-background-clip: text;
+  background-clip: text;
 }
 
 .sideKicker,
@@ -340,6 +363,257 @@
   gap: 12px;
 }
 
+.spaceGrid,
+.choiceGrid,
+.quickStartGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.spaceGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.choiceGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.quickStartGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.spaceCard,
+.choiceCard,
+.quickStartCard {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.spaceCard {
+  padding: 1.05rem;
+}
+
+.spaceCardTakda,
+.choiceCardTakda {
+  border-color: color-mix(in srgb, var(--takda-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--takda-accent) 14%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.spaceCardLakas,
+.choiceCardLakas {
+  border-color: color-mix(in srgb, var(--lakas-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 14%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.spaceCardTala,
+.choiceCardTala {
+  border-color: color-mix(in srgb, var(--tala-accent) 30%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 14%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.choiceCardBuhay {
+  border-color: color-mix(in srgb, var(--buhay-accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at 16% 12%, color-mix(in srgb, var(--takda-accent) 8%, transparent), transparent 38%),
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--lakas-accent) 8%, transparent), transparent 38%),
+    radial-gradient(circle at 72% 92%, color-mix(in srgb, var(--tala-accent) 10%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.spaceIcon,
+.choiceIcon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--glass-highlight) 16%, transparent);
+  font-size: 21px;
+}
+
+.spaceMeta,
+.choiceMeta,
+.quickStartKicker {
+  margin-top: 12px;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.spaceName,
+.choiceTitle,
+.quickStartTitle {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.spaceDesc,
+.choiceDesc,
+.quickStartText {
+  display: block;
+  margin-top: 8px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.choiceCard {
+  min-height: 180px;
+  padding: 1.05rem;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: transform 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+}
+
+.choiceCard:hover {
+  transform: translateY(-1px);
+}
+
+.choiceCardActive {
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+    0 18px 38px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.choiceCardTakda.choiceCardActive {
+  border-color: color-mix(in srgb, var(--takda-accent) 54%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+    0 18px 38px color-mix(in srgb, var(--takda-accent) 16%, transparent);
+}
+
+.choiceCardLakas.choiceCardActive {
+  border-color: color-mix(in srgb, var(--lakas-accent) 54%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+    0 18px 38px color-mix(in srgb, var(--lakas-accent) 16%, transparent);
+}
+
+.choiceCardTala.choiceCardActive {
+  border-color: color-mix(in srgb, var(--tala-accent) 54%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+    0 18px 38px color-mix(in srgb, var(--tala-accent) 16%, transparent);
+}
+
+.choiceCardBuhay.choiceCardActive {
+  border-color: color-mix(in srgb, var(--buhay-accent) 54%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 45%, transparent),
+    0 18px 38px color-mix(in srgb, var(--buhay-accent) 16%, transparent);
+}
+
+.choiceTop {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.choiceMeta {
+  margin-top: 0;
+}
+
+.choiceBadge {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--takda-glow) 86%, var(--surface) 14%);
+  border: 1px solid color-mix(in srgb, var(--takda-accent) 30%, var(--border));
+  color: var(--takda-accent);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.quickStartCard {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  padding: 1.15rem;
+}
+
+.quickStartLakas {
+  border-color: color-mix(in srgb, var(--lakas-accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 12%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.quickStartTala {
+  border-color: color-mix(in srgb, var(--tala-accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--tala-accent) 12%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+}
+
+.quickStartActive {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--glass-border));
+}
+
+.quickStartLakas.quickStartActive {
+  border-color: color-mix(in srgb, var(--lakas-accent) 50%, var(--glass-border));
+}
+
+.quickStartTala.quickStartActive {
+  border-color: color-mix(in srgb, var(--tala-accent) 50%, var(--glass-border));
+}
+
+.quickStartHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.quickStartKicker {
+  margin-top: 0;
+}
+
+.toggleBtn {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent-glow) 82%, var(--surface) 18%);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.quickStartLakas .toggleBtn {
+  border-color: color-mix(in srgb, var(--lakas-accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--lakas-glow) 82%, var(--surface) 18%);
+  color: var(--lakas-accent);
+}
+
+.quickStartTala .toggleBtn {
+  border-color: color-mix(in srgb, var(--tala-accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--tala-glow) 82%, var(--surface) 18%);
+  color: var(--tala-accent);
+}
+
 .setupPromiseItem {
   padding: 0.95rem 1rem;
   border-radius: 20px;
@@ -477,6 +751,12 @@
 .inputControl:focus {
   border-color: color-mix(in srgb, var(--accent) 52%, var(--border));
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.inputGroup input:disabled,
+.inputGroup select:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
 }
 .inputGroup select {
   appearance: none;
@@ -934,6 +1214,9 @@
   .summaryGrid,
   .welcomeStats,
   .setupPromise,
+  .spaceGrid,
+  .choiceGrid,
+  .quickStartGrid,
   .liveMetrics {
     grid-template-columns: 1fr;
   }

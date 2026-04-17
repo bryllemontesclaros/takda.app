@@ -566,7 +566,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
 
   async function handleGoalProgress(goal) {
     const value = Math.max(0, Math.min(100, numberOrZero(goalProgress[goal._id])))
-    await fsUpdate(user.uid, 'talaGoals', goal._id, { progress: value })
+    await fsUpdate(user.uid, 'talaGoals', goal._id, { progress: value, updatedAt: Date.now() })
     setGoalProgress(current => ({ ...current, [goal._id]: '' }))
   }
 
@@ -607,6 +607,14 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     link.remove()
     URL.revokeObjectURL(url)
     notifyApp({ title: 'Tala export ready', message: 'Your Tala backup was downloaded.', tone: 'success' })
+  }
+
+  async function handleLogout() {
+    const [{ signOut }, { auth }] = await Promise.all([
+      import('firebase/auth'),
+      import('../lib/firebase'),
+    ])
+    await signOut(auth)
   }
 
   async function handleDeleteTalaData() {
@@ -1166,6 +1174,19 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             </button>
           </div>
           <div className={tStyles.empty}>Settings are kept when logs are deleted.</div>
+        </section>
+
+        <section className={tStyles.panel}>
+          <div className={tStyles.sectionHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Account</div>
+              <h3>Leave this device safely</h3>
+              <p className={tStyles.sectionHint}>Log out of Buhay from Tala without switching back to Takda settings.</p>
+            </div>
+          </div>
+          <button type="button" className={tStyles.ghostBtn} onClick={handleLogout}>
+            Log out
+          </button>
         </section>
       </div>
       )}

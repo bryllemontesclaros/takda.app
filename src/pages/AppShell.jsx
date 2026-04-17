@@ -406,6 +406,7 @@ export default function AppShell({ user }) {
   const toastQueueRef = useRef([])
   const toastTimerRef = useRef(null)
   const syncingDueTransactionsRef = useRef(false)
+  const preferredSpaceAppliedRef = useRef(false)
   const loadFlagsRef = useRef({
     income: false,
     expenses: false,
@@ -479,6 +480,8 @@ export default function AppShell({ user }) {
 
   useEffect(() => {
     if (!user) return
+    preferredSpaceAppliedRef.current = false
+    setProfile({})
     setGamificationReady(false)
     setSyncIssue(null)
     loadFlagsRef.current = {
@@ -535,6 +538,14 @@ export default function AppShell({ user }) {
   }, [user])
 
   useEffect(() => {
+    if (preferredSpaceAppliedRef.current) return
+    if (!['takda', 'lakas', 'tala'].includes(profile?.preferredSpace)) return
+    preferredSpaceAppliedRef.current = true
+    setActiveSpace(profile.preferredSpace)
+    if (profile.preferredSpace === 'takda') setPage('dashboard')
+  }, [profile?.preferredSpace])
+
+  useEffect(() => {
     if (!user || (activeSpace !== 'lakas' && page !== 'settings')) return undefined
 
     const uid = user.uid
@@ -587,8 +598,8 @@ export default function AppShell({ user }) {
   const symbol = getCurrencySymbol(profile.currency || 'PHP')
   const privacyMode = Boolean(profile.privacyMode)
   const gamification = useMemo(
-    () => getGamificationSnapshot(data.income, data.expenses, data.bills, data.goals, profile),
-    [data.income, data.expenses, data.bills, data.goals, profile],
+    () => getGamificationSnapshot(data, profile),
+    [data, profile],
   )
 
   useEffect(() => {
@@ -605,8 +616,8 @@ export default function AppShell({ user }) {
     if (gamification.level > previous.level) {
       nextToasts.push({
         eyebrow: 'Level up',
-        title: `Level ${gamification.level} reached`,
-        meta: 'Your trusted money habits just moved up another step.',
+        title: `Buhay Level ${gamification.level} reached`,
+        meta: 'Your trusted life habits just moved up another step.',
       })
     }
 
@@ -708,6 +719,9 @@ export default function AppShell({ user }) {
   const PageComponent = activeSpace === 'lakas' ? Lakas : activeSpace === 'tala' ? Tala : financePages[page] || Dashboard
   const headerExpLabel = activeSpace === 'takda' ? HEADER_EXP_LABELS[page] || '' : ''
   const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
+  const activeSpaceProgress = gamification?.spaces?.[activeSpace] || gamification
+  const activeStatusLabel = activeSpace === 'takda' ? headerExpLabel : `${activeSpaceConfig.label} progress`
+  const pageGamification = activeSpace === 'takda' && page !== 'settings' ? activeSpaceProgress : gamification
   const isCalendarPage = activeSpace === 'takda' && page === 'calendar'
   const pageBoundaryKey = activeSpace === 'takda' ? page : activeSpace
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
@@ -953,7 +967,7 @@ export default function AppShell({ user }) {
     profile,
     symbol,
     privacyMode,
-    gamification,
+    gamification: pageGamification,
     billPaymentTarget,
     activeTab: activeSpace === 'lakas' ? lakasPage : activeSpace === 'tala' ? talaPage : page,
     onTogglePrivacy: handleTogglePrivacy,
@@ -1056,15 +1070,15 @@ export default function AppShell({ user }) {
             </div>
           </div>
           <div className={styles.topBarRight}>
-            {activeSpace === 'takda' && headerExpLabel && gamification && (
+            {activeStatusLabel && activeSpaceProgress && (
               <div
                 className={styles.topBarStatus}
-                aria-label={`${headerExpLabel}. Level ${gamification.level}. ${gamification.totalExp} EXP.`}
+                aria-label={`${activeStatusLabel}. Level ${activeSpaceProgress.level}. ${activeSpaceProgress.totalExp} EXP.`}
               >
-                <div className={styles.topBarStatusBadge}>Lv {gamification.level}</div>
+                <div className={styles.topBarStatusBadge}>Lv {activeSpaceProgress.level}</div>
                 <div className={styles.topBarStatusMain}>
-                  <div className={styles.topBarStatusLabel}>{headerExpLabel}</div>
-                  <div className={styles.topBarStatusMeta}>{gamification.totalExp} EXP</div>
+                  <div className={styles.topBarStatusLabel}>{activeStatusLabel}</div>
+                  <div className={styles.topBarStatusMeta}>{activeSpaceProgress.totalExp} EXP</div>
                 </div>
               </div>
             )}

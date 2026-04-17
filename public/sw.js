@@ -1,5 +1,5 @@
 const CACHE = 'buhay-v1'
-const ASSETS = ['/manifest.json', '/favicon.svg']
+const ASSETS = ['/manifest.json', '/buhay-icon.svg', '/favicon.svg']
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)))

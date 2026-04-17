@@ -234,9 +234,108 @@ function buildExpLedger(income = [], expenses = [], bills = [], goals = [], prof
     })
 }
 
-export function getGamificationSnapshot(income = [], expenses = [], bills = [], goals = [], profile = {}) {
-  const ledger = buildExpLedger(income, expenses, bills, goals, profile)
-  const checkinEntries = buildCheckinEntries(income, expenses, bills, profile)
+function getRowDate(row = {}, dateFields = ['date']) {
+  for (const field of dateFields) {
+    if (row?.[field]) return normalizeDate(row[field])
+  }
+  return getActivityDate(row)
+}
+
+function buildSimpleEntries(rows = [], sourceType, space, delta, dateFields = ['date']) {
+  return (Array.isArray(rows) ? rows : [])
+    .filter(row => !row?.gamificationExcluded && row?.seedSource !== 'onboarding')
+    .map(row => {
+      const date = getRowDate(row, dateFields)
+      if (!date) return null
+      return {
+        ...row,
+        date,
+        activityDate: date,
+        delta,
+        sourceType,
+        space,
+      }
+    })
+    .filter(Boolean)
+}
+
+function buildTalaTaskEntries(tasks = []) {
+  return (Array.isArray(tasks) ? tasks : [])
+    .filter(task => !task?.gamificationExcluded && task?.seedSource !== 'onboarding')
+    .map(task => {
+      const date = task.done ? getRowDate(task, ['completedAt', 'doneAt', 'createdAt', 'dueDate']) : getRowDate(task, ['createdAt'])
+      if (!date) return null
+      return {
+        ...task,
+        date,
+        activityDate: date,
+        delta: task.done ? 2 : 1,
+        sourceType: 'task',
+        space: 'tala',
+      }
+    })
+    .filter(Boolean)
+}
+
+function buildFitnessGoalEntries(goals = []) {
+  return (Array.isArray(goals) ? goals : [])
+    .filter(goal => !goal?.gamificationExcluded && goal?.seedSource !== 'onboarding')
+    .map(goal => {
+      const target = Number(goal?.target) || 0
+      const current = Number(goal?.current) || 0
+      if (target <= 0 || current <= 0) return null
+      return {
+        ...goal,
+        date: getRowDate(goal, ['updatedAt', 'createdAt', 'date']),
+        activityDate: getRowDate(goal, ['updatedAt', 'createdAt', 'date']),
+        delta: Math.min(5, Math.max(1, Math.round((Math.min(current, target) / target) * 5))),
+        sourceType: 'lakasGoal',
+        space: 'lakas',
+      }
+    })
+    .filter(entry => entry?.date)
+}
+
+function buildTalaGoalEntries(goals = []) {
+  return (Array.isArray(goals) ? goals : [])
+    .filter(goal => !goal?.gamificationExcluded && goal?.seedSource !== 'onboarding')
+    .map(goal => {
+      const progress = Number(goal?.progress) || 0
+      if (progress <= 0) return null
+      return {
+        ...goal,
+        date: getRowDate(goal, ['updatedAt', 'createdAt']),
+        activityDate: getRowDate(goal, ['updatedAt', 'createdAt']),
+        delta: Math.min(4, Math.max(1, Math.round((Math.min(progress, 100) / 100) * 4))),
+        sourceType: 'talaGoal',
+        space: 'tala',
+      }
+    })
+    .filter(entry => entry?.date)
+}
+
+function buildLakasLedger(data = {}) {
+  return [
+    ...buildSimpleEntries(data.lakasWorkouts, 'workout', 'lakas', 8),
+    ...buildSimpleEntries(data.lakasActivities, 'activity', 'lakas', 4),
+    ...buildSimpleEntries(data.lakasHabits, 'habit', 'lakas', 3),
+    ...buildSimpleEntries(data.lakasBodyLogs, 'body', 'lakas', 3),
+    ...buildSimpleEntries(data.lakasMeals, 'meal', 'lakas', 2),
+    ...buildFitnessGoalEntries(data.lakasGoals),
+  ]
+}
+
+function buildTalaLedger(data = {}) {
+  return [
+    ...buildSimpleEntries(data.talaCheckins, 'checkin', 'tala', 5),
+    ...buildSimpleEntries(data.talaJournal, 'journal', 'tala', 4),
+    ...buildSimpleEntries(data.talaMoods, 'mood', 'tala', 3),
+    ...buildTalaTaskEntries(data.talaTasks),
+    ...buildTalaGoalEntries(data.talaGoals),
+  ]
+}
+
+function buildProgressSnapshot(ledger = [], checkinEntries = [], options = {}) {
   const now = new Date()
   const todayStr = today()
   const trackedDays = getTrackedDays(checkinEntries)
@@ -278,13 +377,14 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
   const todayCheckins = checkinEntries.filter(entry => entry.activityDate === todayStr).length
   const checkedInToday = todayCheckins > 0
 
-  let message = 'Trusted money habits build momentum.'
-  if (currentStreakDays >= 7) message = 'Your logging rhythm is locked in. Protect the streak and keep compounding.'
-  else if (currentStreakDays >= 3) message = 'You are building a real money habit now. Keep the streak warm.'
+  const label = options.label || 'Buhay'
+  let message = `${label} habits build momentum.`
+  if (currentStreakDays >= 7) message = `Your ${label} rhythm is locked in. Protect the streak and keep compounding.`
+  else if (currentStreakDays >= 3) message = `You are building a real ${label} habit now. Keep the streak warm.`
   else if (weeklyCheckins >= weeklyTarget) message = 'Weekly check-in target complete. You are keeping the habit alive.'
   else if (monthNetExp >= 20) message = 'You are stacking strong progress this month.'
-  else if (monthNetExp > 0) message = 'Steady progress. Keep your good money habits going.'
-  else if (monthNetExp < 0) message = 'Small resets are normal. One good entry gets the bar moving again.'
+  else if (monthNetExp > 0) message = 'Steady progress. Keep the good habits going.'
+  else if (monthNetExp < 0) message = 'Small resets are normal. One good action gets the bar moving again.'
 
   let nextMilestone = `Need ${expToNextLevel} trusted EXP for Level ${level + 1}.`
   if (expToNextLevel <= 6) nextMilestone = `One more trusted action could unlock Level ${level + 1}.`
@@ -312,5 +412,51 @@ export function getGamificationSnapshot(income = [], expenses = [], bills = [], 
     entryExpCap: ENTRY_EXP_CAP,
     nextMilestone,
     message,
+  }
+}
+
+function normalizeInput(input, expenses, bills, goals, profile, extra = {}) {
+  if (Array.isArray(input)) {
+    return {
+      data: {
+        income: input,
+        expenses: Array.isArray(expenses) ? expenses : [],
+        bills: Array.isArray(bills) ? bills : [],
+        goals: Array.isArray(goals) ? goals : [],
+        ...extra,
+      },
+      profile: profile || {},
+    }
+  }
+
+  const data = input && typeof input === 'object' ? input : {}
+  return {
+    data,
+    profile: expenses && !Array.isArray(expenses) ? expenses : data.profile || {},
+  }
+}
+
+export function getGamificationSnapshot(input = [], expenses = [], bills = [], goals = [], profile = {}, extra = {}) {
+  const normalized = normalizeInput(input, expenses, bills, goals, profile, extra)
+  const data = normalized.data
+  const activeProfile = normalized.profile
+  const takdaLedger = buildExpLedger(data.income || [], data.expenses || [], data.bills || [], data.goals || [], activeProfile)
+  const takdaCheckins = buildCheckinEntries(data.income || [], data.expenses || [], data.bills || [], activeProfile)
+  const lakasLedger = buildLakasLedger(data)
+  const talaLedger = buildTalaLedger(data)
+
+  const takda = buildProgressSnapshot(takdaLedger, takdaCheckins, { label: 'Takda' })
+  const lakas = buildProgressSnapshot(lakasLedger, lakasLedger, { label: 'Lakas' })
+  const tala = buildProgressSnapshot(talaLedger, talaLedger, { label: 'Tala' })
+  const combinedLedger = [...takdaLedger, ...lakasLedger, ...talaLedger]
+  const combinedCheckins = [...takdaCheckins, ...lakasLedger, ...talaLedger]
+
+  return {
+    ...buildProgressSnapshot(combinedLedger, combinedCheckins, { label: 'Buhay' }),
+    spaces: {
+      takda,
+      lakas,
+      tala,
+    },
   }
 }
