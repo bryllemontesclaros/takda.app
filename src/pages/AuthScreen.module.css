@@ -64,7 +64,7 @@
 }
 
 .storyTitle {
-  max-width: 10ch;
+  max-width: 12ch;
   margin: 1rem 0 0.8rem;
   font-family: var(--font-display);
   font-size: clamp(46px, 6vw, 72px);
@@ -116,6 +116,66 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
+
+.previewSpaceList {
+  display: grid;
+  gap: 8px;
+}
+
+.previewSpace {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  background: color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.previewSpace span {
+  font-size: 10px;
+  color: var(--text3);
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.previewSpace strong {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.previewSpace em {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.35;
+  font-style: normal;
+}
+
+.previewSpaceTakda {
+  border-color: color-mix(in srgb, #16b88a 34%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, #16b88a 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.previewSpaceLakas {
+  border-color: color-mix(in srgb, #ea580c 34%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, #ea580c 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.previewSpaceTala {
+  border-color: color-mix(in srgb, #6366f1 34%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, #6366f1 12%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface2) 86%, #ffffff 14%);
+}
+
+.previewSpaceTakda span { color: #16b88a; }
+.previewSpaceLakas span { color: #ea580c; }
+.previewSpaceTala span { color: #6366f1; }
 
 .previewDay {
   min-height: 76px;

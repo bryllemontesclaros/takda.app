@@ -29,10 +29,10 @@ const REMEMBERED_EMAIL_KEY = 'sentimo_remembered_email'
 const REMEMBERED_EMAIL_MODE_KEY = 'sentimo_remembered_email_enabled'
 const AUTH_FLASH_KEY = 'takda_auth_flash'
 const AUTH_PROOF = [
-  'Daily closing balances',
-  'Receipt OCR review',
-  'Budgets and goals',
-  'Private account data',
+  'Three focused spaces',
+  'Review before saving',
+  'Private synced data',
+  'Installable PWA',
 ]
 
 function safeGet(key, fallback = '') {
@@ -153,7 +153,7 @@ export default function AuthScreen() {
       ? 'Create your Buhay account'
       : 'Welcome back'
   const authSubtitle = showForgot
-    ? 'Enter your email and we will send a reset link so you can get back into your money calendar.'
+    ? 'Enter your email and we will send a reset link so you can get back into your Buhay account.'
     : tab === 'register'
       ? 'Set up your account, then Buhay will guide you through money, fitness, journal, tasks, and goals.'
       : 'Open your finance, fitness, journal, tasks, goals, and daily dashboards.'
@@ -171,27 +171,38 @@ export default function AuthScreen() {
           <div>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.storyKicker}>Bawat araw, mas malinaw.</div>
-            <h1 className={styles.storyTitle}>Your daily life cockpit.</h1>
+            <h1 className={styles.storyTitle}>One sign-in for your day.</h1>
             <p className={styles.storyText}>
-              Switch between Takda for money, Lakas for fitness, and Tala for mind, journal, tasks, and goals from one calm workspace.
+              Enter Takda for money, Lakas for training and meals, and Tala for reflection, tasks, and goals from one calm workspace.
             </p>
           </div>
 
           <div className={styles.previewCard} aria-hidden="true">
             <div className={styles.previewTop}>
-              <span>Today&apos;s closing balance</span>
-              <strong>₱47,300</strong>
+              <span>Buhay spaces</span>
+              <strong>3</strong>
             </div>
-            <div className={styles.previewGrid}>
-              <div className={styles.previewDay}>18</div>
-              <div className={styles.previewDay}>19</div>
-              <div className={`${styles.previewDay} ${styles.previewDayHot}`}>20</div>
-              <div className={`${styles.previewDay} ${styles.previewDayActive}`}>21</div>
+            <div className={styles.previewSpaceList}>
+              <div className={`${styles.previewSpace} ${styles.previewSpaceTakda}`}>
+                <span>Takda</span>
+                <strong>Money calendar</strong>
+                <em>Balances, bills, receipts</em>
+              </div>
+              <div className={`${styles.previewSpace} ${styles.previewSpaceLakas}`}>
+                <span>Lakas</span>
+                <strong>Fitness rhythm</strong>
+                <em>Workouts, meals, progress</em>
+              </div>
+              <div className={`${styles.previewSpace} ${styles.previewSpaceTala}`}>
+                <span>Tala</span>
+                <strong>Mind and life admin</strong>
+                <em>Journal, mood, tasks</em>
+              </div>
             </div>
             <div className={styles.previewMetrics}>
-              <div><span>Receipts</span><strong>24</strong></div>
-              <div><span>Budget</span><strong>82%</strong></div>
-              <div><span>Level</span><strong>7</strong></div>
+              <div><span>Today</span><strong>Review</strong></div>
+              <div><span>Privacy</span><strong>Ready</strong></div>
+              <div><span>Sync</span><strong>On</strong></div>
             </div>
           </div>
 

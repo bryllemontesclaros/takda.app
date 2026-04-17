@@ -319,6 +319,56 @@
   line-height: 1.7;
 }
 
+.recommendedPathCard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--buhay-accent) 28%, var(--border));
+  background:
+    radial-gradient(circle at 12% 14%, color-mix(in srgb, var(--takda-accent) 8%, transparent), transparent 36%),
+    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--lakas-accent) 8%, transparent), transparent 36%),
+    radial-gradient(circle at 82% 100%, color-mix(in srgb, var(--tala-accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+.recommendedPathLabel {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.recommendedPathTitle {
+  display: block;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.recommendedPathSteps {
+  display: grid;
+  gap: 8px;
+}
+
+.recommendedPathSteps span {
+  display: block;
+  padding: 9px 11px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  background: color-mix(in srgb, var(--surface2) 84%, #ffffff 16%);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .welcomeStats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1249,6 +1299,7 @@
   .currencyGrid,
   .formGrid,
   .summaryGrid,
+  .recommendedPathCard,
   .welcomeStats,
   .setupPromise,
   .setupScopeGrid,

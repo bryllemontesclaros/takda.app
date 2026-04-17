@@ -543,6 +543,17 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepSub}>
                 Buhay has three focused spaces: Takda for money, Lakas for fitness, and Tala for mind and life admin. You can start simple and add real data later.
               </div>
+              <div className={styles.recommendedPathCard}>
+                <div>
+                  <span className={styles.recommendedPathLabel}>Recommended beginner path</span>
+                  <strong className={styles.recommendedPathTitle}>Currency now. Accounts and bills if ready. Lakas and Tala later.</strong>
+                </div>
+                <div className={styles.recommendedPathSteps}>
+                  <span>1. Pick currency</span>
+                  <span>2. Add real finance baseline only if you know it</span>
+                  <span>3. Start logging real life inside the app</span>
+                </div>
+              </div>
               <div className={styles.setupScopeGrid} aria-label="Setup requirements">
                 <div className={styles.setupScopeCard}>
                   <span>Required now</span>
