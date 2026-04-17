@@ -122,6 +122,74 @@ const GYM_SESSION_TYPES = [
   },
 ]
 
+const EXERCISE_VIDEO_GUIDES = [
+  {
+    match: ['bodyweight squat', 'goblet squat', 'squat', 'leg press'],
+    id: 'BR4tlEE_A98',
+    title: 'Squat form tutorial',
+  },
+  {
+    match: ['incline push-up', 'push-up', 'push up'],
+    id: 'y8I66lWtNB8',
+    title: 'Incline push-up form',
+  },
+  {
+    match: ['dumbbell row', 'barbell row', 'row', 'face pull'],
+    id: 'ufhQhwyrx-4',
+    title: 'Row form tutorial',
+  },
+  {
+    match: ['dead bug', 'plank'],
+    id: '4XLEnwUr1d8',
+    title: 'Core form tutorial',
+  },
+  {
+    match: ['bench press', 'incline dumbbell press'],
+    id: '0yE4f3NnNmU',
+    title: 'Bench press form',
+  },
+  {
+    match: ['shoulder press'],
+    id: 'XlNDoMMxVz0',
+    title: 'Shoulder press form',
+  },
+  {
+    match: ['triceps pushdown'],
+    id: 'GqK6WrZEyEk',
+    title: 'Triceps pushdown form',
+  },
+  {
+    match: ['lat pulldown'],
+    id: 'hN_HcqQWM_o',
+    title: 'Lat pulldown form',
+  },
+  {
+    match: ['romanian deadlift', 'deadlift', 'glute bridge'],
+    id: 'CQp5I9KgdXI',
+    title: 'Hip hinge form',
+  },
+  {
+    match: ['dumbbell curl', 'curl', 'bicep'],
+    id: 'AynDk444XZ4',
+    title: 'Dumbbell curl form',
+  },
+  {
+    match: ['calf raise'],
+    id: '9mrtIKD324U',
+    title: 'Calf raise form',
+  },
+  {
+    match: ['brisk walk', 'walk', 'treadmill'],
+    id: '09LAB5ErEfo',
+    title: 'Walking form',
+  },
+  {
+    match: ['cool down stretch', 'stretch'],
+    id: '8GL73mrsvJ8',
+    title: 'Cool down stretch',
+  },
+]
+
 const BUILT_IN_ROUTINES = [
   {
     name: 'Beginner Foundation A',
@@ -520,9 +588,14 @@ function buildTemplateNotes(template = {}) {
   ].filter(Boolean).join(' ')
 }
 
-function getYouTubeFormUrl(exerciseName = '') {
-  const query = `${exerciseName || 'exercise'} proper form tutorial`
-  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`
+function getExerciseVideoGuide(exerciseName = '') {
+  const normalized = String(exerciseName || '').trim().toLowerCase()
+  if (!normalized) return EXERCISE_VIDEO_GUIDES[0]
+  return EXERCISE_VIDEO_GUIDES.find(video => video.match.some(term => normalized.includes(term))) || EXERCISE_VIDEO_GUIDES[0]
+}
+
+function getYouTubeEmbedUrl(videoId = '') {
+  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1`
 }
 
 function getExerciseActiveSeconds(exercise = {}) {
@@ -541,6 +614,16 @@ function estimateExerciseMinutes(exercise = {}) {
 
 function estimateRoutineMinutes(exercises = []) {
   return normalizeRows(exercises).reduce((sum, exercise) => sum + estimateExerciseMinutes(exercise), 0)
+}
+
+function formatDurationClock(seconds = 0) {
+  const totalSeconds = Math.max(0, Math.floor(numberOrZero(seconds)))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const remainingSeconds = totalSeconds % 60
+  return hours
+    ? `${hours}:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`
+    : `${minutes}:${String(remainingSeconds).padStart(2, '0')}`
 }
 
 function normalizeRows(rows = []) {
@@ -798,7 +881,15 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [deletingLakasData, setDeletingLakasData] = useState(false)
   const [photoPreview, setPhotoPreview] = useState('')
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
-  const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('push')
+  const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('beginner-a')
+  const [gymSessionMode, setGymSessionMode] = useState({
+    open: false,
+    sessionKey: 'beginner-a',
+    exerciseIndex: 0,
+    completed: {},
+    startedAt: null,
+  })
+  const [gymSessionNow, setGymSessionNow] = useState(Date.now())
   const savedLakasSettings = getLakasSettings(profile)
   const profileSettingsKey = JSON.stringify(profile?.lakasSettings || {})
 
@@ -813,10 +904,49 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const selectedGymSession = GYM_SESSION_TYPES.find(session => session.key === selectedGymSessionKey) || GYM_SESSION_TYPES[0]
   const selectedGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === selectedGymSession.templateName) || BUILT_IN_ROUTINES[0]
   const selectedGymEstimate = selectedGymTemplate?.duration || estimateRoutineMinutes(selectedGymTemplate?.exercises)
+  const activeGymSession = GYM_SESSION_TYPES.find(session => session.key === gymSessionMode.sessionKey) || selectedGymSession
+  const activeGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === activeGymSession.templateName) || selectedGymTemplate
+  const activeGymExercises = normalizeRows(activeGymTemplate?.exercises)
+  const activeGymExerciseIndex = Math.min(gymSessionMode.exerciseIndex, Math.max(0, activeGymExercises.length - 1))
+  const activeGymExercise = activeGymExercises[activeGymExerciseIndex] || {}
+  const activeGymVideo = getExerciseVideoGuide(activeGymExercise.name)
+  const activeGymGuide = getExerciseGuide(activeGymExercise.name)
+  const activeGymCompletedCount = Object.values(gymSessionMode.completed || {}).filter(Boolean).length
+  const activeGymPlanMinutes = activeGymTemplate?.duration || estimateRoutineMinutes(activeGymExercises)
+  const activeGymElapsedSeconds = gymSessionMode.startedAt
+    ? Math.max(0, Math.floor((gymSessionNow - gymSessionMode.startedAt) / 1000))
+    : 0
+  const activeGymProgress = activeGymExercises.length
+    ? Math.round((activeGymCompletedCount / activeGymExercises.length) * 100)
+    : 0
 
   useEffect(() => {
     setSettingsForm(getLakasSettings(profile))
   }, [profileSettingsKey])
+
+  useEffect(() => {
+    if (!gymSessionMode.open) return undefined
+
+    setGymSessionNow(Date.now())
+    const timerId = window.setInterval(() => setGymSessionNow(Date.now()), 1000)
+    return () => window.clearInterval(timerId)
+  }, [gymSessionMode.open, gymSessionMode.startedAt])
+
+  useEffect(() => {
+    if (!gymSessionMode.open) return undefined
+
+    const previousOverflow = document.body.style.overflow
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') closeGymSessionMode()
+    }
+
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [gymSessionMode.open])
 
   useEffect(() => {
     if (!mealPhoto) {
@@ -957,7 +1087,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     notifyApp({ title: 'Routine loaded', message: `${routine.name || 'Routine'} is ready to log.`, tone: 'success' })
   }
 
-  function loadGymSession(template = selectedGymTemplate, session = selectedGymSession) {
+  function openGymSessionMode(template = selectedGymTemplate, session = selectedGymSession) {
     if (!template) return
     setWorkoutForm(current => ({
       ...current,
@@ -968,12 +1098,50 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       exercises: hydrateExerciseRows(template.exercises),
       notes: [`Gym session: ${session.label}.`, buildTemplateNotes(template)].filter(Boolean).join(' '),
     }))
-    notifyApp({ title: 'Gym session ready', message: `${template.name || session.label} was loaded into the workout log.`, tone: 'success' })
+    setGymSessionMode({
+      open: true,
+      sessionKey: session.key,
+      exerciseIndex: 0,
+      completed: {},
+      startedAt: Date.now(),
+    })
+    notifyApp({ title: 'Gym session started', message: `${template.name || session.label} is open in session mode.`, tone: 'success' })
   }
 
   function editGymSessionAsRoutine(template = selectedGymTemplate) {
     if (!template) return
     applyRoutineTemplate(template)
+  }
+
+  function closeGymSessionMode() {
+    setGymSessionMode(current => ({ ...current, open: false }))
+  }
+
+  function setGymModeExercise(index) {
+    setGymSessionMode(current => ({
+      ...current,
+      exerciseIndex: Math.max(0, Math.min(index, Math.max(0, activeGymExercises.length - 1))),
+    }))
+  }
+
+  function completeCurrentGymExercise() {
+    setGymSessionMode(current => {
+      const index = Math.max(0, Math.min(current.exerciseIndex, Math.max(0, activeGymExercises.length - 1)))
+      const wasCompleted = Boolean(current.completed?.[index])
+      const completed = {
+        ...(current.completed || {}),
+        [index]: !wasCompleted,
+      }
+      const nextIndex = !wasCompleted && index < activeGymExercises.length - 1
+        ? index + 1
+        : index
+
+      return {
+        ...current,
+        completed,
+        exerciseIndex: nextIndex,
+      }
+    })
   }
 
   function applyRoutineTemplate(template) {
@@ -1104,7 +1272,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     const exercises = sanitizeExerciseRows(workoutForm.exercises)
     if (!workoutForm.title.trim() || !workoutForm.date || !exercises.length) {
       notifyApp({ title: 'Workout needs details', message: 'Add a workout name, date, and at least one exercise.', tone: 'warning' })
-      return
+      return false
     }
 
     const routine = routines.find(row => row._id === workoutForm.routineId)
@@ -1125,6 +1293,12 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     })
     setWorkoutForm(createWorkoutForm(savedLakasSettings))
     notifyApp({ title: 'Workout logged', message: 'Your Lakas workout was saved.', tone: 'success' })
+    return true
+  }
+
+  async function handleSaveGymSession() {
+    const saved = await handleAddWorkout()
+    if (saved) closeGymSessionMode()
   }
 
   async function handleAddMeal() {
@@ -1757,7 +1931,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 <span>{selectedGymTemplate.focus}</span>
               </div>
               <div className={lStyles.gymSessionActions}>
-                <button type="button" className={lStyles.primaryBtn} onClick={() => loadGymSession(selectedGymTemplate, selectedGymSession)}>
+                <button type="button" className={lStyles.primaryBtn} onClick={() => openGymSessionMode(selectedGymTemplate, selectedGymSession)}>
                   Start this session
                 </button>
                 <button type="button" className={lStyles.ghostBtn} onClick={() => editGymSessionAsRoutine(selectedGymTemplate)}>
@@ -1783,9 +1957,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                     </div>
                     {guide && <p>{guide.setup} {guide.safety}</p>}
                     {exercise.notes && <small>{exercise.notes}</small>}
-                    <a href={getYouTubeFormUrl(exercise.name)} target="_blank" rel="noreferrer">
-                      Watch proper form on YouTube
-                    </a>
+                    <span className={lStyles.gymExerciseVideoHint}>Video plays inside session mode</span>
                   </article>
                 )
               })}
@@ -2560,6 +2732,106 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         </section>
         )}
       </div>
+      )}
+
+      {gymSessionMode.open && (
+        <div className={lStyles.gymModeOverlay} role="dialog" aria-modal="true" aria-labelledby="gym-session-title">
+          <div className={lStyles.gymModeBackdrop} onClick={closeGymSessionMode} aria-hidden="true" />
+          <section className={lStyles.gymModeSheet}>
+            <div className={lStyles.gymModeHeader}>
+              <div>
+                <div className={lStyles.gymModeEyebrow}>Gym session mode</div>
+                <h3 id="gym-session-title">{activeGymTemplate.name}</h3>
+                <p>{activeGymSession.label} · {activeGymCompletedCount}/{activeGymExercises.length} exercises done · {activeGymPlanMinutes} min plan</p>
+              </div>
+              <button type="button" className={lStyles.gymModeClose} onClick={closeGymSessionMode} aria-label="Close gym session mode">Close</button>
+            </div>
+
+            <div className={lStyles.gymModeProgress}>
+              <div>
+                <span>Elapsed</span>
+                <strong>{formatDurationClock(activeGymElapsedSeconds)}</strong>
+              </div>
+              <div>
+                <span>Plan duration</span>
+                <strong>{activeGymPlanMinutes} min</strong>
+              </div>
+              <div>
+                <span>Progress</span>
+                <strong>{activeGymProgress}%</strong>
+              </div>
+              <div className={lStyles.gymModeProgressTrack} aria-hidden="true">
+                <i style={{ width: `${activeGymProgress}%` }} />
+              </div>
+            </div>
+
+            <div className={lStyles.gymModeBody}>
+              <div className={lStyles.gymModeVideoCard}>
+                <iframe
+                  title={`${activeGymExercise.name || 'Exercise'} form video`}
+                  src={getYouTubeEmbedUrl(activeGymVideo.id)}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+                <div className={lStyles.gymModeVideoMeta}>
+                  <span>{activeGymVideo.title}</span>
+                  <a href={`https://www.youtube.com/watch?v=${activeGymVideo.id}`} target="_blank" rel="noreferrer">Open on YouTube</a>
+                </div>
+              </div>
+
+              <div className={lStyles.gymModeCurrentCard}>
+                <div className={lStyles.gymModeCurrentTop}>
+                  <span>Exercise {activeGymExerciseIndex + 1}</span>
+                  <strong>{activeGymExercise.name}</strong>
+                </div>
+                <div className={lStyles.gymModeStatGrid}>
+                  <div><span>Sets</span><strong>{activeGymExercise.sets || 1}</strong></div>
+                  <div><span>Reps</span><strong>{activeGymExercise.reps || '-'}</strong></div>
+                  <div><span>Work</span><strong>{estimateExerciseMinutes(activeGymExercise)} min</strong></div>
+                  <div><span>Rest</span><strong>{activeGymExercise.rest || 0}s</strong></div>
+                </div>
+                {activeGymGuide && (
+                  <div className={lStyles.gymModeCue}>
+                    <strong>{activeGymGuide.name} cue</strong>
+                    <span>{activeGymGuide.setup}</span>
+                    <small>{activeGymGuide.safety}</small>
+                  </div>
+                )}
+                {activeGymExercise.notes && <p className={lStyles.gymModeNotes}>{activeGymExercise.notes}</p>}
+                <div className={lStyles.gymModeControls}>
+                  <button type="button" className={lStyles.ghostBtn} onClick={() => setGymModeExercise(activeGymExerciseIndex - 1)} disabled={activeGymExerciseIndex === 0}>Previous</button>
+                  <button type="button" className={lStyles.secondaryBtn} onClick={completeCurrentGymExercise}>
+                    {gymSessionMode.completed?.[activeGymExerciseIndex]
+                      ? 'Undo done'
+                      : activeGymExerciseIndex >= activeGymExercises.length - 1
+                        ? 'Mark done'
+                        : 'Done and next'}
+                  </button>
+                  <button type="button" className={lStyles.ghostBtn} onClick={() => setGymModeExercise(activeGymExerciseIndex + 1)} disabled={activeGymExerciseIndex >= activeGymExercises.length - 1}>Next</button>
+                </div>
+                <button type="button" className={lStyles.primaryBtn} onClick={handleSaveGymSession}>
+                  Save workout log
+                </button>
+              </div>
+            </div>
+
+            <div className={lStyles.gymModeExerciseStrip} aria-label="Gym session exercise list">
+              {activeGymExercises.map((exercise, index) => (
+                <button
+                  key={`${activeGymTemplate.name}-${exercise.name}-${index}`}
+                  type="button"
+                  className={`${lStyles.gymModeExerciseChip} ${index === activeGymExerciseIndex ? lStyles.gymModeExerciseChipActive : ''} ${gymSessionMode.completed?.[index] ? lStyles.gymModeExerciseChipDone : ''}`}
+                  onClick={() => setGymModeExercise(index)}
+                  aria-pressed={index === activeGymExerciseIndex}
+                >
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{exercise.name}</strong>
+                  <small>{estimateExerciseMinutes(exercise)} min</small>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
       )}
     </div>
   )

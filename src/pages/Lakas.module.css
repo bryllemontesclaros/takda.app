@@ -507,6 +507,14 @@
   text-decoration: underline;
 }
 
+.gymExerciseVideoHint {
+  display: inline-flex;
+  margin-top: 10px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .gymSessionSafety {
   position: relative;
   z-index: 1;
@@ -515,6 +523,333 @@
   color: var(--text3);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.gymModeOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+}
+
+.gymModeBackdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 34%),
+    color-mix(in srgb, var(--bg) 72%, rgba(3, 8, 12, 0.72));
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.gymModeSheet {
+  position: relative;
+  z-index: 1;
+  width: min(1120px, calc(100vw - 24px));
+  max-height: min(860px, calc(100dvh - 24px));
+  overflow: auto;
+  padding: 18px;
+  border-radius: 34px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 74%, var(--accent) 26%);
+  background:
+    radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 34%),
+    radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--blue) 13%, transparent), transparent 32%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 86%, var(--surface) 14%), color-mix(in srgb, var(--surface) 94%, transparent 6%));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.34), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 34%, transparent);
+}
+
+.gymModeHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: start;
+}
+
+.gymModeEyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.gymModeHeader h3 {
+  margin: 8px 0 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(30px, 5vw, 54px);
+  line-height: 0.94;
+  letter-spacing: -0.06em;
+}
+
+.gymModeHeader p {
+  margin: 10px 0 0;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.gymModeClose {
+  min-height: 42px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 78%, var(--surface2) 22%);
+  color: var(--text2);
+  padding: 8px 13px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.gymModeProgress {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.gymModeProgress > div:not(.gymModeProgressTrack) {
+  padding: 11px 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+}
+
+.gymModeProgress span,
+.gymModeStatGrid span,
+.gymModeCurrentTop span {
+  display: block;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.gymModeProgress strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.gymModeProgressTrack {
+  grid-column: 1 / -1;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface3) 72%, transparent);
+}
+
+.gymModeProgressTrack i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--blue));
+  transition: width 0.22s ease;
+}
+
+.gymModeBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.gymModeVideoCard,
+.gymModeCurrentCard {
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 9%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 26%, transparent);
+}
+
+.gymModeVideoCard iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  background: #050806;
+}
+
+.gymModeVideoMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 13px;
+  color: var(--text3);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.gymModeVideoMeta a {
+  color: var(--accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.gymModeVideoMeta a:hover {
+  text-decoration: underline;
+}
+
+.gymModeCurrentCard {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+}
+
+.gymModeCurrentTop strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.gymModeStatGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.gymModeStatGrid div {
+  padding: 10px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface3) 62%, transparent);
+}
+
+.gymModeStatGrid strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 15px;
+}
+
+.gymModeCue {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+}
+
+.gymModeCue strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.gymModeCue span,
+.gymModeCue small,
+.gymModeNotes {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gymModeNotes {
+  margin: 10px 0 0;
+}
+
+.gymModeControls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+
+.gymModeControls .secondaryBtn,
+.gymModeControls .ghostBtn {
+  width: 100%;
+  min-width: 0;
+}
+
+.gymModeCurrentCard > .primaryBtn {
+  margin-top: 10px;
+}
+
+.gymModeExerciseStrip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  margin-top: 12px;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.gymModeExerciseStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.gymModeExerciseChip {
+  min-width: 164px;
+  padding: 11px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  color: var(--text2);
+  text-align: left;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.gymModeExerciseChip span,
+.gymModeExerciseChip strong,
+.gymModeExerciseChip small {
+  display: block;
+}
+
+.gymModeExerciseChip span {
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.gymModeExerciseChip strong {
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.gymModeExerciseChip small {
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 11px;
+}
+
+.gymModeExerciseChipActive {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 17%, transparent), transparent 48%),
+    color-mix(in srgb, var(--accent) 12%, var(--glass-1));
+}
+
+.gymModeExerciseChipDone {
+  border-color: color-mix(in srgb, var(--accent) 46%, var(--glass-border));
+  color: var(--text);
+}
+
+.gymModeExerciseChipDone span::after {
+  content: ' done';
+  color: var(--text3);
+  font-weight: 800;
 }
 
 .chartGrid {
@@ -1296,6 +1631,10 @@
   .gymExerciseList {
     grid-template-columns: 1fr;
   }
+
+  .gymModeBody {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1357,6 +1696,39 @@
 
   .gymSessionActions {
     grid-template-columns: 1fr;
+  }
+
+  .gymModeOverlay {
+    align-items: flex-end;
+    padding: 8px;
+  }
+
+  .gymModeSheet {
+    width: 100%;
+    max-height: calc(100dvh - 16px);
+    border-radius: 28px;
+    padding: 14px;
+  }
+
+  .gymModeHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .gymModeClose {
+    width: 100%;
+  }
+
+  .gymModeProgress,
+  .gymModeStatGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gymModeControls {
+    grid-template-columns: 1fr;
+  }
+
+  .gymModeExerciseChip {
+    min-width: 142px;
   }
 
   .settingsActions {
