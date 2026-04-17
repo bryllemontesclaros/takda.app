@@ -341,6 +341,9 @@ const STREAK_MILESTONES = [3, 7, 14]
 const HEADER_EXP_LABELS = {
   dashboard: 'Money momentum',
   calendar: 'Tracking habit',
+  money: 'Balance view',
+  plan: 'Planning habit',
+  receipts: 'Receipt box',
   breakdown: 'Trend view',
   accounts: 'Balance view',
   bills: 'Payment habit',
@@ -351,6 +354,126 @@ const APP_SPACES = [
   { id: 'lakas', label: 'Lakas', meta: 'Fitness', iconKey: 'lakas' },
   { id: 'tala', label: 'Tala', meta: 'Mind', iconKey: 'tala' },
 ]
+
+const FINANCE_PAGE_ALIASES = {
+  accounts: { page: 'money', tool: 'accounts' },
+  history: { page: 'money', tool: 'history' },
+  breakdown: { page: 'money', tool: 'breakdown' },
+  savings: { page: 'plan', tool: 'savings' },
+  bills: { page: 'plan', tool: 'bills' },
+  budget: { page: 'plan', tool: 'budget' },
+}
+
+const MONEY_TOOLS = [
+  {
+    id: 'accounts',
+    label: 'Accounts',
+    meta: 'Balances and account trust',
+    Component: Accounts,
+  },
+  {
+    id: 'history',
+    label: 'History',
+    meta: 'Income, expenses, and edits',
+    Component: History,
+  },
+  {
+    id: 'breakdown',
+    label: 'Insights',
+    meta: 'Spending and category trends',
+    Component: Breakdown,
+  },
+]
+
+const PLAN_TOOLS = [
+  {
+    id: 'savings',
+    label: 'Savings',
+    meta: 'Targets and contributions',
+    Component: Savings,
+  },
+  {
+    id: 'bills',
+    label: 'Bills',
+    meta: 'Due dates and paid status',
+    Component: Bills,
+  },
+  {
+    id: 'budget',
+    label: 'Budget',
+    meta: 'Monthly guardrails',
+    Component: Budget,
+  },
+]
+
+function FinanceToolGroup({
+  tools,
+  activeTool,
+  onActiveToolChange,
+  eyebrow,
+  title,
+  description,
+  ...pageProps
+}) {
+  const selectedTool = tools.find(tool => tool.id === activeTool) || tools[0]
+  const ActiveComponent = selectedTool.Component
+
+  return (
+    <div className={styles.financeGroupPage}>
+      <section className={styles.financeGroupHero}>
+        <div>
+          <div className={styles.financeGroupEyebrow}>{eyebrow}</div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+        <div className={styles.financeGroupSwitch} role="tablist" aria-label={`${title} tools`}>
+          {tools.map(tool => (
+            <button
+              key={tool.id}
+              type="button"
+              className={`${styles.financeGroupTab} ${selectedTool.id === tool.id ? styles.financeGroupTabActive : ''}`}
+              onClick={() => onActiveToolChange?.(tool.id)}
+              role="tab"
+              aria-selected={selectedTool.id === tool.id}
+            >
+              <strong>{tool.label}</strong>
+              <span>{tool.meta}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+      <ActiveComponent {...pageProps} />
+    </div>
+  )
+}
+
+function TakdaMoneyPage({ financeToolSelections = {}, onFinanceToolSelect, ...pageProps }) {
+  return (
+    <FinanceToolGroup
+      tools={MONEY_TOOLS}
+      activeTool={financeToolSelections.money}
+      onActiveToolChange={tool => onFinanceToolSelect?.('money', tool)}
+      eyebrow="Money"
+      title="Balances, ledger, and insight in one place."
+      description="Accounts, transaction history, and spending breakdowns are grouped here so money review does not feel scattered."
+      {...pageProps}
+    />
+  )
+}
+
+function TakdaPlanPage({ financeToolSelections = {}, onFinanceToolSelect, ...pageProps }) {
+  return (
+    <FinanceToolGroup
+      tools={PLAN_TOOLS}
+      activeTool={financeToolSelections.plan}
+      onActiveToolChange={tool => onFinanceToolSelect?.('plan', tool)}
+      eyebrow="Plan"
+      title="Goals, bills, and budget pressure together."
+      description="Savings, recurring bills, and monthly budgets share one planning surface because they all shape the same month-end reality."
+      {...pageProps}
+    />
+  )
+}
 
 function getEmailActionSettings() {
   if (typeof window === 'undefined') return undefined
@@ -365,6 +488,7 @@ export default function AppShell({ user }) {
   const [page, setPage] = useState('dashboard')
   const [lakasPage, setLakasPage] = useState('today')
   const [talaPage, setTalaPage] = useState('today')
+  const [financeToolSelections, setFinanceToolSelections] = useState({ money: 'accounts', plan: 'savings' })
   const [data, setData] = useState({
     income: [],
     expenses: [],
@@ -682,16 +806,12 @@ export default function AppShell({ user }) {
   }, [user])
 
   const nav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'home', section: 'Core' },
+    { id: 'dashboard', label: 'Today', iconKey: 'home', section: 'Core' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
-    { id: 'savings', label: 'Savings', iconKey: 'savings', section: null },
-    { id: 'accounts', label: 'Accounts', iconKey: 'accounts', section: null },
-    { id: 'history', label: 'History', iconKey: 'history', section: 'More' },
-    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: null },
-    { id: 'breakdown', label: 'Breakdown', iconKey: 'breakdown', section: null },
-    { id: 'budget', label: 'Budget', iconKey: 'budget', section: null },
-    { id: 'bills', label: 'Bills', iconKey: 'bills', section: null },
-    { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
+    { id: 'money', label: 'Money', iconKey: 'accounts', section: null },
+    { id: 'plan', label: 'Plan', iconKey: 'budget', section: null },
+    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: 'Tools' },
+    { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const lakasNav = [
     { id: 'today', label: 'Today', iconKey: 'today', section: 'Core' },
@@ -712,7 +832,20 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
 
-  const financePages = { dashboard: Dashboard, calendar: Calendar, history: History, receipts: Receipts, savings: Savings, accounts: Accounts, breakdown: Breakdown, budget: Budget, bills: Bills, settings: Settings }
+  const financePages = {
+    dashboard: Dashboard,
+    calendar: Calendar,
+    money: TakdaMoneyPage,
+    plan: TakdaPlanPage,
+    receipts: Receipts,
+    settings: Settings,
+    history: History,
+    savings: Savings,
+    accounts: Accounts,
+    breakdown: Breakdown,
+    budget: Budget,
+    bills: Bills,
+  }
   const PageComponent = activeSpace === 'lakas' ? Lakas : activeSpace === 'tala' ? Tala : financePages[page] || Dashboard
   const headerExpLabel = activeSpace === 'takda' ? HEADER_EXP_LABELS[page] || '' : ''
   const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
@@ -724,10 +857,10 @@ export default function AppShell({ user }) {
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
 
   const financeBottomNav = [
-    { id: 'dashboard', label: 'Home', iconKey: 'home', space: 'takda' },
+    { id: 'dashboard', label: 'Today', iconKey: 'home', space: 'takda' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', space: 'takda' },
-    { id: 'savings', label: 'Savings', iconKey: 'savings', space: 'takda' },
-    { id: 'accounts', label: 'Accounts', iconKey: 'accounts', space: 'takda' },
+    { id: 'money', label: 'Money', iconKey: 'accounts', space: 'takda' },
+    { id: 'plan', label: 'Plan', iconKey: 'budget', space: 'takda' },
   ]
   const lakasBottomNav = [
     { id: 'today', label: 'Today', iconKey: 'today', space: 'lakas' },
@@ -743,7 +876,7 @@ export default function AppShell({ user }) {
   ]
   const bottomNav = activeSpace === 'lakas' ? lakasBottomNav : activeSpace === 'tala' ? talaBottomNav : financeBottomNav
   const financeMoreNav = nav
-    .filter(item => ['history', 'receipts', 'breakdown', 'budget', 'bills', 'settings'].includes(item.id))
+    .filter(item => ['receipts', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
@@ -761,7 +894,7 @@ export default function AppShell({ user }) {
     ? 'Open progress, goals, body tracking, reminders, and settings.'
     : activeSpace === 'tala'
       ? 'Open goals, calendar, insights, and settings.'
-      : 'Open the rest of your tools here.'
+      : 'Open receipts and finance settings here.'
   const isMorePage = activeSpace === 'lakas'
     ? lakasMoreNav.some(item => item.id === lakasPage)
     : activeSpace === 'tala'
@@ -786,8 +919,18 @@ export default function AppShell({ user }) {
   }
 
   function navigateToFinancePage(nextPage = 'dashboard') {
+    const alias = FINANCE_PAGE_ALIASES[nextPage]
     setActiveSpace('takda')
+    if (alias) {
+      setFinanceToolSelections(current => ({ ...current, [alias.page]: alias.tool }))
+      setPage(alias.page)
+      return
+    }
     setPage(nextPage || 'dashboard')
+  }
+
+  function handleFinanceToolSelect(group, tool) {
+    setFinanceToolSelections(current => ({ ...current, [group]: tool }))
   }
 
   function handleBottomNavSelect(item) {
@@ -967,6 +1110,8 @@ export default function AppShell({ user }) {
     gamification: pageGamification,
     billPaymentTarget,
     activeTab: activeSpace === 'lakas' ? lakasPage : activeSpace === 'tala' ? talaPage : page,
+    financeToolSelections,
+    onFinanceToolSelect: handleFinanceToolSelect,
     onTogglePrivacy: handleTogglePrivacy,
     onSelectedDateChange: setCalendarQuickAddDate,
   }
