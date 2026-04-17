@@ -701,6 +701,67 @@
   grid-column: 1 / -1;
 }
 
+.saveModeCard {
+  display: grid;
+  gap: 12px;
+  margin-top: 1rem;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 34%, transparent), transparent 50%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 58%, var(--surface2) 42%), color-mix(in srgb, var(--surface2) 94%, transparent 6%));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 38%, transparent);
+}
+
+.saveModeTitle {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: -0.01em;
+}
+
+.saveModeHint {
+  margin: 4px 0 0;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.saveModeOptions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.saveModeButton {
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 48%, var(--surface2) 52%), color-mix(in srgb, var(--surface2) 94%, transparent 6%));
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.saveModeButton:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+}
+
+.saveModeButtonActive {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 72%, var(--glass-2) 28%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  color: var(--accent);
+}
+
+.saveModeAccount {
+  max-width: 100%;
+}
+
 .rawTextBox,
 .textBlock {
   margin-top: 1rem;
@@ -1005,6 +1066,7 @@
   }
 
   .formGrid,
+  .saveModeOptions,
   .detailMetaGrid,
   .summaryMetricGrid,
   .merchantHistoryGrid,

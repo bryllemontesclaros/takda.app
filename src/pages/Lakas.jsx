@@ -593,6 +593,20 @@ function estimateRoutineMinutes(exercises = []) {
   return normalizeRows(exercises).reduce((sum, exercise) => sum + estimateExerciseMinutes(exercise), 0)
 }
 
+function getExerciseSetCount(exercise = {}) {
+  return Math.max(1, numberOrZero(exercise.sets) || 1)
+}
+
+function getCompletedSetCount(completedSets = {}, index = 0) {
+  return Object.values(completedSets?.[index] || {}).filter(Boolean).length
+}
+
+function buildCompletedSetState(setCount = 1, done = true) {
+  return Object.fromEntries(
+    Array.from({ length: Math.max(1, setCount) }, (_, index) => [index + 1, done]),
+  )
+}
+
 function formatDurationClock(seconds = 0) {
   const totalSeconds = Math.max(0, Math.floor(numberOrZero(seconds)))
   const hours = Math.floor(totalSeconds / 3600)
@@ -864,6 +878,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     sessionKey: 'beginner-a',
     exerciseIndex: 0,
     completed: {},
+    completedSets: {},
+    restUntil: null,
+    restDuration: 0,
     startedAt: null,
   })
   const [gymSessionNow, setGymSessionNow] = useState(Date.now())
@@ -888,14 +905,25 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const activeGymExercise = activeGymExercises[activeGymExerciseIndex] || {}
   const activeGymVideo = getExerciseVideoGuide(activeGymExercise.name)
   const activeGymGuide = getExerciseGuide(activeGymExercise.name)
-  const activeGymCompletedCount = Object.values(gymSessionMode.completed || {}).filter(Boolean).length
+  const activeGymSetCount = getExerciseSetCount(activeGymExercise)
+  const activeGymCompletedSets = gymSessionMode.completedSets?.[activeGymExerciseIndex] || {}
+  const activeGymDoneSets = Object.values(activeGymCompletedSets).filter(Boolean).length
+  const activeGymCompletedCount = activeGymExercises.reduce((count, exercise, index) => {
+    const doneSets = getCompletedSetCount(gymSessionMode.completedSets, index)
+    const isComplete = Boolean(gymSessionMode.completed?.[index]) || doneSets >= getExerciseSetCount(exercise)
+    return count + (isComplete ? 1 : 0)
+  }, 0)
   const activeGymPlanMinutes = activeGymTemplate?.duration || estimateRoutineMinutes(activeGymExercises)
   const activeGymElapsedSeconds = gymSessionMode.startedAt
     ? Math.max(0, Math.floor((gymSessionNow - gymSessionMode.startedAt) / 1000))
     : 0
+  const activeGymRestRemaining = gymSessionMode.restUntil
+    ? Math.max(0, Math.ceil((gymSessionMode.restUntil - gymSessionNow) / 1000))
+    : 0
   const activeGymProgress = activeGymExercises.length
     ? Math.round((activeGymCompletedCount / activeGymExercises.length) * 100)
     : 0
+  const activeGymFinished = activeGymExercises.length > 0 && activeGymCompletedCount >= activeGymExercises.length
 
   useEffect(() => {
     setSettingsForm(getLakasSettings(profile))
@@ -1080,6 +1108,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       sessionKey: session.key,
       exerciseIndex: 0,
       completed: {},
+      completedSets: {},
+      restUntil: null,
+      restDuration: 0,
       startedAt: Date.now(),
     })
     notifyApp({ title: 'Gym session started', message: `${template.name || session.label} is open in session mode.`, tone: 'success' })
@@ -1098,16 +1129,24 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     setGymSessionMode(current => ({
       ...current,
       exerciseIndex: Math.max(0, Math.min(index, Math.max(0, activeGymExercises.length - 1))),
+      restUntil: null,
+      restDuration: 0,
     }))
   }
 
   function completeCurrentGymExercise() {
     setGymSessionMode(current => {
       const index = Math.max(0, Math.min(current.exerciseIndex, Math.max(0, activeGymExercises.length - 1)))
+      const exercise = activeGymExercises[index] || {}
+      const setCount = getExerciseSetCount(exercise)
       const wasCompleted = Boolean(current.completed?.[index])
       const completed = {
         ...(current.completed || {}),
         [index]: !wasCompleted,
+      }
+      const completedSets = {
+        ...(current.completedSets || {}),
+        [index]: buildCompletedSetState(setCount, !wasCompleted),
       }
       const nextIndex = !wasCompleted && index < activeGymExercises.length - 1
         ? index + 1
@@ -1116,9 +1155,48 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       return {
         ...current,
         completed,
+        completedSets,
         exerciseIndex: nextIndex,
+        restUntil: null,
+        restDuration: 0,
       }
     })
+  }
+
+  function toggleGymSet(setNumber) {
+    setGymSessionMode(current => {
+      const index = Math.max(0, Math.min(current.exerciseIndex, Math.max(0, activeGymExercises.length - 1)))
+      const exercise = activeGymExercises[index] || {}
+      const setCount = getExerciseSetCount(exercise)
+      const currentSets = current.completedSets?.[index] || {}
+      const wasDone = Boolean(currentSets[setNumber])
+      const nextSets = {
+        ...currentSets,
+        [setNumber]: !wasDone,
+      }
+      const doneCount = Object.values(nextSets).filter(Boolean).length
+      const exerciseDone = doneCount >= setCount
+      const restSeconds = Math.max(0, numberOrZero(exercise.rest))
+      const shouldStartRest = !wasDone && restSeconds > 0 && !exerciseDone
+
+      return {
+        ...current,
+        completedSets: {
+          ...(current.completedSets || {}),
+          [index]: nextSets,
+        },
+        completed: {
+          ...(current.completed || {}),
+          [index]: exerciseDone,
+        },
+        restUntil: shouldStartRest ? Date.now() + (restSeconds * 1000) : current.restUntil,
+        restDuration: shouldStartRest ? restSeconds : current.restDuration,
+      }
+    })
+  }
+
+  function skipGymRest() {
+    setGymSessionMode(current => ({ ...current, restUntil: null, restDuration: 0 }))
   }
 
   function applyRoutineTemplate(template) {
@@ -1245,27 +1323,29 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     notifyApp({ title: 'Routine saved', message: 'You can now load it when logging a workout.', tone: 'success' })
   }
 
-  async function handleAddWorkout() {
-    const exercises = sanitizeExerciseRows(workoutForm.exercises)
-    if (!workoutForm.title.trim() || !workoutForm.date || !exercises.length) {
+  async function handleAddWorkout(overrides = {}) {
+    const safeOverrides = overrides?.nativeEvent || overrides?.target ? {} : overrides
+    const nextWorkout = { ...workoutForm, ...(safeOverrides || {}) }
+    const exercises = sanitizeExerciseRows(nextWorkout.exercises)
+    if (!String(nextWorkout.title || '').trim() || !nextWorkout.date || !exercises.length) {
       notifyApp({ title: 'Workout needs details', message: 'Add a workout name, date, and at least one exercise.', tone: 'warning' })
       return false
     }
 
-    const routine = routines.find(row => row._id === workoutForm.routineId)
+    const routine = routines.find(row => row._id === nextWorkout.routineId)
     const totals = getExerciseTotals(exercises)
 
     await fsAdd(user.uid, 'lakasWorkouts', {
-      title: workoutForm.title.trim(),
+      title: String(nextWorkout.title || '').trim(),
       routineId: routine?._id || '',
       routineName: routine?.name || '',
-      date: workoutForm.date,
-      duration: numberOrZero(workoutForm.duration),
+      date: nextWorkout.date,
+      duration: numberOrZero(nextWorkout.duration),
       exercises,
       exerciseCount: totals.exerciseCount,
       setCount: totals.setCount,
       volume: totals.volume,
-      notes: workoutForm.notes.trim(),
+      notes: String(nextWorkout.notes || '').trim(),
       source: 'lakas',
     })
     setWorkoutForm(createWorkoutForm(savedLakasSettings))
@@ -1274,7 +1354,19 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   }
 
   async function handleSaveGymSession() {
-    const saved = await handleAddWorkout()
+    const actualMinutes = activeGymElapsedSeconds > 0
+      ? Math.max(1, Math.round(activeGymElapsedSeconds / 60))
+      : numberOrZero(workoutForm.duration)
+    const totalSets = activeGymExercises.reduce((sum, exercise) => sum + getExerciseSetCount(exercise), 0)
+    const doneSets = activeGymExercises.reduce((sum, exercise, index) => {
+      const completedForExercise = getCompletedSetCount(gymSessionMode.completedSets, index)
+      return sum + (gymSessionMode.completed?.[index] ? getExerciseSetCount(exercise) : completedForExercise)
+    }, 0)
+    const completionNote = `Session completion: ${activeGymCompletedCount}/${activeGymExercises.length} exercises and ${doneSets}/${totalSets} sets completed.`
+    const saved = await handleAddWorkout({
+      duration: String(actualMinutes),
+      notes: [workoutForm.notes, completionNote].filter(Boolean).join(' '),
+    })
     if (saved) closeGymSessionMode()
   }
 
@@ -2758,6 +2850,39 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                   <div><span>Work</span><strong>{estimateExerciseMinutes(activeGymExercise)} min</strong></div>
                   <div><span>Rest</span><strong>{activeGymExercise.rest || 0}s</strong></div>
                 </div>
+                {activeGymRestRemaining > 0 && (
+                  <div className={lStyles.gymModeRestCard} role="timer" aria-live="polite">
+                    <div>
+                      <span>Rest timer</span>
+                      <strong>{formatDurationClock(activeGymRestRemaining)}</strong>
+                    </div>
+                    <div className={lStyles.gymModeRestMeter} aria-hidden="true">
+                      <i
+                        style={{
+                          width: `${Math.max(4, Math.min(100, (activeGymRestRemaining / Math.max(1, gymSessionMode.restDuration || activeGymRestRemaining)) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <button type="button" className={lStyles.ghostBtn} onClick={skipGymRest}>Skip rest</button>
+                  </div>
+                )}
+                <div className={lStyles.gymModeSetTracker} aria-label={`${activeGymExercise.name} set tracker`}>
+                  {Array.from({ length: activeGymSetCount }, (_, index) => {
+                    const setNumber = index + 1
+                    const done = Boolean(activeGymCompletedSets[setNumber])
+                    return (
+                      <button
+                        key={`${activeGymExercise.name}-set-${setNumber}`}
+                        type="button"
+                        className={`${lStyles.gymModeSetButton} ${done ? lStyles.gymModeSetButtonDone : ''}`}
+                        onClick={() => toggleGymSet(setNumber)}
+                        aria-pressed={done}
+                      >
+                        Set {setNumber}
+                      </button>
+                    )
+                  })}
+                </div>
                 {activeGymGuide && (
                   <div className={lStyles.gymModeCue}>
                     <strong>{activeGymGuide.name} cue</strong>
@@ -2773,10 +2898,18 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                       ? 'Undo done'
                       : activeGymExerciseIndex >= activeGymExercises.length - 1
                         ? 'Mark done'
-                        : 'Done and next'}
+                        : activeGymDoneSets > 0
+                          ? 'Finish and next'
+                          : 'Done and next'}
                   </button>
                   <button type="button" className={lStyles.ghostBtn} onClick={() => setGymModeExercise(activeGymExerciseIndex + 1)} disabled={activeGymExerciseIndex >= activeGymExercises.length - 1}>Next</button>
                 </div>
+                {activeGymFinished && (
+                  <div className={lStyles.gymModeSummaryCard}>
+                    <strong>Session ready to save</strong>
+                    <span>{activeGymCompletedCount}/{activeGymExercises.length} exercises completed in {formatDurationClock(activeGymElapsedSeconds)}.</span>
+                  </div>
+                )}
                 <button type="button" className={lStyles.primaryBtn} onClick={handleSaveGymSession}>
                   Save workout log
                 </button>

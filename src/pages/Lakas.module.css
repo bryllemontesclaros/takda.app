@@ -774,6 +774,84 @@
   font-size: 15px;
 }
 
+.gymModeRestCard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(120px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--amber) 34%, var(--glass-border));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--amber) 16%, transparent), transparent 52%),
+    color-mix(in srgb, var(--amber-dim) 64%, var(--glass-1) 36%);
+}
+
+.gymModeRestCard span {
+  display: block;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gymModeRestCard strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.gymModeRestMeter {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface3) 72%, transparent);
+}
+
+.gymModeRestMeter i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--amber), color-mix(in srgb, var(--accent) 70%, var(--amber) 30%));
+  transition: width 0.2s ease;
+}
+
+.gymModeSetTracker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.gymModeSetButton {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 94%, transparent 6%));
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 850;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.gymModeSetButton:hover {
+  transform: translateY(-1px);
+  color: var(--text);
+}
+
+.gymModeSetButtonDone {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--glass-border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 80%, var(--glass-1) 20%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  color: var(--accent);
+}
+
 .gymModeCue {
   display: grid;
   gap: 6px;
@@ -819,6 +897,27 @@
 
 .gymModeCurrentCard > .primaryBtn {
   margin-top: 10px;
+}
+
+.gymModeSummaryCard {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--glass-border));
+  background: color-mix(in srgb, var(--accent-glow) 72%, var(--glass-1) 28%);
+}
+
+.gymModeSummaryCard strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.gymModeSummaryCard span {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .gymModeExerciseStrip {
@@ -1756,8 +1855,14 @@
   }
 
   .gymModeProgress,
-  .gymModeStatGrid {
+  .gymModeStatGrid,
+  .gymModeRestCard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gymModeRestMeter,
+  .gymModeRestCard .ghostBtn {
+    grid-column: 1 / -1;
   }
 
   .gymModeControls {

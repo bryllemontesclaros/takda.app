@@ -12,27 +12,37 @@ Buhay is an all-in-one life tracker built for Filipinos. It brings three focused
 
 Takda finance:
 
-- Home
+- Today
 - Calendar
-- Savings
-- Accounts
-- History
+- Money
+  - Accounts
+  - History
+  - Insights
+- Plan
+  - Savings
+  - Bills
+  - Budget
 - Receipts
-- Breakdown
-- Budget
-- Bills
 - Settings
 
 Lakas fitness:
 
-- Overview
-- Workouts
-- Meals
-- Activity
-- Habits
-- Body
-- Goals
-- Reminders
+- Today
+- Train
+  - Beginner-friendly gym session mode
+  - Routines and workout logging
+  - Exercise sets, reps, weight, duration, rest, notes, form cues, and embedded proper-form videos
+- Log
+  - Activity
+  - Habits
+  - Calendar signals
+- Nutrition
+  - Photo meal logs
+  - Calories and macros
+- Progress
+  - Body
+  - Goals
+  - Records and charts
 - Settings
 
 Tala mind and life admin:
@@ -43,6 +53,7 @@ Tala mind and life admin:
 - Tasks
 - Goals
 - Calendar
+  - Selectable days with inline check-in, journal, mood, task, and goal details
 - Insights
 - Settings
 
@@ -52,9 +63,11 @@ Tala mind and life admin:
 - First-run onboarding for preferred currency, opening account balances, recurring bills, and optional bill pay-from accounts.
 - Mobile-first all-in-one app shell with separate Takda, Lakas, and Tala spaces.
 - Desktop sidebar and mobile bottom navigation with per-space tabs and More sheets.
+- Grouped Takda pages keep finance tools easier to reach: Money groups Accounts, History, and Insights; Plan groups Savings, Bills, and Budget.
+- Grouped Lakas pages keep fitness focused: Train, Log, Nutrition, Progress, and Settings.
 - Liquid-glass inspired UI, light/dark theme, privacy mode, and responsive desktop/mobile layouts.
 - Firestore-backed real-time sync for signed-in users.
-- Installable PWA with service worker caching.
+- Installable PWA with service worker caching for static assets and an app-shell fallback for navigation launches.
 - JSON backup/restore, CSV export, printable monthly finance reports, and account/data deletion controls.
 - Settings for account security, profile, email, password, notifications, legal links, feedback, support, currency, exchange-rate context, data tools, and storage summary.
 
@@ -96,7 +109,7 @@ Tala mind and life admin:
 - Mood tracker with mood, energy, stress, sleep quality, triggers, notes, and trends.
 - Tasks with due dates, priorities, notes, open/done status, and overdue visibility.
 - Life goals with area, target date, progress percentage, notes, and direct progress updates.
-- Calendar view with dots for check-ins, journal entries, mood logs, task due dates, and goal target dates.
+- Calendar view with dots for check-ins, journal entries, mood logs, task due dates, and goal target dates, plus selected-day details under the calendar.
 - Insights for journal streaks, mood averages, energy trends, task completion, top tags, and common triggers.
 - Tala settings for reminder time, weekly review day, prompt style, journal privacy default, mood insight visibility, export, and Tala-only data deletion.
 - Clear disclaimer behavior: Tala is for tracking/reflection, not diagnosis or medical/mental-health advice.
@@ -171,6 +184,7 @@ firebase deploy --only firestore:rules,storage
 1. Open the deployed URL in Chrome on Android or Safari on iOS.
 2. Android: tap the browser menu, then Add to Home Screen.
 3. iOS: tap Share, then Add to Home Screen.
+4. Buhay caches the app shell and static assets for installed-app launches, while Firebase/Auth/API requests stay network-only for safety.
 
 ## Firestore Structure
 

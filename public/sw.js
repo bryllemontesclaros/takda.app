@@ -1,5 +1,6 @@
-const CACHE = 'buhay-v1'
-const ASSETS = ['/manifest.json', '/buhay-icon.svg', '/favicon.svg']
+const CACHE = 'buhay-v2'
+const APP_SHELL = '/'
+const ASSETS = [APP_SHELL, '/manifest.json', '/buhay-icon.svg', '/favicon.svg']
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)))
@@ -16,17 +17,30 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url)
 
-  // Never cache: Firebase, Google auth, API calls, HTML pages
+  // Never cache Firebase, Google auth, API calls, or non-GET writes.
   if (
     url.hostname.includes('firebase') ||
     url.hostname.includes('google') ||
     url.hostname.includes('googleapis') ||
     url.hostname.includes('gstatic') ||
     url.hostname.includes('firebaseapp') ||
-    e.request.method !== 'GET' ||
-    e.request.headers.get('accept')?.includes('text/html')
+    e.request.method !== 'GET'
   ) {
     return // Let browser handle normally
+  }
+
+  // Network-first for app navigations, fallback to the cached shell for PWA launches/offline refreshes.
+  if (e.request.mode === 'navigate' || e.request.headers.get('accept')?.includes('text/html')) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone()
+          caches.open(CACHE).then(c => c.put(APP_SHELL, clone))
+          return res
+        })
+        .catch(() => caches.match(e.request).then(cached => cached || caches.match(APP_SHELL)))
+    )
+    return
   }
 
   // Cache-first for static assets (JS, CSS, fonts)

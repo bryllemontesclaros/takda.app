@@ -850,10 +850,23 @@ export default function AppShell({ user }) {
   const headerExpLabel = activeSpace === 'takda' ? HEADER_EXP_LABELS[page] || '' : ''
   const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
   const activeSpaceProgress = gamification?.spaces?.[activeSpace] || gamification
-  const activeStatusLabel = activeSpace === 'takda' ? headerExpLabel : `${activeSpaceConfig.label} progress`
+  const selectedFinanceTool = page === 'money'
+    ? MONEY_TOOLS.find(tool => tool.id === financeToolSelections.money)
+    : page === 'plan'
+      ? PLAN_TOOLS.find(tool => tool.id === financeToolSelections.plan)
+      : null
+  const activeStatusLabel = activeSpace === 'takda'
+    ? selectedFinanceTool
+      ? `${headerExpLabel}: ${selectedFinanceTool.label}`
+      : headerExpLabel
+    : `${activeSpaceConfig.label} progress`
   const pageGamification = activeSpace === 'takda' && page !== 'settings' ? activeSpaceProgress : gamification
   const isCalendarPage = activeSpace === 'takda' && page === 'calendar'
-  const pageBoundaryKey = activeSpace === 'takda' ? page : activeSpace
+  const pageBoundaryKey = activeSpace === 'takda'
+    ? `${page}:${selectedFinanceTool?.id || 'main'}`
+    : activeSpace === 'lakas'
+      ? `lakas:${lakasPage}`
+      : `tala:${talaPage}`
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
 
   const financeBottomNav = [
@@ -1142,6 +1155,7 @@ export default function AppShell({ user }) {
               className={`${styles.spaceButton} ${activeSpace === space.id ? styles.spaceButtonActive : ''}`}
               onClick={() => openSpace(space.id)}
               aria-pressed={activeSpace === space.id}
+              aria-label={`Open ${space.label} ${space.meta} space`}
             >
               <span className={styles.spaceIcon}>{NAV_ICONS[space.iconKey]}</span>
               <span className={styles.spaceCopy}>
@@ -1170,6 +1184,7 @@ export default function AppShell({ user }) {
                   navigateToFinancePage(n.id)
                 }}
                 aria-current={activeSpace === 'lakas' ? lakasPage === n.id ? 'page' : undefined : activeSpace === 'tala' ? talaPage === n.id ? 'page' : undefined : page === n.id ? 'page' : undefined}
+                aria-label={`Open ${n.label}`}
               >
                 <span className={styles.icon} aria-hidden="true">{NAV_ICONS[n.iconKey]}</span> {n.label}
               </button>
@@ -1205,6 +1220,7 @@ export default function AppShell({ user }) {
                   className={`${styles.mobileSpaceButton} ${activeSpace === space.id ? styles.mobileSpaceButtonActive : ''}`}
                   onClick={() => openSpace(space.id)}
                   aria-pressed={activeSpace === space.id}
+                  aria-label={`Open ${space.label} ${space.meta} space`}
                 >
                   {space.label}
                 </button>
@@ -1477,6 +1493,7 @@ export default function AppShell({ user }) {
                     setMobileNavMenuOpen(false)
                   }}
                   aria-current={n.space === 'lakas' ? lakasPage === n.id ? 'page' : undefined : n.space === 'tala' ? talaPage === n.id ? 'page' : undefined : page === n.id ? 'page' : undefined}
+                  aria-label={`Open ${n.label}`}
                 >
                   <span className={styles.mobileNavLinkIcon}>{NAV_ICONS[n.iconKey]}</span>
                   <span className={styles.mobileNavLinkCopy}>
@@ -1498,6 +1515,7 @@ export default function AppShell({ user }) {
             className={`${styles.bottomNavItem} ${isBottomNavItemActive(n) ? styles.active : ''}`}
             onClick={() => handleBottomNavSelect(n)}
             aria-current={isBottomNavItemActive(n) ? 'page' : undefined}
+            aria-label={`Open ${n.label}`}
           >
             <span className={styles.bottomNavIcon}>{NAV_ICONS[n.iconKey]}</span>
             <span className={styles.bottomNavLabel}>{n.label}</span>

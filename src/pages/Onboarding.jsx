@@ -543,6 +543,23 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <div className={styles.stepSub}>
                 Buhay has three focused spaces: Takda for money, Lakas for fitness, and Tala for mind and life admin. You can start simple and add real data later.
               </div>
+              <div className={styles.setupScopeGrid} aria-label="Setup requirements">
+                <div className={styles.setupScopeCard}>
+                  <span>Required now</span>
+                  <strong>Currency</strong>
+                  <p>Buhay only needs your default money format to begin.</p>
+                </div>
+                <div className={styles.setupScopeCard}>
+                  <span>Optional now</span>
+                  <strong>Accounts, bills, Lakas, Tala</strong>
+                  <p>Add baseline finance data and simple space preferences if you want.</p>
+                </div>
+                <div className={styles.setupScopeCard}>
+                  <span>Never faked</span>
+                  <strong>History and progress</strong>
+                  <p>No fake workouts, meals, moods, journals, or transactions are created.</p>
+                </div>
+              </div>
               <div className={styles.spaceGrid}>
                 {SPACE_OPTIONS.slice(0, 3).map(option => (
                   <div key={option.id} className={`${styles.spaceCard} ${styles[`spaceCard${option.tone[0].toUpperCase()}${option.tone.slice(1)}`]}`}>

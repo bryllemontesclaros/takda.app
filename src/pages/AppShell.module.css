@@ -1184,44 +1184,75 @@
   }
   .topBar {
     min-height: auto;
-    margin: 10px 12px 0;
-    padding: 10px 12px;
+    margin: 8px 12px 0;
+    padding: 8px;
     border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
     border-radius: 24px;
     box-shadow: var(--glass-shadow-soft);
     flex-shrink: 0;
+    gap: 8px;
+    justify-content: space-between;
   }
   .topBarLeft {
     display: flex;
     align-items: center;
-    gap: 10px;
+    flex: 1;
+    gap: 0;
     min-width: 0;
     margin-right: auto;
   }
-  .topBarLogo { display: block; }
+  .topBarLeft > div:first-child {
+    display: none;
+  }
+  .topBarLogo { display: none; }
   .topBarMeta { display: none; }
   .mobileSpaceSwitch {
-    display: inline-flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: center;
-    gap: 2px;
+    width: 100%;
+    max-width: 222px;
+    gap: 3px;
     padding: 3px;
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
     background: color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
   }
-  .topBarRight { gap: 6px; flex-wrap: nowrap; }
+  .mobileSpaceButton {
+    min-width: 0;
+    min-height: 34px;
+    padding: 7px 8px;
+    font-size: 11px;
+    text-align: center;
+  }
+  .topBarRight {
+    flex-shrink: 0;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
   .topBarStatus {
     gap: 0;
-    padding: 4px;
-    max-width: calc(100vw - 120px);
+    min-height: 36px;
+    padding: 3px;
+    max-width: 48px;
   }
   .topBarStatusMain {
     display: none;
   }
   .topBarStatusBadge {
-    min-width: 44px;
+    min-width: 40px;
     min-height: 28px;
-    font-size: 11px;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+  .themeBtn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 7px;
+  }
+  .themeBtn svg {
+    width: 17px;
+    height: 17px;
   }
   .levelToastWrap {
     top: calc(70px + env(safe-area-inset-top));

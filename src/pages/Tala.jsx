@@ -157,6 +157,13 @@ function createDateMap(rows = [], dateField = 'date') {
   }, {})
 }
 
+function formatMonthLabel(monthKey = '') {
+  const [year, month] = String(monthKey || today().slice(0, 7)).split('-').map(Number)
+  const date = new Date(year || new Date().getFullYear(), (month || 1) - 1, 1)
+  if (Number.isNaN(date.getTime())) return monthKey
+  return date.toLocaleDateString('en-PH', { month: 'long', year: 'numeric' })
+}
+
 function splitTags(value = '') {
   return String(value || '')
     .split(',')
@@ -268,6 +275,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   const [savingSettings, setSavingSettings] = useState(false)
   const [deletingTalaData, setDeletingTalaData] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
+  const [selectedTalaDate, setSelectedTalaDate] = useState(today())
   const settingsKey = JSON.stringify(profile?.talaSettings || {})
 
   const checkins = sortNewest(normalizeRows(data.talaCheckins))
@@ -356,6 +364,14 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       }
     })
   }, [calendarMonth, checkins, goals, journal, moods, tasks])
+  const selectedDayData = useMemo(() => ({
+    checkins: checkins.filter(row => row.date === selectedTalaDate),
+    journal: journal.filter(row => row.date === selectedTalaDate),
+    moods: moods.filter(row => row.date === selectedTalaDate),
+    tasks: tasks.filter(row => row.dueDate === selectedTalaDate),
+    goals: goals.filter(row => row.targetDate === selectedTalaDate),
+  }), [checkins, goals, journal, moods, selectedTalaDate, tasks])
+  const selectedDayTotal = Object.values(selectedDayData).reduce((sum, rows) => sum + rows.length, 0)
 
   const currentTab = activeTab || 'today'
   const tabCopy = TALA_TAB_COPY[currentTab] || TALA_TAB_COPY.today
@@ -645,6 +661,11 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
 
   function updateSettings(field, value) {
     setSettingsForm(current => ({ ...current, [field]: value }))
+  }
+
+  function selectCalendarDay(day) {
+    if (!day?.key || day.empty) return
+    setSelectedTalaDate(day.key)
   }
 
   return (
@@ -1043,14 +1064,22 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
           </div>
           <div className={tStyles.monthControls}>
             <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, -1))}>Prev</button>
-            <strong>{calendarMonth}</strong>
+            <strong>{formatMonthLabel(calendarMonth)}</strong>
             <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, 1))}>Next</button>
           </div>
         </div>
         <div className={tStyles.calendarGrid}>
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((label, index) => <div key={`${label}-${index}`} className={tStyles.calendarHead}>{label}</div>)}
           {calendarData.map(day => (
-            <div key={day.key} className={`${tStyles.calendarDay} ${day.empty ? tStyles.calendarEmpty : ''} ${day.key === today() ? tStyles.calendarToday : ''}`}>
+            <button
+              key={day.key}
+              type="button"
+              className={`${tStyles.calendarDay} ${day.empty ? tStyles.calendarEmpty : ''} ${day.key === today() ? tStyles.calendarToday : ''} ${day.key === selectedTalaDate ? tStyles.calendarSelected : ''}`}
+              onClick={() => selectCalendarDay(day)}
+              disabled={day.empty}
+              aria-pressed={!day.empty && day.key === selectedTalaDate}
+              aria-label={day.empty ? 'Empty calendar slot' : `${formatDisplayDate(day.key)}. ${day.checkins.length} check-ins, ${day.journal.length} journal entries, ${day.moods.length} mood logs, ${day.tasks.length} tasks, ${day.goals.length} goals.`}
+            >
               {!day.empty && (
                 <>
                   <strong>{day.day}</strong>
@@ -1063,7 +1092,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
                   </div>
                 </>
               )}
-            </div>
+            </button>
           ))}
         </div>
         <div className={tStyles.legendRow}>
@@ -1072,6 +1101,53 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
           <span><i className={tStyles.dotMood} /> Mood</span>
           <span><i className={tStyles.dotTask} /> Task</span>
           <span><i className={tStyles.dotGoal} /> Goal</span>
+        </div>
+        <div className={tStyles.selectedDayPanel}>
+          <div className={tStyles.selectedDayHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Selected day</div>
+              <h3>{formatDisplayDate(selectedTalaDate)}</h3>
+              <p className={tStyles.sectionHint}>
+                {selectedDayTotal ? `${selectedDayTotal} Tala signal${selectedDayTotal === 1 ? '' : 's'} saved for this day.` : 'No Tala signals saved for this day yet.'}
+              </p>
+            </div>
+            <button type="button" className={tStyles.ghostBtn} onClick={() => {
+              setSelectedTalaDate(today())
+              setCalendarMonth(today().slice(0, 7))
+            }}>
+              Today
+            </button>
+          </div>
+          <div className={tStyles.selectedDayGrid}>
+            <div className={tStyles.selectedDayMetric}><span>Check-ins</span><strong>{selectedDayData.checkins.length}</strong></div>
+            <div className={tStyles.selectedDayMetric}><span>Journal</span><strong>{selectedDayData.journal.length}</strong></div>
+            <div className={tStyles.selectedDayMetric}><span>Mood</span><strong>{selectedDayData.moods.length}</strong></div>
+            <div className={tStyles.selectedDayMetric}><span>Tasks</span><strong>{selectedDayData.tasks.length}</strong></div>
+            <div className={tStyles.selectedDayMetric}><span>Goals</span><strong>{selectedDayData.goals.length}</strong></div>
+          </div>
+          <div className={tStyles.selectedDayList}>
+            {selectedDayTotal ? (
+              <>
+                {selectedDayData.checkins.map(row => (
+                  <div key={`checkin-${row._id}`} className={tStyles.selectedDayItem}><span>Check-in</span><strong>{privacyMode ? 'Private' : row.mood}</strong><small>{privacyMode ? 'Details hidden.' : row.priority || row.reflection || 'Saved daily check-in'}</small></div>
+                ))}
+                {selectedDayData.journal.map(row => (
+                  <div key={`journal-${row._id}`} className={tStyles.selectedDayItem}><span>Journal</span><strong>{privacyMode && row.private ? 'Private entry' : row.title}</strong><small>{privacyMode && row.private ? 'Details hidden.' : normalizeRows(row.tags).join(' · ') || 'Journal entry'}</small></div>
+                ))}
+                {selectedDayData.moods.map(row => (
+                  <div key={`mood-${row._id}`} className={tStyles.selectedDayItem}><span>Mood</span><strong>{privacyMode ? 'Private' : row.mood}</strong><small>{privacyMode ? 'Details hidden.' : `Energy ${row.energy || '-'} · Stress ${row.stress || '-'}`}</small></div>
+                ))}
+                {selectedDayData.tasks.map(row => (
+                  <div key={`task-${row._id}`} className={tStyles.selectedDayItem}><span>Task</span><strong>{row.title}</strong><small>{row.done ? 'Done' : `${row.priority} priority`}</small></div>
+                ))}
+                {selectedDayData.goals.map(row => (
+                  <div key={`goal-${row._id}`} className={tStyles.selectedDayItem}><span>Goal</span><strong>{row.name}</strong><small>{row.area} · {formatNumber(row.progress)}%</small></div>
+                ))}
+              </>
+            ) : (
+              <div className={tStyles.empty}>Use Today, Journal, Mood, Tasks, or Goals to add something for this date.</div>
+            )}
+          </div>
         </div>
       </section>
       )}

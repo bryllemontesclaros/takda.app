@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import ReceiptScanner from '../components/ReceiptScanner'
-import { fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
+import { fsAddTransaction, fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
 import { confirmDeleteApp } from '../lib/appFeedback'
-import { getTransactionCategories } from '../lib/transactionOptions'
+import { getTransactionCategories, getTransactionSubcategories } from '../lib/transactionOptions'
 import {
   CURRENCIES,
   displayValue,
@@ -157,10 +157,13 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   const [range, setRange] = useState('all')
   const [currencyFilter, setCurrencyFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [draftSaveMode, setDraftSaveMode] = useState('receipt')
+  const [draftAccountId, setDraftAccountId] = useState('')
 
   const receipts = useMemo(() => (
     [...(Array.isArray(data.receipts) ? data.receipts : [])].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
   ), [data.receipts])
+  const accounts = Array.isArray(data.accounts) ? data.accounts : []
   const currentMonthKey = getMonthKey(new Date())
   const currentYear = new Date().getFullYear()
 
@@ -409,6 +412,8 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
       fileName: 'receipt.jpg',
     })
     setScannerOpen(false)
+    setDraftSaveMode('receipt')
+    setDraftAccountId('')
     setMessage({ text: 'Review the extracted receipt details, then save when everything looks right.', ok: true })
   }
 
@@ -438,8 +443,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     setSaving(true)
     setMessage({ text: '', ok: true })
 
+    let saved = null
     try {
-      const saved = await fsSaveReceipt(user.uid, {
+      saved = await fsSaveReceipt(user.uid, {
         merchant: draft.merchant,
         total,
         date: draft.date,
@@ -465,10 +471,43 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
         lineItems: draft.lineItems,
       })
 
+      if (draftSaveMode === 'receipt-expense') {
+        const subcategories = getTransactionSubcategories('expense', draft.category || 'Other')
+        await fsAddTransaction(user.uid, 'expenses', {
+          amount: total,
+          date: draft.date,
+          desc: draft.merchant,
+          cat: draft.category || 'Other',
+          subcat: subcategories[0] || 'Receipt',
+          accountId: draftAccountId,
+          accountBalanceLinked: Boolean(draftAccountId),
+          source: 'receipt-expense',
+          receiptId: saved._id,
+          receiptMerchant: draft.merchant,
+          receiptCurrency: draft.currency,
+          notes: [draft.notes, draft.reference ? `Receipt ref: ${draft.reference}` : ''].filter(Boolean).join(' | '),
+        }, accounts)
+      }
+
       setDraft(null)
       setSelectedId(saved._id)
-      setMessage({ text: 'Receipt saved to your box.', ok: true })
+      setDraftSaveMode('receipt')
+      setDraftAccountId('')
+      setMessage({
+        text: draftSaveMode === 'receipt-expense'
+          ? `Receipt saved and expense added to History${draftAccountId ? ' with account balance movement.' : ' without account balance movement.'}`
+          : 'Receipt saved to your box.',
+        ok: true,
+      })
     } catch {
+      if (saved?._id) {
+        setDraft(null)
+        setSelectedId(saved._id)
+        setDraftSaveMode('receipt')
+        setDraftAccountId('')
+        setMessage({ text: 'Receipt saved, but the expense could not be added. You can add it from History if needed.', ok: false })
+        return
+      }
       setMessage({ text: 'Could not save this receipt. Check Firebase Storage and try again.', ok: false })
     } finally {
       setSaving(false)
@@ -848,6 +887,48 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                   <textarea value={draft.notes} onChange={event => updateDraft('notes', event.target.value)} placeholder="Optional note about this receipt" />
                 </label>
               </div>
+              <div className={receiptStyles.saveModeCard}>
+                <div>
+                  <div className={receiptStyles.saveModeTitle}>Save behavior</div>
+                  <p className={receiptStyles.saveModeHint}>
+                    Receipt only keeps this in the box. Receipt + expense also adds it to History and can update an account balance.
+                  </p>
+                </div>
+                <div className={receiptStyles.saveModeOptions} role="group" aria-label="Choose receipt save behavior">
+                  <button
+                    type="button"
+                    className={`${receiptStyles.saveModeButton} ${draftSaveMode === 'receipt' ? receiptStyles.saveModeButtonActive : ''}`}
+                    onClick={() => {
+                      setDraftSaveMode('receipt')
+                      setDraftAccountId('')
+                    }}
+                    aria-pressed={draftSaveMode === 'receipt'}
+                  >
+                    Receipt only
+                  </button>
+                  <button
+                    type="button"
+                    className={`${receiptStyles.saveModeButton} ${draftSaveMode === 'receipt-expense' ? receiptStyles.saveModeButtonActive : ''}`}
+                    onClick={() => setDraftSaveMode('receipt-expense')}
+                    aria-pressed={draftSaveMode === 'receipt-expense'}
+                  >
+                    Receipt + expense
+                  </button>
+                </div>
+                {draftSaveMode === 'receipt-expense' && (
+                  <label className={`${receiptStyles.formField} ${receiptStyles.saveModeAccount}`}>
+                    <span>Expense account</span>
+                    <select value={draftAccountId} onChange={event => setDraftAccountId(event.target.value)}>
+                      <option value="">No account movement</option>
+                      {accounts.map(account => (
+                        <option key={account._id} value={account._id}>
+                          {account.name || 'Account'}{account.type ? ` - ${account.type}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+              </div>
               {draft.rawText && (
                 <div className={receiptStyles.rawTextBox}>
                   <div className={receiptStyles.rawTextLabel}>OCR text preview</div>
@@ -879,7 +960,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                   onClick={handleSaveDraft}
                   disabled={saving || !draft.merchant || !draft.total || !draft.date}
                 >
-                  {saving ? 'Saving...' : 'Save receipt'}
+                  {saving ? 'Saving...' : draftSaveMode === 'receipt-expense' ? 'Save receipt + expense' : 'Save receipt'}
                 </button>
               </div>
             </div>

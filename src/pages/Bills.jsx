@@ -206,6 +206,9 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
     setHandledTargetAt(billPaymentTarget.at)
   }, [billPaymentTarget?.at, billPaymentTarget?.billId, data?.bills, handledTargetAt])
 
+  const paymentPeriod = paymentBill ? getBillPeriodInfo(paymentBill) : null
+  const paymentAccountName = paymentForm.accountId ? accountNameById.get(paymentForm.accountId) || 'Selected account' : ''
+
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -389,6 +392,25 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
             <p style={{ color: 'var(--text3)', marginTop: 0 }}>
               This creates a real expense for {paymentBill.name}. If an account is selected, its balance updates too.
             </p>
+            <div
+              style={{
+                display: 'grid',
+                gap: 8,
+                margin: '0 0 16px',
+                padding: 14,
+                border: '1px solid color-mix(in srgb, var(--accent) 20%, var(--glass-border))',
+                borderRadius: 18,
+                background: 'linear-gradient(180deg, color-mix(in srgb, var(--accent-glow) 72%, var(--glass-1) 28%), color-mix(in srgb, var(--surface2) 94%, transparent 6%))',
+                boxShadow: 'inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 38%, transparent)',
+              }}
+            >
+              <div style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 850, letterSpacing: 0.8, textTransform: 'uppercase' }}>This payment will</div>
+              <div style={{ display: 'grid', gap: 6, color: 'var(--text2)', fontSize: 13, lineHeight: 1.35 }}>
+                <span>Create an expense in History</span>
+                <span>Mark this bill paid for {formatDisplayDate(paymentPeriod?.dueDate)}</span>
+                <span>{paymentAccountName ? `Subtract from ${paymentAccountName}` : 'No account balance movement'}</span>
+              </div>
+            </div>
             <div className={styles.formGroup}>
               <label>Amount ({s})</label>
               <input
@@ -405,7 +427,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
                 value={paymentForm.date}
                 onChange={event => setPaymentForm(current => ({ ...current, date: event.target.value }))}
               />
-              <div className={styles.helper}>Due for this period: {formatDisplayDate(getBillPeriodInfo(paymentBill).dueDate)}</div>
+              <div className={styles.helper}>Due for this period: {formatDisplayDate(paymentPeriod?.dueDate)}</div>
             </div>
             <div className={styles.formGroup}>
               <label>Pay from account</label>

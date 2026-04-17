@@ -632,6 +632,8 @@
 }
 
 .calendarDay {
+  appearance: none;
+  width: 100%;
   display: flex;
   min-height: 58px;
   flex-direction: column;
@@ -640,6 +642,16 @@
   border-radius: 16px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 46%, transparent);
   background: color-mix(in srgb, var(--glass-1) 68%, var(--surface2) 32%);
+  color: var(--text);
+  cursor: pointer;
+  font-family: var(--font-body);
+  text-align: left;
+  transition: border-color 0.16s ease, background 0.16s ease, transform 0.16s ease;
+}
+
+.calendarDay:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--glass-border));
 }
 
 .calendarDay strong {
@@ -649,6 +661,7 @@
 
 .calendarEmpty {
   opacity: 0.28;
+  cursor: default;
 }
 
 .calendarToday {
@@ -656,6 +669,16 @@
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 48%),
     color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+}
+
+.calendarSelected {
+  border-color: color-mix(in srgb, var(--accent) 68%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 24%, transparent), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 14%, var(--glass-1)), color-mix(in srgb, var(--surface2) 88%, transparent 12%));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 38%, transparent),
+    0 14px 28px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .calendarDots,
@@ -708,6 +731,93 @@
   font-size: 12px;
 }
 
+.selectedDayPanel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 74%, var(--surface2) 26%);
+}
+
+.selectedDayHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.selectedDayHeader h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.selectedDayGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.selectedDayMetric {
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 70%, var(--surface2) 30%);
+}
+
+.selectedDayMetric span,
+.selectedDayItem span {
+  display: block;
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.selectedDayMetric strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.selectedDayList {
+  display: grid;
+  gap: 8px;
+}
+
+.selectedDayItem {
+  padding: 11px 12px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 50%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 66%, var(--surface2) 34%);
+}
+
+.selectedDayItem strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.selectedDayItem small {
+  display: block;
+  margin-top: 4px;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .tagCloud {
   position: relative;
   z-index: 1;
@@ -758,6 +868,18 @@
 
   .hero {
     padding: 18px;
+  }
+
+  .selectedDayHeader {
+    flex-direction: column;
+  }
+
+  .selectedDayHeader .ghostBtn {
+    width: 100%;
+  }
+
+  .selectedDayGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .heroCard {

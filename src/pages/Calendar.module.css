@@ -18,7 +18,7 @@
 
 .calendarCard {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   min-height: 0;
   margin-bottom: 0;
   padding: 1rem;
@@ -78,6 +78,29 @@
 }
 .navBtn { background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); color: var(--text2); border-radius: 999px; padding: 0; cursor: pointer; font-size: 15px; min-width: 34px; min-height: 34px; flex-shrink: 0; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
 .navBtn:hover { border-color: color-mix(in srgb, var(--accent) 24%, var(--glass-border)); color: var(--text); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 42%, var(--surface2) 58%), color-mix(in srgb, var(--surface) 92%, transparent 8%)); transform: translateY(-1px); }
+
+.calendarTrustStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -2px 0 10px;
+}
+
+.calendarTrustStrip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 54%, var(--surface2) 46%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 34%, transparent);
+}
 
 /* ADD BUTTONS */
 .addBtns { display: flex; gap: 6px; }
@@ -614,6 +637,14 @@
   .calHeader {
     margin-bottom: 0.75rem;
   }
+  .calendarTrustStrip {
+    margin-bottom: 8px;
+  }
+  .calendarTrustStrip span {
+    min-height: 24px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
   .monthJumpWrap {
     min-height: 34px;
   }
@@ -702,12 +733,29 @@
     min-height: 0;
     padding: 10px;
     border-radius: 16px;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto;
     align-content: start;
   }
   .calHeader {
     margin-bottom: 8px;
     gap: 8px;
+  }
+  .calendarTrustStrip {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: -1px -2px 8px;
+    padding: 0 2px 2px;
+    scrollbar-width: none;
+  }
+  .calendarTrustStrip::-webkit-scrollbar {
+    display: none;
+  }
+  .calendarTrustStrip span {
+    white-space: nowrap;
+    min-height: 24px;
+    padding: 4px 8px;
+    font-size: 8px;
+    letter-spacing: 0.06em;
   }
   .nav {
     justify-content: space-between;

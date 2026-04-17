@@ -56,6 +56,30 @@
 }
 @media (max-width: 400px) { .dropdown { width: calc(100vw - 24px); right: 12px; } }
 
+@media (max-width: 768px) {
+  .bell {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 7px;
+    font-size: 16px;
+  }
+
+  .badge {
+    top: -1px;
+    right: -1px;
+    min-width: 15px;
+    padding: 1px 4px;
+    font-size: 8px;
+  }
+
+  .dropdown {
+    top: 74px;
+    right: 12px;
+    width: calc(100vw - 24px);
+    max-width: 336px;
+  }
+}
+
 .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border)); }
 .headerTitle { font-size: 13px; font-weight: 700; color: var(--text); }
 .clearAll { background: none; border: none; color: var(--text3); font-size: 12px; cursor: pointer; font-family: var(--font-body); }

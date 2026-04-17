@@ -663,6 +663,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
         </div>
 
+        <div className={calStyles.calendarTrustStrip} aria-label="Calendar balance guide">
+          <span>Closing balance: projected end-of-day</span>
+          <span>Pinned days override forecast</span>
+          <span>{privacyMode ? 'Privacy hides amounts, keeps signals' : 'Privacy can hide amounts anytime'}</span>
+        </div>
+
         <div className={calStyles.monthBoard}>
           <div className={calStyles.dayNames}>
             {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => <div key={index} className={calStyles.dayName}>{day}</div>)}
