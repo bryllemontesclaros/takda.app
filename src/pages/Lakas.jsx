@@ -125,8 +125,8 @@ const GYM_SESSION_TYPES = [
 const EXERCISE_VIDEO_GUIDES = [
   {
     match: ['bodyweight squat', 'goblet squat', 'squat', 'leg press'],
-    id: 'BR4tlEE_A98',
-    title: 'Squat form tutorial',
+    id: '6AAqJyUDTnk',
+    title: 'Goblet squat form guide',
   },
   {
     match: ['incline push-up', 'push-up', 'push up'],
@@ -145,23 +145,23 @@ const EXERCISE_VIDEO_GUIDES = [
   },
   {
     match: ['bench press', 'incline dumbbell press'],
-    id: '0yE4f3NnNmU',
-    title: 'Bench press form',
+    id: 'Qjxrp9Hwv_Q',
+    title: 'Bench press exercise guide',
   },
   {
     match: ['shoulder press'],
-    id: 'XlNDoMMxVz0',
-    title: 'Shoulder press form',
+    id: '0JfYxMRsUCQ',
+    title: 'Dumbbell shoulder press guide',
   },
   {
     match: ['triceps pushdown'],
-    id: 'GqK6WrZEyEk',
-    title: 'Triceps pushdown form',
+    id: '_w-HpW70nSQ',
+    title: 'Cable triceps pushdown guide',
   },
   {
     match: ['lat pulldown'],
-    id: 'hN_HcqQWM_o',
-    title: 'Lat pulldown form',
+    id: 'lueEJGjTuPQ',
+    title: 'Lat pulldown exercise guide',
   },
   {
     match: ['romanian deadlift', 'deadlift', 'glute bridge'],
@@ -170,23 +170,18 @@ const EXERCISE_VIDEO_GUIDES = [
   },
   {
     match: ['dumbbell curl', 'curl', 'bicep'],
-    id: 'AynDk444XZ4',
-    title: 'Dumbbell curl form',
+    id: '3OZ2MT_5r3Q',
+    title: 'Dumbbell curl exercise guide',
   },
   {
     match: ['calf raise'],
-    id: '9mrtIKD324U',
-    title: 'Calf raise form',
+    id: 'wxwY7GXxL4k',
+    title: 'Standing calf raise guide',
   },
   {
     match: ['brisk walk', 'walk', 'treadmill'],
     id: '09LAB5ErEfo',
     title: 'Walking form',
-  },
-  {
-    match: ['cool down stretch', 'stretch'],
-    id: '8GL73mrsvJ8',
-    title: 'Cool down stretch',
   },
 ]
 
@@ -590,8 +585,8 @@ function buildTemplateNotes(template = {}) {
 
 function getExerciseVideoGuide(exerciseName = '') {
   const normalized = String(exerciseName || '').trim().toLowerCase()
-  if (!normalized) return EXERCISE_VIDEO_GUIDES[0]
-  return EXERCISE_VIDEO_GUIDES.find(video => video.match.some(term => normalized.includes(term))) || EXERCISE_VIDEO_GUIDES[0]
+  if (!normalized) return null
+  return EXERCISE_VIDEO_GUIDES.find(video => video.match.some(term => normalized.includes(term))) || null
 }
 
 function getYouTubeEmbedUrl(videoId = '') {
@@ -2766,18 +2761,28 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             </div>
 
             <div className={lStyles.gymModeBody}>
-              <div className={lStyles.gymModeVideoCard}>
-                <iframe
-                  title={`${activeGymExercise.name || 'Exercise'} form video`}
-                  src={getYouTubeEmbedUrl(activeGymVideo.id)}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-                <div className={lStyles.gymModeVideoMeta}>
-                  <span>{activeGymVideo.title}</span>
-                  <a href={`https://www.youtube.com/watch?v=${activeGymVideo.id}`} target="_blank" rel="noreferrer">Open on YouTube</a>
+              {activeGymVideo ? (
+                <div className={lStyles.gymModeVideoCard}>
+                  <iframe
+                    title={`${activeGymExercise.name || 'Exercise'} form video`}
+                    src={getYouTubeEmbedUrl(activeGymVideo.id)}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                  <div className={lStyles.gymModeVideoMeta}>
+                    <span>{activeGymVideo.title}</span>
+                    <a href={`https://www.youtube.com/watch?v=${activeGymVideo.id}`} target="_blank" rel="noreferrer">Open form video</a>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className={`${lStyles.gymModeVideoCard} ${lStyles.gymModeVideoEmpty}`}>
+                  <div>
+                    <span>No curated form video yet</span>
+                    <strong>{activeGymExercise.name || 'Exercise'}</strong>
+                    <p>Lakas only embeds direct proper-form references here. For this move, use the written cues until a vetted guide is added.</p>
+                  </div>
+                </div>
+              )}
 
               <div className={lStyles.gymModeCurrentCard}>
                 <div className={lStyles.gymModeCurrentTop}>
