@@ -363,7 +363,7 @@ function getEmailActionSettings() {
 export default function AppShell({ user }) {
   const [activeSpace, setActiveSpace] = useState('takda')
   const [page, setPage] = useState('dashboard')
-  const [lakasPage, setLakasPage] = useState('overview')
+  const [lakasPage, setLakasPage] = useState('today')
   const [talaPage, setTalaPage] = useState('today')
   const [data, setData] = useState({
     income: [],
@@ -694,14 +694,11 @@ export default function AppShell({ user }) {
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Account' },
   ]
   const lakasNav = [
-    { id: 'overview', label: 'Overview', iconKey: 'overview', section: 'Core' },
-    { id: 'workouts', label: 'Workouts', iconKey: 'workouts', section: null },
-    { id: 'meals', label: 'Meals', iconKey: 'meals', section: null },
-    { id: 'activity', label: 'Activity', iconKey: 'activity', section: null },
-    { id: 'habits', label: 'Habits', iconKey: 'habits', section: null },
-    { id: 'body', label: 'Body', iconKey: 'body', section: 'Progress' },
-    { id: 'goals', label: 'Goals', iconKey: 'goals', section: null },
-    { id: 'reminders', label: 'Reminders', iconKey: 'reminders', section: null },
+    { id: 'today', label: 'Today', iconKey: 'today', section: 'Core' },
+    { id: 'train', label: 'Train', iconKey: 'workouts', section: null },
+    { id: 'log', label: 'Log', iconKey: 'history', section: null },
+    { id: 'nutrition', label: 'Nutrition', iconKey: 'meals', section: 'Fuel' },
+    { id: 'progress', label: 'Progress', iconKey: 'body', section: 'Review' },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const talaNav = [
@@ -733,10 +730,10 @@ export default function AppShell({ user }) {
     { id: 'accounts', label: 'Accounts', iconKey: 'accounts', space: 'takda' },
   ]
   const lakasBottomNav = [
-    { id: 'overview', label: 'Home', iconKey: 'overview', space: 'lakas' },
-    { id: 'workouts', label: 'Workout', iconKey: 'workouts', space: 'lakas' },
-    { id: 'meals', label: 'Meals', iconKey: 'meals', space: 'lakas' },
-    { id: 'activity', label: 'Activity', iconKey: 'activity', space: 'lakas' },
+    { id: 'today', label: 'Today', iconKey: 'today', space: 'lakas' },
+    { id: 'train', label: 'Train', iconKey: 'workouts', space: 'lakas' },
+    { id: 'log', label: 'Log', iconKey: 'history', space: 'lakas' },
+    { id: 'nutrition', label: 'Food', iconKey: 'meals', space: 'lakas' },
   ]
   const talaBottomNav = [
     { id: 'today', label: 'Today', iconKey: 'today', space: 'tala' },
@@ -753,7 +750,7 @@ export default function AppShell({ user }) {
       space: 'takda',
     }))
   const lakasMoreNav = lakasNav
-    .filter(item => ['habits', 'body', 'goals', 'reminders', 'settings'].includes(item.id))
+    .filter(item => ['progress', 'settings'].includes(item.id))
     .map(item => ({ ...item, space: 'lakas' }))
   const talaMoreNav = talaNav
     .filter(item => ['goals', 'calendar', 'insights', 'settings'].includes(item.id))
@@ -761,7 +758,7 @@ export default function AppShell({ user }) {
   const mobileMoreNav = activeSpace === 'lakas' ? lakasMoreNav : activeSpace === 'tala' ? talaMoreNav : financeMoreNav
   const mobileMoreTitle = activeSpace === 'lakas' ? 'More Lakas' : activeSpace === 'tala' ? 'More Tala' : 'More'
   const mobileMoreMeta = activeSpace === 'lakas'
-    ? 'Open habits, body progress, goals, reminders, and settings.'
+    ? 'Open progress, goals, body tracking, reminders, and settings.'
     : activeSpace === 'tala'
       ? 'Open goals, calendar, insights, and settings.'
       : 'Open the rest of your tools here.'
@@ -796,7 +793,7 @@ export default function AppShell({ user }) {
   function handleBottomNavSelect(item) {
     if (item.space === 'lakas') {
       openSpace('lakas')
-      setLakasPage(item.id || 'overview')
+      setLakasPage(item.id || 'today')
       return
     }
 
@@ -946,7 +943,7 @@ export default function AppShell({ user }) {
   function handleCommandNavigate(nextPage) {
     if (nextPage === 'lakas') {
       openSpace('lakas')
-      setLakasPage('overview')
+      setLakasPage('today')
       return
     }
 
