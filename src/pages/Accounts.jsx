@@ -125,7 +125,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
     : 0
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
-  const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
+  const privacyHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
   const accountCountLabel = `${accounts.length} account${accounts.length !== 1 ? 's' : ''} right now`
 
   useEffect(() => {

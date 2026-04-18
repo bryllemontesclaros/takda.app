@@ -355,27 +355,6 @@ const APP_SPACES = [
   { id: 'tala', label: 'Tala', meta: 'Mind', iconKey: 'tala' },
 ]
 
-const SPACE_ASSURANCE = {
-  takda: {
-    eyebrow: 'Takda today',
-    title: 'Money moves only when you choose it.',
-    desc: 'Accounts hold balances, bills become expenses when paid, and receipts wait for review before reaching History. Takda tracks your records; it is not financial advice.',
-    steps: ['Review first', 'Pay once', 'Track only'],
-  },
-  lakas: {
-    eyebrow: 'Lakas today',
-    title: 'Train safely, then save the real session.',
-    desc: 'Start light, check form, track sets and rest, then log what actually happened. Lakas supports tracking and habits; it is not medical advice.',
-    steps: ['Start light', 'Watch form', 'Track only'],
-  },
-  tala: {
-    eyebrow: 'Tala today',
-    title: 'One honest signal is enough.',
-    desc: 'Check in, write privately, clear one task, or review patterns without turning reflection into pressure. Tala is for tracking, not diagnosis or therapy.',
-    steps: ['Check in', 'Write privately', 'Track only'],
-  },
-}
-
 const FINANCE_PAGE_ALIASES = {
   accounts: { page: 'money', tool: 'accounts' },
   history: { page: 'money', tool: 'history' },
@@ -889,8 +868,6 @@ export default function AppShell({ user }) {
       ? `lakas:${lakasPage}`
       : `tala:${talaPage}`
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
-  const activeSpaceAssurance = SPACE_ASSURANCE[activeSpace] || SPACE_ASSURANCE.takda
-  const showSpaceAssurance = !isCalendarPage && !(activeSpace === 'takda' && page === 'settings')
 
   const financeBottomNav = [
     { id: 'dashboard', label: 'Today', iconKey: 'home', space: 'takda' },
@@ -1359,23 +1336,6 @@ export default function AppShell({ user }) {
               </div>
             </div>
           </div>
-        )}
-        {showSpaceAssurance && (
-          <section className={styles.spaceAssurance} aria-label={`${activeSpaceConfig.label} guidance`}>
-            <div className={styles.spaceAssuranceCopy}>
-              <div className={styles.spaceAssuranceEyebrow}>{activeSpaceAssurance.eyebrow}</div>
-              <div className={styles.spaceAssuranceTitle}>{activeSpaceAssurance.title}</div>
-              <div className={styles.spaceAssuranceDesc}>{activeSpaceAssurance.desc}</div>
-            </div>
-            <div className={styles.spaceAssuranceSteps} aria-label="Recommended path">
-              {activeSpaceAssurance.steps.map((stepText, index) => (
-                <span key={stepText}>
-                  <b>{index + 1}</b>
-                  {stepText}
-                </span>
-              ))}
-            </div>
-          </section>
         )}
         <main id="app-main" className={`${styles.main} ${isCalendarPage ? styles.mainCalendar : ''}`}>
           <PageErrorBoundary key={pageBoundaryKey} onRecover={() => navigateToFinancePage('dashboard')}>

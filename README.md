@@ -157,10 +157,21 @@ VITE_FIREBASE_STORAGE_BUCKET=your_project.firebasestorage.app
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+VITE_FIREBASE_APPCHECK_SITE_KEY=your_recaptcha_v3_site_key
 VITE_OCR_SPACE_API_KEY=your_ocr_space_api_key
 ```
 
 `VITE_OCR_SPACE_API_KEY` is optional, but recommended for receipt, wallet screenshot, and image-assisted import features.
+
+`VITE_FIREBASE_APPCHECK_SITE_KEY` is optional for local development. For production, create a Firebase App Check reCAPTCHA v3 provider for the deployed domain, add the site key to Vercel, and keep token auto-refresh enabled in the app.
+
+## Production Privacy Hardening
+
+- Firestore records are stored under `users/{uid}` and rules require `request.auth.uid == userId`, so signed-in users cannot read or write another user's app records.
+- Storage files for receipts, meal photos, and body progress photos are stored under `users/{uid}/...` and require the same authenticated owner.
+- Privacy mode is screen privacy only: it masks sensitive values in the UI when someone is looking at the device. Firebase Auth, Firestore rules, Storage rules, and App Check are the real access controls.
+- Enable Firebase App Check for the production Vercel domain and set `VITE_FIREBASE_APPCHECK_SITE_KEY` before enforcing App Check in Firebase.
+- After every Firebase rules change, deploy rules and verify with two test accounts that User A cannot read User B's `accounts`, `expenses`, `income`, `receipts`, `lakasBodyLogs`, or `talaJournal`.
 
 ## Deploy Firestore And Storage Rules
 
@@ -178,6 +189,7 @@ firebase deploy --only firestore:rules,storage
 4. Add `VITE_OCR_SPACE_API_KEY` if OCR import should be enabled in production.
 5. Deploy.
 6. Add the Vercel domain to Firebase Console > Authentication > Authorized domains.
+7. Add the Vercel domain to Firebase App Check, set `VITE_FIREBASE_APPCHECK_SITE_KEY`, confirm App Check requests are healthy, then enforce App Check for Firestore and Storage.
 
 ## PWA Install
 
@@ -205,7 +217,7 @@ Manual QA:
 - Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal photo log, body log, activity, habits, goals, and settings/logout.
 - Tala: today check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
 - PWA: install on iOS Safari and Android Chrome, launch from home screen, navigate while offline, then reconnect and verify Firebase-backed data refreshes.
-- Firebase/Vercel: Firestore rules, Storage rules, Firebase Auth authorized domains, Vercel environment variables, OCR key if enabled, and service worker cache version.
+- Firebase/Vercel: Firestore rules, Storage rules, App Check site key/enforcement status, Firebase Auth authorized domains, Vercel environment variables, OCR key if enabled, and service worker cache version.
 
 ## Firestore Structure
 
@@ -244,7 +256,7 @@ users/{uid}/
   receipts/{receiptId}/original.{ext}
   receipts/{receiptId}/cleaned.{ext}
   lakas/meals/{mealId}/photo.{ext}
-  lakas/body/{bodyLogId}/photo.{ext}
+  lakas/bodyLogs/{bodyLogId}/photo.{ext}
 ```
 
 ## Notes

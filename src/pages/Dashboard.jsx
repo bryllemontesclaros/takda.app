@@ -224,7 +224,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
   }, [data.income, data.expenses])
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
-  const privacyHint = privacyMode ? 'Tap to show balances' : 'Tap to hide balances'
+  const privacyHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
   const accountCountLabel = `${data.accounts.length} account${data.accounts.length !== 1 ? 's' : ''} right now`
   const weeklyRemaining = Math.max(0, (gamification?.weeklyTarget || 0) - (gamification?.weeklyCheckins || 0))
   const checkedInToday = Boolean(gamification?.checkedInToday)

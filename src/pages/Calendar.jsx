@@ -553,7 +553,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     : isCurrentMonthView
       ? 'Today closing balance'
       : 'Month-end closing balance'
-  const balanceRailHint = privacyMode ? 'Tap to show balances.' : 'Tap to hide balances.'
+  const balanceRailHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
   const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
@@ -666,7 +666,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         <div className={calStyles.calendarTrustStrip} aria-label="Calendar balance guide">
           <span>Closing balance: projected end-of-day</span>
           <span>Pinned days override forecast</span>
-          <span>{privacyMode ? 'Privacy hides amounts, keeps signals' : 'Forecasts are estimates, not bank statements'}</span>
+          <span>{privacyMode ? 'Screen privacy hides amounts only' : 'Firestore rules protect account access'}</span>
         </div>
 
         <div className={calStyles.monthBoard}>
