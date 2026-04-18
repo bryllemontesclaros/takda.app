@@ -609,6 +609,7 @@ export async function fsCompleteOnboarding(uid, payload = {}) {
   seedCollection('expenses', Array.isArray(payload.expenses) ? payload.expenses : [])
   seedCollection('accounts', Array.isArray(payload.accounts) ? payload.accounts : [])
   seedCollection('bills', Array.isArray(payload.bills) ? payload.bills : [])
+  seedCollection('lakasBodyLogs', Array.isArray(payload.lakasBodyLogs) ? payload.lakasBodyLogs : [])
 
   await batch.commit()
 }

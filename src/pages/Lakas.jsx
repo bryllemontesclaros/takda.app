@@ -331,6 +331,15 @@ const DEFAULT_LAKAS_SETTINGS = {
     experienceLevel: 'Beginner',
     progressionMode: 'Guided',
   },
+  baseline: {
+    goal: 'Build consistency',
+    workoutPlace: 'Gym',
+    equipment: 'Full gym',
+    limitations: '',
+    currentWeight: 0,
+    height: 0,
+    bodyBaselineCreated: false,
+  },
   meals: {
     calorieGoal: 2200,
     proteinGoal: 120,
@@ -502,6 +511,7 @@ function getLakasSettings(profile = {}) {
     targets: { ...DEFAULT_LAKAS_SETTINGS.targets, ...(settings.targets || {}) },
     workoutDefaults: { ...DEFAULT_LAKAS_SETTINGS.workoutDefaults, ...(settings.workoutDefaults || {}) },
     training: { ...DEFAULT_LAKAS_SETTINGS.training, ...(settings.training || {}) },
+    baseline: { ...DEFAULT_LAKAS_SETTINGS.baseline, ...(settings.baseline || {}) },
     meals: { ...DEFAULT_LAKAS_SETTINGS.meals, ...(settings.meals || {}) },
     reminders: { ...DEFAULT_LAKAS_SETTINGS.reminders, ...(settings.reminders || {}) },
     display: { ...DEFAULT_LAKAS_SETTINGS.display, ...(settings.display || {}) },
@@ -533,6 +543,15 @@ function sanitizeLakasSettings(settings = {}) {
     training: {
       experienceLevel: ['Beginner', 'Returning', 'Intermediate'].includes(next.training.experienceLevel) ? next.training.experienceLevel : 'Beginner',
       progressionMode: ['Guided', 'Flexible'].includes(next.training.progressionMode) ? next.training.progressionMode : 'Guided',
+    },
+    baseline: {
+      goal: next.baseline.goal || 'Build consistency',
+      workoutPlace: ['Gym', 'Home', 'Both'].includes(next.baseline.workoutPlace) ? next.baseline.workoutPlace : 'Gym',
+      equipment: ['None', 'Dumbbells', 'Machines', 'Full gym'].includes(next.baseline.equipment) ? next.baseline.equipment : 'Full gym',
+      limitations: String(next.baseline.limitations || '').trim(),
+      currentWeight: numberOrZero(next.baseline.currentWeight),
+      height: numberOrZero(next.baseline.height),
+      bodyBaselineCreated: Boolean(next.baseline.bodyBaselineCreated),
     },
     meals: {
       calorieGoal: numberOrZero(next.meals.calorieGoal),
@@ -2626,6 +2645,37 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 <option>Guided</option>
                 <option>Flexible</option>
               </select>
+            </label>
+            <label>
+              <span>Primary goal</span>
+              <select value={settingsForm.baseline.goal} onChange={event => updateSettingGroup('baseline', 'goal', event.target.value)}>
+                <option>Build consistency</option>
+                <option>Lose weight</option>
+                <option>Gain muscle</option>
+                <option>Get stronger</option>
+                <option>Move more</option>
+              </select>
+            </label>
+            <label>
+              <span>Workout place</span>
+              <select value={settingsForm.baseline.workoutPlace} onChange={event => updateSettingGroup('baseline', 'workoutPlace', event.target.value)}>
+                <option>Gym</option>
+                <option>Home</option>
+                <option>Both</option>
+              </select>
+            </label>
+            <label>
+              <span>Equipment</span>
+              <select value={settingsForm.baseline.equipment} onChange={event => updateSettingGroup('baseline', 'equipment', event.target.value)}>
+                <option>None</option>
+                <option>Dumbbells</option>
+                <option>Machines</option>
+                <option>Full gym</option>
+              </select>
+            </label>
+            <label className={lStyles.full}>
+              <span>Limitations or injury notes</span>
+              <input value={settingsForm.baseline.limitations} placeholder="Optional. Keep starter plans gentler." onChange={event => updateSettingGroup('baseline', 'limitations', event.target.value)} />
             </label>
             <label>
               <span>Sets</span>

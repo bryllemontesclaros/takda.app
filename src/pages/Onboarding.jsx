@@ -58,6 +58,10 @@ const SPACE_OPTIONS = [
 const ACCOUNT_TYPES = ['Cash', 'Bank', 'E-wallet', 'Credit Card', 'Investment', 'Other']
 const ACCOUNT_COLORS = ['#22d87a', '#6eb5ff', '#ffb347', '#ff5370', '#b48eff', '#2dd4bf', '#f472b6', '#9090b0']
 const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
+const LAKAS_GOAL_OPTIONS = ['Build consistency', 'Lose weight', 'Gain muscle', 'Get stronger', 'Move more']
+const LAKAS_EXPERIENCE_OPTIONS = ['Beginner', 'Returning', 'Intermediate']
+const LAKAS_PLACE_OPTIONS = ['Gym', 'Home', 'Both']
+const LAKAS_EQUIPMENT_OPTIONS = ['None', 'Dumbbells', 'Machines', 'Full gym']
 const STARTING_SPACE_COPY = {
   takda: {
     sideTitle: 'Start with money clarity, then add the rest.',
@@ -83,7 +87,7 @@ const STARTING_SPACE_COPY = {
     sideTitle: 'Start with Lakas. Keep money setup optional.',
     sideSub: 'Set the basics, turn on a simple fitness rhythm, and skip Takda details unless you want finance ready too.',
     liveSub: 'Lakas quick start saves preferences only. Finance fields are optional support for later Takda use.',
-    tip: 'Lakas does not create fake workouts or body logs. It only prepares targets so your first real session has a safer starting point.',
+    tip: 'Lakas does not create fake workouts. If you add weight or height, it saves one private body baseline so progress has a real starting point.',
     welcomeTitle: name => `Welcome to Buhay, ${name}. Start with Lakas.`,
     welcomeSub: 'You can begin with fitness without filling out every finance field. Currency is required, then Lakas can start with a light weekly target.',
     recommendedTitle: 'Currency now. Turn on Lakas quick start. Skip finance if it slows you down.',
@@ -97,7 +101,7 @@ const STARTING_SPACE_COPY = {
     billsSub: 'Recurring bills help finance forecasts, but they are not needed to start Lakas.',
     billsHint: 'Skip this if your priority is workouts. You can add bills later from Takda.',
     quickStartTitle: 'Turn on your Lakas quick start',
-    quickStartSub: 'Set a simple weekly target. This saves preferences only, not fake workouts or body history.',
+    quickStartSub: 'Set a simple weekly target and optional private body baseline. No fake workouts are created.',
   },
   tala: {
     sideTitle: 'Start with Tala. Keep setup gentle.',
@@ -180,8 +184,14 @@ function createQuickStarts() {
     lakas: {
       enabled: false,
       goal: 'Build consistency',
+      experienceLevel: 'Beginner',
+      workoutPlace: 'Gym',
+      equipment: 'Full gym',
       workoutsPerWeek: '3',
       currentWeight: '',
+      height: '',
+      limitations: '',
+      reminderTime: '08:00',
     },
     tala: {
       enabled: false,
@@ -206,6 +216,26 @@ function hasAccountContent(row = {}) {
 
 function hasBillContent(row = {}) {
   return hasText(row.name) || hasValue(row.amount) || hasValue(row.due)
+}
+
+function calculateLakasBmi(weight, height) {
+  const numericWeight = Number(weight) || 0
+  const numericHeight = Number(height) || 0
+  if (!numericWeight || !numericHeight) return 0
+  const meters = numericHeight / 100
+  if (!meters) return 0
+  return Math.round((numericWeight / (meters * meters)) * 10) / 10
+}
+
+function getLakasBaseline(lakas = {}) {
+  const weight = hasValue(lakas.currentWeight) ? roundMoney(lakas.currentWeight) : 0
+  const height = hasValue(lakas.height) ? roundMoney(lakas.height) : 0
+  return {
+    weight,
+    height,
+    bmi: calculateLakasBmi(weight, height),
+    hasBodyBaseline: Boolean(weight || height),
+  }
 }
 
 function getMonthlyEquivalent(amount, freq = 'monthly') {
@@ -417,6 +447,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   const startingSpace = SPACE_OPTIONS.find(option => option.id === form.startingSpace) || SPACE_OPTIONS[0]
   const startingSpaceCopy = getStartingSpaceCopy(form.startingSpace)
   const quickStartCount = (form.quickStarts.lakas.enabled ? 1 : 0) + (form.quickStarts.tala.enabled ? 1 : 0)
+  const lakasBaseline = getLakasBaseline(form.quickStarts.lakas)
 
   function validateAccountsStep() {
     for (const row of form.accounts.filter(hasAccountContent)) {
@@ -450,9 +481,29 @@ export default function Onboarding({ user, onDone, notice = '' }) {
     return true
   }
 
+  function validateQuickStartStep() {
+    if (!form.quickStarts.lakas.enabled) return true
+
+    const workoutsPerWeek = Number(form.quickStarts.lakas.workoutsPerWeek)
+    if (Number.isNaN(workoutsPerWeek) || workoutsPerWeek < 0 || workoutsPerWeek > 14) {
+      notifyApp({ title: 'Check Lakas target', message: 'Workouts per week should be between 0 and 14.', tone: 'warning' })
+      return false
+    }
+    if (hasValue(form.quickStarts.lakas.currentWeight) && (Number.isNaN(Number(form.quickStarts.lakas.currentWeight)) || Number(form.quickStarts.lakas.currentWeight) < 0)) {
+      notifyApp({ title: 'Check body baseline', message: 'Weight should be blank or a valid number.', tone: 'warning' })
+      return false
+    }
+    if (hasValue(form.quickStarts.lakas.height) && (Number.isNaN(Number(form.quickStarts.lakas.height)) || Number(form.quickStarts.lakas.height) < 0)) {
+      notifyApp({ title: 'Check body baseline', message: 'Height should be blank or a valid number.', tone: 'warning' })
+      return false
+    }
+    return true
+  }
+
   function goNext() {
     if (step === 3 && !validateAccountsStep()) return
     if (step === 4 && !validateBillsStep()) return
+    if (step === 5 && !validateQuickStartStep()) return
     setStep(current => Math.min(current + 1, STEPS.length - 1))
   }
 
@@ -471,9 +522,24 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   }
 
   async function handleFinish() {
-    if (!validateAccountsStep() || !validateBillsStep()) return
+    if (!validateAccountsStep() || !validateBillsStep() || !validateQuickStartStep()) return
     setSaving(true)
     try {
+      const lakasBodyLogs = form.quickStarts.lakas.enabled && lakasBaseline.hasBodyBaseline
+        ? [{
+            date: formatDate(new Date()),
+            weight: lakasBaseline.weight,
+            height: lakasBaseline.height,
+            bmi: lakasBaseline.bmi,
+            waist: 0,
+            chest: 0,
+            hips: 0,
+            arm: 0,
+            thigh: 0,
+            notes: 'Optional Lakas baseline from onboarding.',
+            source: 'onboarding-lakas-baseline',
+          }]
+        : []
       const profilePayload = {
         currency: form.currency,
         preferredSpace: form.startingSpace === 'explore' ? 'takda' : form.startingSpace,
@@ -482,9 +548,16 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           quickStarts: {
             lakas: {
               enabled: form.quickStarts.lakas.enabled,
-              goal: form.quickStarts.lakas.goal.trim() || null,
-              workoutsPerWeek: Number(form.quickStarts.lakas.workoutsPerWeek) || null,
-              currentWeight: hasValue(form.quickStarts.lakas.currentWeight) ? roundMoney(form.quickStarts.lakas.currentWeight) : null,
+              goal: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.goal.trim() || null : null,
+              experienceLevel: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.experienceLevel || 'Beginner' : null,
+              workoutPlace: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.workoutPlace || 'Gym' : null,
+              equipment: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.equipment || 'Full gym' : null,
+              workoutsPerWeek: form.quickStarts.lakas.enabled ? Number(form.quickStarts.lakas.workoutsPerWeek) || null : null,
+              currentWeight: form.quickStarts.lakas.enabled ? lakasBaseline.weight || null : null,
+              height: form.quickStarts.lakas.enabled ? lakasBaseline.height || null : null,
+              limitations: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.limitations.trim() || null : null,
+              reminderTime: form.quickStarts.lakas.enabled ? form.quickStarts.lakas.reminderTime || null : null,
+              bodyBaselineCreated: Boolean(lakasBodyLogs.length),
             },
             tala: {
               enabled: form.quickStarts.tala.enabled,
@@ -499,6 +572,24 @@ export default function Onboarding({ user, onDone, notice = '' }) {
         profilePayload.lakasSettings = {
           targets: {
             workoutsPerWeek: Number(form.quickStarts.lakas.workoutsPerWeek) || 3,
+          },
+          training: {
+            experienceLevel: form.quickStarts.lakas.experienceLevel || 'Beginner',
+            progressionMode: 'Guided',
+          },
+          reminders: {
+            workoutTime: form.quickStarts.lakas.reminderTime || '08:00',
+            weighInDay: 'Monday',
+            frequency: 'weekly',
+          },
+          baseline: {
+            goal: form.quickStarts.lakas.goal.trim() || 'Build consistency',
+            workoutPlace: form.quickStarts.lakas.workoutPlace || 'Gym',
+            equipment: form.quickStarts.lakas.equipment || 'Full gym',
+            limitations: form.quickStarts.lakas.limitations.trim(),
+            currentWeight: lakasBaseline.weight,
+            height: lakasBaseline.height,
+            bodyBaselineCreated: Boolean(lakasBodyLogs.length),
           },
         }
       }
@@ -516,6 +607,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
         expenses: seededExpenses,
         accounts: preparedAccounts,
         bills: preparedBills,
+        lakasBodyLogs,
       })
       setSaving(false)
       onDone()
@@ -979,21 +1071,56 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                       {form.quickStarts.lakas.enabled ? 'On' : 'Off'}
                     </button>
                   </div>
-                  <div className={styles.quickStartText}>Set a simple weekly target so Lakas opens with the right expectation.</div>
+                  <div className={styles.quickStartText}>Set beginner-safe defaults and optional private body data so Lakas starts useful without feeling invasive.</div>
                   <div className={styles.formGrid}>
                     <div className={styles.inputGroup}>
                       <label>Fitness goal</label>
-                      <input value={form.quickStarts.lakas.goal} onChange={event => updateQuickStart('lakas', 'goal', event.target.value)} placeholder="Build consistency" disabled={!form.quickStarts.lakas.enabled} />
+                      <select value={form.quickStarts.lakas.goal} onChange={event => updateQuickStart('lakas', 'goal', event.target.value)} disabled={!form.quickStarts.lakas.enabled}>
+                        {LAKAS_GOAL_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Experience</label>
+                      <select value={form.quickStarts.lakas.experienceLevel} onChange={event => updateQuickStart('lakas', 'experienceLevel', event.target.value)} disabled={!form.quickStarts.lakas.enabled}>
+                        {LAKAS_EXPERIENCE_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                      </select>
                     </div>
                     <div className={styles.inputGroup}>
                       <label>Workouts / week</label>
                       <input type="number" min="0" max="14" value={form.quickStarts.lakas.workoutsPerWeek} onChange={event => updateQuickStart('lakas', 'workoutsPerWeek', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
                     </div>
+                    <div className={styles.inputGroup}>
+                      <label>Reminder time</label>
+                      <input type="time" value={form.quickStarts.lakas.reminderTime} onChange={event => updateQuickStart('lakas', 'reminderTime', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Workout place</label>
+                      <select value={form.quickStarts.lakas.workoutPlace} onChange={event => updateQuickStart('lakas', 'workoutPlace', event.target.value)} disabled={!form.quickStarts.lakas.enabled}>
+                        {LAKAS_PLACE_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Equipment</label>
+                      <select value={form.quickStarts.lakas.equipment} onChange={event => updateQuickStart('lakas', 'equipment', event.target.value)} disabled={!form.quickStarts.lakas.enabled}>
+                        {LAKAS_EQUIPMENT_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                      </select>
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Current weight (optional)</label>
+                      <input type="number" min="0" inputMode="decimal" placeholder="kg" value={form.quickStarts.lakas.currentWeight} onChange={event => updateQuickStart('lakas', 'currentWeight', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
+                    </div>
+                    <div className={styles.inputGroup}>
+                      <label>Height (optional)</label>
+                      <input type="number" min="0" inputMode="decimal" placeholder="cm" value={form.quickStarts.lakas.height} onChange={event => updateQuickStart('lakas', 'height', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
+                    </div>
+                    <div className={`${styles.inputGroup} ${styles.full}`}>
+                      <label>Injuries or limitations (optional)</label>
+                      <input value={form.quickStarts.lakas.limitations} onChange={event => updateQuickStart('lakas', 'limitations', event.target.value)} placeholder="Bad knee, shoulder pain, none" disabled={!form.quickStarts.lakas.enabled} />
+                      <div className={styles.helper}>Lakas uses this only to keep starter guidance gentler. It is not medical advice.</div>
+                    </div>
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label>Current weight (optional)</label>
-                    <input type="number" min="0" placeholder="kg" value={form.quickStarts.lakas.currentWeight} onChange={event => updateQuickStart('lakas', 'currentWeight', event.target.value)} disabled={!form.quickStarts.lakas.enabled} />
-                    <div className={styles.helper}>Saved as a quick-start note only. It will not create a body log.</div>
+                  <div className={styles.stepHint}>
+                    Weight and height are optional. If added, Lakas saves one private body baseline for trend tracking; it never creates fake workouts.
                   </div>
                 </div>
 
@@ -1099,8 +1226,20 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                       <span>{form.quickStarts.lakas.enabled ? form.quickStarts.lakas.goal || 'Build consistency' : 'Add later'}</span>
                     </div>
                     <div className={styles.summaryRow}>
+                      <span>Experience</span>
+                      <span>{form.quickStarts.lakas.enabled ? form.quickStarts.lakas.experienceLevel || 'Beginner' : 'Add later'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
                       <span>Weekly target</span>
                       <span>{form.quickStarts.lakas.enabled ? `${form.quickStarts.lakas.workoutsPerWeek || 3} workouts` : 'Add later'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Training setup</span>
+                      <span>{form.quickStarts.lakas.enabled ? `${form.quickStarts.lakas.workoutPlace || 'Gym'} · ${form.quickStarts.lakas.equipment || 'Full gym'}` : 'Add later'}</span>
+                    </div>
+                    <div className={styles.summaryRow}>
+                      <span>Body baseline</span>
+                      <span>{form.quickStarts.lakas.enabled ? (lakasBaseline.hasBodyBaseline ? 'Private baseline saved' : 'Skipped') : 'Add later'}</span>
                     </div>
                   </div>
                 </div>
