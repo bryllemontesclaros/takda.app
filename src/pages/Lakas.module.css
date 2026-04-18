@@ -233,6 +233,119 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.beginnerCoachCard {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 24px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+  background:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 42%),
+    radial-gradient(circle at 86% 10%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 38%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
+}
+
+.beginnerCoachTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.beginnerCoachTop span,
+.beginnerCoachMetricGrid span {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.beginnerCoachTop strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.beginnerCoachTop p {
+  margin: 8px 0 0;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.beginnerCoachActions {
+  display: grid;
+  gap: 8px;
+}
+
+.beginnerCoachActions .primaryBtn,
+.beginnerCoachActions .ghostBtn {
+  width: 100%;
+  margin-top: 0;
+}
+
+.beginnerCoachMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.beginnerCoachMetricGrid div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 52%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 70%, var(--surface2) 30%);
+}
+
+.beginnerCoachMetricGrid strong {
+  display: block;
+  margin-top: 6px;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.beginnerCoachMetricGrid small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.beginnerCoachRules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.beginnerCoachRules span {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--glass-border));
+  background: color-mix(in srgb, var(--accent-glow) 56%, var(--glass-1) 44%);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 850;
+}
+
 .recordCard,
 .chartCard,
 .phaseCard,
@@ -654,6 +767,77 @@
   transition: width 0.22s ease;
 }
 
+.gymModePrepCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 13px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--amber) 34%, var(--glass-border));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--amber) 15%, transparent), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, var(--amber-dim) 62%, var(--glass-1) 38%), color-mix(in srgb, var(--surface2) 90%, transparent 10%));
+}
+
+.gymModePrepCardDone {
+  border-color: color-mix(in srgb, var(--accent) 36%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 13%, transparent), transparent 48%),
+    color-mix(in srgb, var(--accent-glow) 58%, var(--glass-1) 42%);
+}
+
+.gymModePrepCard span,
+.gymModeNextCard span {
+  display: block;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gymModePrepCard strong,
+.gymModeNextCard strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.gymModePrepCard small,
+.gymModeNextCard small {
+  display: block;
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.gymModePrepSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.gymModePrepSteps span {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  color: var(--text2);
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .gymModeBody {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
@@ -689,6 +873,18 @@
   color: var(--text3);
   font-size: 12px;
   font-weight: 800;
+}
+
+.gymModeVideoMeta span {
+  color: var(--text2);
+}
+
+.gymModeVideoMeta small {
+  flex: 1;
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .gymModeVideoMeta a {
@@ -879,6 +1075,18 @@
 
 .gymModeNotes {
   margin: 10px 0 0;
+}
+
+.gymModeNextCard {
+  display: grid;
+  gap: 2px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--blue) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
 }
 
 .gymModeControls {
@@ -1759,6 +1967,11 @@
     grid-template-columns: 1fr;
   }
 
+  .beginnerCoachTop,
+  .beginnerCoachMetricGrid {
+    grid-template-columns: 1fr;
+  }
+
   .sessionPicker {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1769,6 +1982,10 @@
   }
 
   .gymModeBody {
+    grid-template-columns: 1fr;
+  }
+
+  .gymModePrepCard {
     grid-template-columns: 1fr;
   }
 }
@@ -1850,6 +2067,14 @@
     grid-template-columns: 1fr;
   }
 
+  .gymModeVideoMeta {
+    flex-wrap: wrap;
+  }
+
+  .gymModeVideoMeta a {
+    width: 100%;
+  }
+
   .gymModeClose {
     width: 100%;
   }
@@ -1858,6 +2083,10 @@
   .gymModeStatGrid,
   .gymModeRestCard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gymModePrepSteps {
+    grid-template-columns: 1fr;
   }
 
   .gymModeRestMeter,

@@ -400,6 +400,130 @@
   letter-spacing: -0.05em;
 }
 
+.calmPlanCard {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 15px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+  background:
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--accent) 13%, transparent), transparent 44%),
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--purple) 10%, transparent), transparent 38%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
+}
+
+.calmPlanTop span,
+.calmPlanSteps span,
+.calmBoundaryGrid span {
+  display: block;
+}
+
+.calmPlanTop span {
+  color: color-mix(in srgb, var(--accent) 82%, var(--purple) 18%);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.calmPlanTop strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.calmPlanTop p {
+  margin: 8px 0 0;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.calmPlanSteps,
+.calmBoundaryGrid,
+.journalPromptRow {
+  display: grid;
+  gap: 8px;
+}
+
+.calmPlanSteps {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calmPlanSteps span,
+.calmBoundaryGrid span {
+  min-height: 34px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 54%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.calmBoundaryGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.calmBoundaryGrid span {
+  color: var(--text3);
+  background: color-mix(in srgb, var(--surface3) 54%, transparent);
+}
+
+.journalPromptRow {
+  position: relative;
+  z-index: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-bottom: 12px;
+}
+
+.journalPromptChip {
+  min-height: 76px;
+  padding: 11px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 74%, var(--surface2) 26%);
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  text-align: left;
+}
+
+.journalPromptChip strong,
+.journalPromptChip span {
+  display: block;
+}
+
+.journalPromptChip strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.journalPromptChip span {
+  margin-top: 6px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.journalPromptChip:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+  transform: translateY(-1px);
+}
+
 .routineList {
   position: relative;
   z-index: 1;
@@ -887,7 +1011,10 @@
   }
 
   .quickWins,
+  .calmPlanSteps,
+  .calmBoundaryGrid,
   .formGrid,
+  .journalPromptRow,
   .settingsActions {
     grid-template-columns: 1fr;
   }

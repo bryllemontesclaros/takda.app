@@ -186,6 +186,27 @@ firebase deploy --only firestore:rules,storage
 3. iOS: tap Share, then Add to Home Screen.
 4. Buhay caches the app shell and static assets for installed-app launches, while Firebase/Auth/API requests stay network-only for safety.
 
+## Release Checklist
+
+Run before pushing a production deploy:
+
+```bash
+npm install
+npm run build
+npm run preview
+```
+
+Manual QA:
+
+- Auth: sign up, log in, log out, remember-me, password reset, and email verification banner.
+- Onboarding: currency, opening balances, recurring bills, bill pay-from account, and optional Lakas/Tala starter paths.
+- Takda: dashboard, quick add, calendar selected-day detail, accounts, history, savings, bills, budget, breakdown, receipts, grocery mode, and Ask Takda confirmation.
+- Bills/receipts trust check: marking a bill paid should create only one expense when enabled; receipt-only saves should not move balances; receipt+expense saves should clearly show account impact.
+- Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal photo log, body log, activity, habits, goals, and settings/logout.
+- Tala: today check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
+- PWA: install on iOS Safari and Android Chrome, launch from home screen, navigate while offline, then reconnect and verify Firebase-backed data refreshes.
+- Firebase/Vercel: Firestore rules, Storage rules, Firebase Auth authorized domains, Vercel environment variables, OCR key if enabled, and service worker cache version.
+
 ## Firestore Structure
 
 ```text

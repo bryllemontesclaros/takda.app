@@ -11,6 +11,24 @@ const STRESS_OPTIONS = ['1', '2', '3', '4', '5']
 const PRIORITIES = ['Low', 'Medium', 'High']
 const LIFE_AREAS = ['Self', 'Family', 'Work', 'School', 'Health', 'Money', 'Faith', 'Creative', 'Custom']
 const WEEK_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const TALA_CALM_BOUNDARIES = ['Tracking, not diagnosis', 'Private by default', 'One small next step']
+const JOURNAL_PROMPTS = [
+  {
+    title: 'What felt heavy?',
+    tags: 'stress, reflection',
+    body: 'The thing that felt heavy today was...\n\nThe smallest next step I can take is...',
+  },
+  {
+    title: 'What went right?',
+    tags: 'gratitude, win',
+    body: 'Something that went right today was...\n\nI want to remember this because...',
+  },
+  {
+    title: 'What needs a first step?',
+    tags: 'decision, next step',
+    body: 'The thing I keep postponing is...\n\nA first step small enough for today is...',
+  },
+]
 
 const DEFAULT_TALA_SETTINGS = {
   reminderTime: '20:30',
@@ -169,6 +187,54 @@ function splitTags(value = '') {
     .split(',')
     .map(tag => tag.trim())
     .filter(Boolean)
+}
+
+function getTalaCalmPlan(insights = {}, journal = [], moods = []) {
+  const todaysJournal = journal.find(row => row.date === today())
+  const todaysMood = moods.find(row => row.date === today())
+
+  if (!insights.todaysCheckin) {
+    return {
+      kicker: 'Start here',
+      title: 'Do the 30-second check-in.',
+      body: 'Name your mood, choose one priority, and write one honest sentence before adding more tasks.',
+      steps: ['Mood', 'One priority', 'One sentence'],
+    }
+  }
+
+  if (!todaysJournal) {
+    return {
+      kicker: 'Gentle next step',
+      title: 'Put one thought somewhere safe.',
+      body: 'A short private journal entry is enough. No need to solve the whole day.',
+      steps: ['Pick a prompt', 'Write freely', 'Save private'],
+    }
+  }
+
+  if (insights.overdue?.length) {
+    return {
+      kicker: 'Reduce pressure',
+      title: 'Clear or shrink one stale task.',
+      body: `${insights.overdue[0].title || 'One overdue task'} can become done, delayed, or smaller. Choose the least stressful honest action.`,
+      steps: ['Choose one', 'Make it smaller', 'Mark progress'],
+    }
+  }
+
+  if (!todaysMood) {
+    return {
+      kicker: 'Pattern signal',
+      title: 'Log one mood trigger.',
+      body: 'If you noticed a pattern today, capture the trigger now while it is still fresh.',
+      steps: ['Mood', 'Trigger', 'Short note'],
+    }
+  }
+
+  return {
+    kicker: 'Enough for today',
+    title: 'You have a complete Tala loop.',
+    body: 'Check-in, journal, and mood are covered. Review gently or stop here without forcing more input.',
+    steps: ['Notice', 'Breathe', 'Close the loop'],
+  }
 }
 
 function getTalaSettings(profile = {}) {
@@ -384,6 +450,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   const showInsights = currentTab === 'insights'
   const showSettings = currentTab === 'settings'
   const avgMoodLabel = insights.avgMood ? `${formatNumber(insights.avgMood, 1)}/5` : 'No log'
+  const calmPlan = useMemo(() => getTalaCalmPlan(insights, journal, moods), [insights, journal, moods])
 
   const tabHeroCard = {
     today: {
@@ -668,6 +735,16 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     setSelectedTalaDate(day.key)
   }
 
+  function applyJournalPrompt(prompt) {
+    setJournalForm(current => ({
+      ...current,
+      title: current.title || prompt.title,
+      tags: current.tags || prompt.tags,
+      body: current.body || prompt.body,
+      private: true,
+    }))
+  }
+
   return (
     <div className={`${styles.page} ${tStyles.page}`}>
       <div className={tStyles.hero}>
@@ -765,6 +842,19 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               <p className={tStyles.sectionHint}>Tala keeps the day simple: current check-in, due tasks, and one soft prompt.</p>
             </div>
           </div>
+          <div className={tStyles.calmPlanCard}>
+            <div className={tStyles.calmPlanTop}>
+              <span>{calmPlan.kicker}</span>
+              <strong>{calmPlan.title}</strong>
+              <p>{calmPlan.body}</p>
+            </div>
+            <div className={tStyles.calmPlanSteps}>
+              {calmPlan.steps.map((step, index) => <span key={step}>{index + 1}. {step}</span>)}
+            </div>
+            <div className={tStyles.calmBoundaryGrid}>
+              {TALA_CALM_BOUNDARIES.map(boundary => <span key={boundary}>{boundary}</span>)}
+            </div>
+          </div>
           <div className={tStyles.focusCard}>
             <span>Prompt</span>
             <strong>{talaSettings.promptStyle === 'Direct' ? 'What are you avoiding that deserves a small first step?' : 'What would make today feel a little lighter?'}</strong>
@@ -793,6 +883,14 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               <h3>Write an entry</h3>
               <p className={tStyles.sectionHint}>Use tags like family, work, decision, gratitude, idea, or stress.</p>
             </div>
+          </div>
+          <div className={tStyles.journalPromptRow} aria-label="Journal prompt shortcuts">
+            {JOURNAL_PROMPTS.map(prompt => (
+              <button key={prompt.title} type="button" className={tStyles.journalPromptChip} onClick={() => applyJournalPrompt(prompt)}>
+                <strong>{prompt.title}</strong>
+                <span>{prompt.tags}</span>
+              </button>
+            ))}
           </div>
           <div className={tStyles.formGrid}>
             <label>

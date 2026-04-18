@@ -468,6 +468,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
         cleanedHeight: draft.cleanedHeight,
         fileName: draft.fileName,
         source: 'receipt',
+        saveMode: draftSaveMode,
+        expenseLinked: draftSaveMode === 'receipt-expense',
+        expenseAccountId: draftSaveMode === 'receipt-expense' ? draftAccountId : '',
         lineItems: draft.lineItems,
       })
 
@@ -533,6 +536,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   }
 
   const draftCurrencyOptions = CURRENCIES.map(currency => currency.code)
+  const draftAccountName = draftAccountId
+    ? accounts.find(account => account._id === draftAccountId)?.name || 'Selected account'
+    : ''
 
   return (
     <div className={`${styles.page} ${receiptStyles.receiptsPage}`}>
@@ -928,6 +934,22 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                     </select>
                   </label>
                 )}
+                <div className={receiptStyles.saveModeOutcome} role="status">
+                  <div className={receiptStyles.saveModeOutcomeTitle}>
+                    {draftSaveMode === 'receipt-expense' ? 'Receipt + expense selected' : 'Receipt only selected'}
+                  </div>
+                  <div className={receiptStyles.saveModeOutcomeList}>
+                    <span>Receipt saved in the box</span>
+                    <span>{draftSaveMode === 'receipt-expense' ? 'Expense added to History' : 'No History expense created'}</span>
+                    <span>
+                      {draftSaveMode === 'receipt-expense'
+                        ? draftAccountName
+                          ? `Balance updates in ${draftAccountName}`
+                          : 'No account balance movement'
+                        : 'No account balance movement'}
+                    </span>
+                  </div>
+                </div>
               </div>
               {draft.rawText && (
                 <div className={receiptStyles.rawTextBox}>
@@ -1009,6 +1031,10 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                       <span>{receipt.category || 'Other'}</span>
                       <span>Saved {formatSavedAt(receipt.createdAt)}</span>
                     </div>
+                    <div className={receiptStyles.receiptMetaRow}>
+                      <span>{receipt.expenseLinked ? 'History expense created' : 'Receipt only'}</span>
+                      <span>{receipt.expenseAccountId ? 'Account linked' : 'No account movement'}</span>
+                    </div>
                   </div>
                 </button>
               ))}
@@ -1078,6 +1104,14 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 <div className={receiptStyles.detailMetaItem}>
                   <span>Reference</span>
                   <strong>{selectedReceipt.reference || 'None'}</strong>
+                </div>
+                <div className={receiptStyles.detailMetaItem}>
+                  <span>Save behavior</span>
+                  <strong>{selectedReceipt.expenseLinked ? 'Receipt + expense' : 'Receipt only'}</strong>
+                </div>
+                <div className={receiptStyles.detailMetaItem}>
+                  <span>Account movement</span>
+                  <strong>{selectedReceipt.expenseAccountId ? 'Linked' : 'None'}</strong>
                 </div>
               </div>
 

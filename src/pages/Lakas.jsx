@@ -571,8 +571,19 @@ function getExerciseVideoGuide(exerciseName = '') {
   return EXERCISE_VIDEO_GUIDES.find(video => video.match.some(term => normalized.includes(term))) || null
 }
 
-function getYouTubeEmbedUrl(videoId = '') {
-  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0&modestbranding=1&playsinline=1`
+function getYouTubeEmbedUrl(videoId = '', options = {}) {
+  const params = new URLSearchParams({
+    rel: '0',
+    modestbranding: '1',
+    playsinline: '1',
+  })
+
+  if (options.autoplay) {
+    params.set('autoplay', '1')
+    params.set('mute', '1')
+  }
+
+  return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`
 }
 
 function getExerciseActiveSeconds(exercise = {}) {
@@ -825,6 +836,34 @@ function getPersonalRecords(workouts = [], activities = []) {
   return records
 }
 
+function getBeginnerProgression(workouts = []) {
+  const foundationWorkouts = sortOldest(workouts).filter(workout => {
+    const name = `${workout.title || ''} ${workout.routineName || ''}`.toLowerCase()
+    return name.includes('beginner foundation')
+  })
+  const completed = foundationWorkouts.length
+  const phaseIndex = completed < 4 ? 0 : completed < 8 ? 1 : 2
+  const nextTemplateName = completed % 2 === 0 ? 'Beginner Foundation A' : 'Beginner Foundation B'
+  const lastSession = foundationWorkouts[foundationWorkouts.length - 1]
+
+  return {
+    completed,
+    phase: BEGINNER_PHASES[phaseIndex],
+    progress: Math.min(100, Math.round((completed / 8) * 100)),
+    nextTemplateName,
+    weeklyTarget: completed < 8 ? 'Aim for 2 foundation sessions/week' : 'Keep 2-3 sessions/week',
+    lastSessionLabel: lastSession ? `${lastSession.title || 'Foundation'} on ${formatDisplayDate(lastSession.date)}` : 'No foundation session yet',
+    nextAction: completed === 0
+      ? 'Start Foundation A today. Keep every set easy enough that you could do 2-3 more reps.'
+      : `Next recommended: ${nextTemplateName}. Repeat the same load if form, sleep, or soreness felt off.`,
+    rules: [
+      'Add reps before adding weight.',
+      'Only add weight after two clean sessions.',
+      'If pain is sharp or form breaks, stop the set.',
+    ],
+  }
+}
+
 function getHabitScore(row = {}) {
   return HABIT_OPTIONS.reduce((score, option) => score + (row[option.key] ? 1 : 0), 0)
 }
@@ -876,12 +915,15 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [gymSessionMode, setGymSessionMode] = useState({
     open: false,
     sessionKey: 'beginner-a',
+    sessionLabel: 'Beginner',
+    templateName: 'Beginner Foundation A',
     exerciseIndex: 0,
     completed: {},
     completedSets: {},
     restUntil: null,
     restDuration: 0,
     startedAt: null,
+    warmupDone: false,
   })
   const [gymSessionNow, setGymSessionNow] = useState(Date.now())
   const savedLakasSettings = getLakasSettings(profile)
@@ -898,11 +940,16 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const selectedGymSession = GYM_SESSION_TYPES.find(session => session.key === selectedGymSessionKey) || GYM_SESSION_TYPES[0]
   const selectedGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === selectedGymSession.templateName) || BUILT_IN_ROUTINES[0]
   const selectedGymEstimate = selectedGymTemplate?.duration || estimateRoutineMinutes(selectedGymTemplate?.exercises)
-  const activeGymSession = GYM_SESSION_TYPES.find(session => session.key === gymSessionMode.sessionKey) || selectedGymSession
-  const activeGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === activeGymSession.templateName) || selectedGymTemplate
+  const activeGymSession = GYM_SESSION_TYPES.find(session => session.key === gymSessionMode.sessionKey) || {
+    ...selectedGymSession,
+    label: gymSessionMode.sessionLabel || selectedGymSession.label,
+    templateName: gymSessionMode.templateName || selectedGymTemplate.name,
+  }
+  const activeGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === (gymSessionMode.templateName || activeGymSession.templateName)) || selectedGymTemplate
   const activeGymExercises = normalizeRows(activeGymTemplate?.exercises)
   const activeGymExerciseIndex = Math.min(gymSessionMode.exerciseIndex, Math.max(0, activeGymExercises.length - 1))
   const activeGymExercise = activeGymExercises[activeGymExerciseIndex] || {}
+  const nextGymExercise = activeGymExercises[activeGymExerciseIndex + 1] || null
   const activeGymVideo = getExerciseVideoGuide(activeGymExercise.name)
   const activeGymGuide = getExerciseGuide(activeGymExercise.name)
   const activeGymSetCount = getExerciseSetCount(activeGymExercise)
@@ -914,6 +961,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     return count + (isComplete ? 1 : 0)
   }, 0)
   const activeGymPlanMinutes = activeGymTemplate?.duration || estimateRoutineMinutes(activeGymExercises)
+  const activeGymTotalSets = activeGymExercises.reduce((sum, exercise) => sum + getExerciseSetCount(exercise), 0)
+  const activeGymDoneSetCount = activeGymExercises.reduce((sum, exercise, index) => {
+    const completedForExercise = getCompletedSetCount(gymSessionMode.completedSets, index)
+    return sum + (gymSessionMode.completed?.[index] ? getExerciseSetCount(exercise) : completedForExercise)
+  }, 0)
   const activeGymElapsedSeconds = gymSessionMode.startedAt
     ? Math.max(0, Math.floor((gymSessionNow - gymSessionMode.startedAt) / 1000))
     : 0
@@ -924,6 +976,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     ? Math.round((activeGymCompletedCount / activeGymExercises.length) * 100)
     : 0
   const activeGymFinished = activeGymExercises.length > 0 && activeGymCompletedCount >= activeGymExercises.length
+  const beginnerProgression = useMemo(() => getBeginnerProgression(workouts), [workouts])
+  const beginnerNextTemplate = BUILT_IN_ROUTINES.find(template => template.name === beginnerProgression.nextTemplateName) || BUILT_IN_ROUTINES[0]
+  const beginnerNextSession = {
+    key: `beginner-${beginnerProgression.nextTemplateName.endsWith('B') ? 'b' : 'a'}-guided`,
+    label: 'Beginner path',
+    templateName: beginnerNextTemplate.name,
+    desc: 'Guided foundation progression.',
+  }
 
   useEffect(() => {
     setSettingsForm(getLakasSettings(profile))
@@ -1106,12 +1166,15 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     setGymSessionMode({
       open: true,
       sessionKey: session.key,
+      sessionLabel: session.label,
+      templateName: template.name,
       exerciseIndex: 0,
       completed: {},
       completedSets: {},
       restUntil: null,
       restDuration: 0,
       startedAt: Date.now(),
+      warmupDone: false,
     })
     notifyApp({ title: 'Gym session started', message: `${template.name || session.label} is open in session mode.`, tone: 'success' })
   }
@@ -1197,6 +1260,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
   function skipGymRest() {
     setGymSessionMode(current => ({ ...current, restUntil: null, restDuration: 0 }))
+  }
+
+  function markGymWarmupDone() {
+    setGymSessionMode(current => ({ ...current, warmupDone: true }))
+  }
+
+  function resetGymWarmup() {
+    setGymSessionMode(current => ({ ...current, warmupDone: false }))
   }
 
   function applyRoutineTemplate(template) {
@@ -1357,12 +1428,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     const actualMinutes = activeGymElapsedSeconds > 0
       ? Math.max(1, Math.round(activeGymElapsedSeconds / 60))
       : numberOrZero(workoutForm.duration)
-    const totalSets = activeGymExercises.reduce((sum, exercise) => sum + getExerciseSetCount(exercise), 0)
-    const doneSets = activeGymExercises.reduce((sum, exercise, index) => {
-      const completedForExercise = getCompletedSetCount(gymSessionMode.completedSets, index)
-      return sum + (gymSessionMode.completed?.[index] ? getExerciseSetCount(exercise) : completedForExercise)
-    }, 0)
-    const completionNote = `Session completion: ${activeGymCompletedCount}/${activeGymExercises.length} exercises and ${doneSets}/${totalSets} sets completed.`
+    const completionNote = `Session completion: ${activeGymCompletedCount}/${activeGymExercises.length} exercises and ${activeGymDoneSetCount}/${activeGymTotalSets} sets completed. Warm-up ${gymSessionMode.warmupDone ? 'completed' : 'not confirmed'}.`
     const saved = await handleAddWorkout({
       duration: String(actualMinutes),
       notes: [workoutForm.notes, completionNote].filter(Boolean).join(' '),
@@ -2021,7 +2087,44 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Beginner path</div>
               <h3>Start light, progress safely</h3>
-              <p className={lStyles.sectionHint}>For users with no workout history, Lakas now starts with foundation routines and slow progression rules.</p>
+              <p className={lStyles.sectionHint}>For users with no workout history, Lakas recommends the next safe foundation session instead of pushing random hard workouts.</p>
+            </div>
+          </div>
+          <div className={lStyles.beginnerCoachCard}>
+            <div className={lStyles.beginnerCoachTop}>
+              <div>
+                <span>Guided progression</span>
+                <strong>{beginnerProgression.phase.title}</strong>
+                <p>{beginnerProgression.nextAction}</p>
+              </div>
+              <div className={lStyles.beginnerCoachActions}>
+                <button type="button" className={lStyles.primaryBtn} onClick={() => openGymSessionMode(beginnerNextTemplate, beginnerNextSession)}>
+                  Start recommended
+                </button>
+                <button type="button" className={lStyles.ghostBtn} onClick={() => editGymSessionAsRoutine(beginnerNextTemplate)}>
+                  Edit first
+                </button>
+              </div>
+            </div>
+            <div className={lStyles.beginnerCoachMetricGrid}>
+              <div>
+                <span>Foundation sessions</span>
+                <strong>{privacyMode ? '...' : `${beginnerProgression.completed}/8`}</strong>
+                <small>{beginnerProgression.weeklyTarget}</small>
+              </div>
+              <div>
+                <span>Next routine</span>
+                <strong>{beginnerNextTemplate.name.replace('Beginner ', '')}</strong>
+                <small>{beginnerNextTemplate.duration || estimateRoutineMinutes(beginnerNextTemplate.exercises)} min guided plan</small>
+              </div>
+              <div>
+                <span>Last foundation</span>
+                <strong>{privacyMode ? 'Private' : beginnerProgression.lastSessionLabel}</strong>
+                <small>{beginnerProgression.progress}% through the starter block</small>
+              </div>
+            </div>
+            <div className={lStyles.beginnerCoachRules}>
+              {beginnerProgression.rules.map(rule => <span key={rule}>{rule}</span>)}
             </div>
           </div>
           <div className={lStyles.phaseGrid}>
@@ -2031,9 +2134,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 <span>{phase.desc}</span>
               </div>
             ))}
-          </div>
-          <div className={lStyles.empty}>
-            Beginner rule: choose Foundation A/B first, keep 2-3 reps in reserve, and add reps before adding weight.
           </div>
         </section>
 
@@ -2815,17 +2915,40 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               </div>
             </div>
 
+            <div className={`${lStyles.gymModePrepCard} ${gymSessionMode.warmupDone ? lStyles.gymModePrepCardDone : ''}`}>
+              <div>
+                <span>Warm-up first</span>
+                <strong>{gymSessionMode.warmupDone ? 'Warm-up checked' : '2-4 minutes before the first work set'}</strong>
+                <small>Easy walk or bike, joint circles, then one light practice set for the first exercise. Stop if pain feels sharp.</small>
+              </div>
+              <div className={lStyles.gymModePrepSteps}>
+                <span>Raise temperature</span>
+                <span>Practice range</span>
+                <span>Start light</span>
+              </div>
+              <button
+                type="button"
+                className={gymSessionMode.warmupDone ? lStyles.ghostBtn : lStyles.secondaryBtn}
+                onClick={gymSessionMode.warmupDone ? resetGymWarmup : markGymWarmupDone}
+              >
+                {gymSessionMode.warmupDone ? 'Reset warm-up' : 'Warm-up done'}
+              </button>
+            </div>
+
             <div className={lStyles.gymModeBody}>
               {activeGymVideo ? (
                 <div className={lStyles.gymModeVideoCard}>
                   <iframe
+                    key={`${activeGymVideo.id}-${activeGymExerciseIndex}-${gymSessionMode.startedAt || 'session'}`}
                     title={`${activeGymExercise.name || 'Exercise'} form video`}
-                    src={getYouTubeEmbedUrl(activeGymVideo.id)}
+                    src={getYouTubeEmbedUrl(activeGymVideo.id, { autoplay: true })}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
+                    loading="eager"
                   />
                   <div className={lStyles.gymModeVideoMeta}>
                     <span>{activeGymVideo.title}</span>
+                    <small>Auto-plays muted. Tap the video to unmute.</small>
                     <a href={`https://www.youtube.com/watch?v=${activeGymVideo.id}`} target="_blank" rel="noreferrer">Open form video</a>
                   </div>
                 </div>
@@ -2891,6 +3014,20 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                   </div>
                 )}
                 {activeGymExercise.notes && <p className={lStyles.gymModeNotes}>{activeGymExercise.notes}</p>}
+                <div className={lStyles.gymModeNextCard}>
+                  <span>Up next</span>
+                  {nextGymExercise ? (
+                    <>
+                      <strong>{nextGymExercise.name}</strong>
+                      <small>{nextGymExercise.sets || 1} sets · {nextGymExercise.reps ? `${nextGymExercise.reps} reps` : `${Math.round(numberOrZero(nextGymExercise.duration) / 60)} min`} · {nextGymExercise.rest || 0}s rest</small>
+                    </>
+                  ) : (
+                    <>
+                      <strong>Finish and save</strong>
+                      <small>Complete this last exercise, review the summary, then save the workout log.</small>
+                    </>
+                  )}
+                </div>
                 <div className={lStyles.gymModeControls}>
                   <button type="button" className={lStyles.ghostBtn} onClick={() => setGymModeExercise(activeGymExerciseIndex - 1)} disabled={activeGymExerciseIndex === 0}>Previous</button>
                   <button type="button" className={lStyles.secondaryBtn} onClick={completeCurrentGymExercise}>
@@ -2907,7 +3044,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 {activeGymFinished && (
                   <div className={lStyles.gymModeSummaryCard}>
                     <strong>Session ready to save</strong>
-                    <span>{activeGymCompletedCount}/{activeGymExercises.length} exercises completed in {formatDurationClock(activeGymElapsedSeconds)}.</span>
+                    <span>{activeGymCompletedCount}/{activeGymExercises.length} exercises and {activeGymDoneSetCount}/{activeGymTotalSets} sets completed in {formatDurationClock(activeGymElapsedSeconds)}. Warm-up {gymSessionMode.warmupDone ? 'confirmed' : 'not confirmed'}.</span>
                   </div>
                 )}
                 <button type="button" className={lStyles.primaryBtn} onClick={handleSaveGymSession}>

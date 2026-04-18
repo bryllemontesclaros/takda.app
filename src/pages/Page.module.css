@@ -43,6 +43,65 @@
   margin-bottom: 1rem;
 }
 
+.trustGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.trustCard {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 7px;
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 32%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 68%, var(--surface) 32%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-md)) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-md)) saturate(145%);
+}
+
+.trustCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 42%);
+}
+
+.trustCard span,
+.trustCard strong,
+.trustCard small {
+  position: relative;
+  z-index: 1;
+}
+
+.trustCard span {
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.trustCard strong {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: clamp(17px, 2vw, 22px);
+  line-height: 1;
+}
+
+.trustCard small {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .stat,
 .card,
 .formCard,
@@ -657,7 +716,8 @@ tbody tr:hover td {
     font-size: 24px;
   }
 
-  .statsGrid {
+  .statsGrid,
+  .trustGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-bottom: 1rem;
@@ -681,6 +741,10 @@ tbody tr:hover td {
 }
 
 @media (max-width: 480px) {
+  .trustGrid {
+    grid-template-columns: 1fr;
+  }
+
   .statVal {
     font-size: 16px;
   }

@@ -29,6 +29,22 @@ function getStatusStyle(status) {
   return { background: 'var(--blue-dim)', color: 'var(--blue)' }
 }
 
+function getMonthlyEquivalent(amount, freq = 'monthly') {
+  const numericAmount = Number(amount) || 0
+  if (!numericAmount) return 0
+  switch (freq) {
+    case 'weekly': return (numericAmount * 52) / 12
+    case 'bi-weekly': return (numericAmount * 26) / 12
+    case 'tri-weekly': return (numericAmount * (365 / 21)) / 12
+    case 'quad-weekly': return (numericAmount * (365 / 28)) / 12
+    case 'semi-monthly': return (numericAmount * 24) / 12
+    case 'yearly': return numericAmount / 12
+    case 'monthly':
+    default:
+      return numericAmount
+  }
+}
+
 export default function Bills({ user, data, symbol, billPaymentTarget = null }) {
   const s = symbol || '₱'
   const [form, setForm] = useState(createBillForm())
@@ -53,6 +69,24 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
     ...bill,
     period: getBillPeriodInfo(bill),
   })), [data?.bills])
+  const billTrustStats = useMemo(() => {
+    const stats = billsWithStatus.reduce((summary, bill) => {
+      const monthly = getMonthlyEquivalent(bill.amount, bill.freq)
+      const status = bill.period?.status || ''
+      return {
+        monthlyCommitment: summary.monthlyCommitment + monthly,
+        overdue: summary.overdue + (status === 'overdue' ? 1 : 0),
+        dueSoon: summary.dueSoon + (status === 'due' || status === 'soon' ? 1 : 0),
+        paid: summary.paid + (bill.period?.paid ? 1 : 0),
+        linked: summary.linked + (bill.accountId ? 1 : 0),
+      }
+    }, { monthlyCommitment: 0, overdue: 0, dueSoon: 0, paid: 0, linked: 0 })
+
+    return {
+      ...stats,
+      total: billsWithStatus.length,
+    }
+  }, [billsWithStatus])
 
   function set(key, value) {
     setForm(current => ({ ...current, [key]: value }))
@@ -214,6 +248,29 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
       <div className={styles.header}>
         <div className={styles.title}>Bills</div>
         <div className={styles.sub}>Plan recurring bills, then mark each period paid when real money leaves an account.</div>
+      </div>
+
+      <div className={styles.trustGrid}>
+        <div className={styles.trustCard}>
+          <span>Monthly commitment</span>
+          <strong>{fmt(billTrustStats.monthlyCommitment, s)}</strong>
+          <small>Monthly equivalent of all active recurring bills.</small>
+        </div>
+        <div className={styles.trustCard}>
+          <span>Needs attention</span>
+          <strong>{billTrustStats.overdue ? `${billTrustStats.overdue} overdue` : `${billTrustStats.dueSoon} due soon`}</strong>
+          <small>{billTrustStats.overdue ? 'Overdue bills can still be marked paid.' : 'Due and soon bills are ready to review.'}</small>
+        </div>
+        <div className={styles.trustCard}>
+          <span>Account defaults</span>
+          <strong>{billTrustStats.linked}/{billTrustStats.total || 0}</strong>
+          <small>Default pay-from accounts are optional and can be changed on payment.</small>
+        </div>
+        <div className={styles.trustCard}>
+          <span>Payment rule</span>
+          <strong>Paid = expense</strong>
+          <small>Marking paid creates History expense; account movement happens only if an account is selected.</small>
+        </div>
       </div>
 
       <div className={styles.formCard}>
@@ -406,9 +463,10 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
             >
               <div style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 850, letterSpacing: 0.8, textTransform: 'uppercase' }}>This payment will</div>
               <div style={{ display: 'grid', gap: 6, color: 'var(--text2)', fontSize: 13, lineHeight: 1.35 }}>
-                <span>Create an expense in History</span>
+                <span>Create exactly one expense in History</span>
                 <span>Mark this bill paid for {formatDisplayDate(paymentPeriod?.dueDate)}</span>
                 <span>{paymentAccountName ? `Subtract from ${paymentAccountName}` : 'No account balance movement'}</span>
+                <span>Undoing paid status will not delete the History expense automatically</span>
               </div>
             </div>
             <div className={styles.formGroup}>
@@ -446,7 +504,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
             <div className={styles.formRow} style={{ justifyContent: 'flex-end' }}>
               <button className={styles.btnGhost} onClick={closePayment} disabled={paymentSaving}>Cancel</button>
               <button className={styles.btnAdd} style={{ width: 'auto' }} onClick={handleMarkPaid} disabled={paymentSaving}>
-                {paymentSaving ? 'Saving...' : 'Save payment'}
+                {paymentSaving ? 'Saving...' : 'Save payment + expense'}
               </button>
             </div>
           </div>
