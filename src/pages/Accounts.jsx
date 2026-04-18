@@ -139,9 +139,9 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
       <div className={accStyles.heroSection}>
         <div className={accStyles.heroCopy}>
           <div className={accStyles.pageEyebrow}>Accounts</div>
-          <div className={accStyles.pageTitle}>Keep every balance in one calmer view.</div>
+          <div className={accStyles.pageTitle}>Make accounts the source of truth.</div>
           <div className={accStyles.pageSub}>
-            Cash, bank, e-wallet, and credit accounts stay easier to trust when the totals are clean and visible.
+            Cash, bank, e-wallet, and credit accounts stay trustworthy when each balance has a clear role and updates only from real activity.
           </div>
         </div>
 
@@ -204,8 +204,8 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
           <div className={accStyles.toolbarTitle}>Account list</div>
           <div className={accStyles.toolbarMeta}>
             {accounts.length
-              ? 'Edit any account inline without leaving the tab.'
-              : 'Start with your main wallet, bank, or e-wallet so the app has a real balance base.'}
+              ? 'Edit balances carefully; account changes affect the money baseline used across Takda.'
+              : 'Start with your main wallet, bank, or e-wallet so Takda has a real balance base.'}
           </div>
         </div>
         <button type="button" className={accStyles.primaryButton} onClick={openAdd}>Add account</button>

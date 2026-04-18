@@ -350,38 +350,38 @@ const DEFAULT_LAKAS_SETTINGS = {
 const LAKAS_TAB_COPY = {
   today: {
     eyebrow: 'Lakas today',
-    title: 'Your fitness day at a glance.',
-    sub: 'See training signals, records, charts, calendar dots, reminders, food, steps, and recovery without jumping through every tracker.',
-    guide: ['Check today', 'Pick the next action', 'Keep it simple'],
+    title: 'Train from real signals, not pressure.',
+    sub: 'See workouts, meals, body logs, steps, habits, reminders, and recovery cues without turning fitness into medical advice.',
+    guide: ['Check today', 'Start light', 'Log real work'],
   },
   train: {
     eyebrow: 'Train',
-    title: 'Start the right session fast.',
-    sub: 'Gym Session, beginner plans, Push/Pull/Legs, reusable routines, form cues, and direct proper-form videos live here.',
-    guide: ['Choose a session', 'Review form', 'Start session mode'],
+    title: 'Start the safest useful session.',
+    sub: 'Gym Session, beginner progression, routines, form cues, rest timing, and vetted exercise videos keep form ahead of load.',
+    guide: ['Choose session', 'Check form', 'Track sets'],
   },
   log: {
     eyebrow: 'Workout log',
     title: 'Record what actually happened.',
-    sub: 'Manual workout logging, routine loading, exercise sets, reps, weight, duration, notes, and recent workout history stay focused here.',
-    guide: ['Load a routine', 'Adjust actual sets', 'Save the workout'],
+    sub: 'Manual workout logs, routines, sets, reps, weight, duration, rest, and notes stay focused on real sessions only.',
+    guide: ['Load routine', 'Adjust actuals', 'Save workout'],
   },
   nutrition: {
     eyebrow: 'Nutrition',
     title: 'Photo-first meal tracking.',
-    sub: 'Save meal photos, calorie estimates, protein, carbs, fat, and meal history without pretending offline photo scanning is magic.',
-    guide: ['Snap or upload food', 'Estimate macros', 'Review meals'],
+    sub: 'Save meal photos, calorie estimates, protein, carbs, fat, and meal history without pretending photo estimates are perfect.',
+    guide: ['Add photo', 'Estimate macros', 'Review meal'],
   },
   progress: {
     eyebrow: 'Progress',
     title: 'Track the trend, not the panic.',
-    sub: 'Body logs, progress photos, steps, activity, habits, goals, charts, and calendar signals are grouped into one review space.',
-    guide: ['Log movement', 'Update body or habits', 'Review goals'],
+    sub: 'Body logs, progress photos, steps, activity, habits, goals, charts, and calendar signals show trends, not a diagnosis.',
+    guide: ['Log movement', 'Update gently', 'Review trends'],
   },
   settings: {
     eyebrow: 'Lakas settings',
     title: 'Tune Lakas to how you train.',
-    sub: 'Set units, daily targets, workout defaults, meal goals, reminders, privacy preferences, backup, reset, and logout.',
+    sub: 'Set units, realistic targets, workout defaults, meal goals, reminders, privacy, backup, reset, and logout.',
     guide: ['Set defaults', 'Manage reminders', 'Protect your data'],
   },
 }
@@ -2078,7 +2078,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
           </div>
 
           <div className={lStyles.gymSessionSafety}>
-            Safety rule: if form breaks, pain feels sharp, or recovery feels bad, reduce load, reduce range, or stop the set.
+            Safety rule: if form breaks, pain feels sharp, or recovery feels bad, reduce load, reduce range, or stop the set. Lakas is a tracker, not medical advice.
           </div>
         </section>
 
@@ -2350,7 +2350,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Body</div>
               <h3>Body progress</h3>
-              <p className={lStyles.sectionHint}>Save measurements and optional progress photos; privacy mode hides sensitive details.</p>
+              <p className={lStyles.sectionHint}>Save measurements and optional progress photos; privacy mode hides sensitive details. Trends are tracking signals, not a diagnosis.</p>
             </div>
           </div>
           <div className={lStyles.progressPhotoBox}>
@@ -2414,7 +2414,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Goals</div>
               <h3>Lakas goals</h3>
-              <p className={lStyles.sectionHint}>Use measurable targets like workouts, steps, kg, protein, days, or your own unit.</p>
+              <p className={lStyles.sectionHint}>Use measurable targets like workouts, steps, kg, protein, days, or your own unit. Keep targets realistic and pain-free.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>

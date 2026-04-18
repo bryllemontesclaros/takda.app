@@ -324,7 +324,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           <div>
             <div className={styles.sectionLabel}>Import transaction</div>
             <div className={styles.importStepCopy}>
-              Import from a screenshot or receipt photo, then review the details before saving.
+              Import from a screenshot or receipt photo, then review details before Takda changes History or balances.
             </div>
           </div>
         </div>
@@ -535,7 +535,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           <div className={styles.receiptSaveCopy}>
             <div className={styles.receiptSaveTitle}>Save scanned receipt to Receipts</div>
             <div className={styles.receiptSaveHint}>
-              Keep the image and OCR details in your receipt box after this {isIncome ? 'income' : 'expense'} is added.
+              Keep the image and OCR details in your receipt box after this {isIncome ? 'income' : 'expense'} is added. Review totals first because OCR can be wrong.
             </div>
             <div className={styles.receiptSaveMeta}>
               <span>{importedReceipt?.currency || profile.currency || 'PHP'}</span>

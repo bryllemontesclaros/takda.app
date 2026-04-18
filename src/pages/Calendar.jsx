@@ -666,7 +666,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
         <div className={calStyles.calendarTrustStrip} aria-label="Calendar balance guide">
           <span>Closing balance: projected end-of-day</span>
           <span>Pinned days override forecast</span>
-          <span>{privacyMode ? 'Privacy hides amounts, keeps signals' : 'Privacy can hide amounts anytime'}</span>
+          <span>{privacyMode ? 'Privacy hides amounts, keeps signals' : 'Forecasts are estimates, not bank statements'}</span>
         </div>
 
         <div className={calStyles.monthBoard}>

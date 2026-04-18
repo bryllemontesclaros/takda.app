@@ -139,9 +139,9 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
       <div className={styles.header}>
         <div>
           <div className={styles.eyebrow}>Grocery mode</div>
-          <div className={styles.title}>Build your grocery total before checkout.</div>
+          <div className={styles.title}>Build one grocery trip before checkout.</div>
           <div className={styles.sub}>
-            Import price tag photos one by one, confirm each item, and save the final total as one expense on your calendar.
+            Import price tag photos one by one, confirm each item, and save the final total as one reviewed expense.
           </div>
         </div>
         <button className={styles.close} onClick={onClose}>✕</button>
@@ -159,7 +159,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         </div>
         <div className={styles.summaryHint}>
-          Keep importing photos or add items manually. When you’re done, Buhay will save one grocery expense with the item breakdown attached.
+          Keep importing photos or add items manually. When you’re done, Buhay saves one grocery expense with the item breakdown attached.
         </div>
       </div>
 

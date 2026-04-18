@@ -58,6 +58,92 @@ const SPACE_OPTIONS = [
 const ACCOUNT_TYPES = ['Cash', 'Bank', 'E-wallet', 'Credit Card', 'Investment', 'Other']
 const ACCOUNT_COLORS = ['#22d87a', '#6eb5ff', '#ffb347', '#ff5370', '#b48eff', '#2dd4bf', '#f472b6', '#9090b0']
 const BILL_FREQS = RECUR_OPTIONS.filter(option => option.value !== '' && option.value !== 'daily')
+const STARTING_SPACE_COPY = {
+  takda: {
+    sideTitle: 'Start with money clarity, then add the rest.',
+    sideSub: 'Takda works best with currency, accounts, and recurring bills. Lakas and Tala can stay light until you need them.',
+    liveSub: 'Takda uses real accounts and bills for the first forecast. Lakas and Tala quick starts save preferences only.',
+    tip: 'Buhay will not create fake workouts, meals, journals, moods, or transactions. Real logs begin when you add them yourself.',
+    welcomeTitle: name => `Welcome to Buhay, ${name}.`,
+    welcomeSub: 'Takda is the strongest starting point if you want a reliable money baseline. You can still skip accounts and bills if you are not ready.',
+    recommendedTitle: 'Currency now. Accounts and bills if ready. Lakas and Tala later.',
+    recommendedSteps: ['1. Pick currency', '2. Add real finance baseline only if you know it', '3. Start logging real life inside the app'],
+    stepOneSub: 'Takda is recommended because finance needs baseline data. Lakas and Tala stay available either way.',
+    selectedInsight: 'You will continue into currency, accounts, bills, and a finance baseline review.',
+    accountsTitle: 'Accounts and balances',
+    accountsSub: 'Add the accounts you already use. These balances become your starting point for forecasts and net worth.',
+    accountsHint: 'Not ready? Skip this step and Takda Finance will start from zero until you add accounts later.',
+    billsTitle: 'Recurring bills',
+    billsSub: 'Add the recurring bills that shape each month. One-off charges can wait until later.',
+    billsHint: 'Bills are optional here. Add accounts first if you want to choose a default pay-from account for each bill.',
+    quickStartTitle: 'Optional Lakas and Tala quick starts',
+    quickStartSub: 'Keep this light. These save preferences only, not fake workouts, meals, journals, or mood logs.',
+  },
+  lakas: {
+    sideTitle: 'Start with Lakas. Keep money setup optional.',
+    sideSub: 'Set the basics, turn on a simple fitness rhythm, and skip Takda details unless you want finance ready too.',
+    liveSub: 'Lakas quick start saves preferences only. Finance fields are optional support for later Takda use.',
+    tip: 'Lakas does not create fake workouts or body logs. It only prepares targets so your first real session has a safer starting point.',
+    welcomeTitle: name => `Welcome to Buhay, ${name}. Start with Lakas.`,
+    welcomeSub: 'You can begin with fitness without filling out every finance field. Currency is required, then Lakas can start with a light weekly target.',
+    recommendedTitle: 'Currency now. Turn on Lakas quick start. Skip finance if it slows you down.',
+    recommendedSteps: ['1. Pick currency', '2. Keep accounts and bills optional', '3. Start with beginner-safe Lakas sessions'],
+    stepOneSub: 'Choose Lakas if your first goal is workouts, meals, body progress, and habits. Takda and Tala stay available.',
+    selectedInsight: 'We will turn on the Lakas quick start later, without forcing a long finance setup.',
+    accountsTitle: 'Optional Takda accounts',
+    accountsSub: 'You chose Lakas. Add accounts only if you also want finance balances ready today.',
+    accountsHint: 'Skip this if you want to get to fitness faster. Takda can add accounts later.',
+    billsTitle: 'Optional Takda bills',
+    billsSub: 'Recurring bills help finance forecasts, but they are not needed to start Lakas.',
+    billsHint: 'Skip this if your priority is workouts. You can add bills later from Takda.',
+    quickStartTitle: 'Turn on your Lakas quick start',
+    quickStartSub: 'Set a simple weekly target. This saves preferences only, not fake workouts or body history.',
+  },
+  tala: {
+    sideTitle: 'Start with Tala. Keep setup gentle.',
+    sideSub: 'Set the basics, prepare private reflection, and skip detailed finance unless you want Takda ready too.',
+    liveSub: 'Tala quick start saves privacy and reminder preferences only. Finance fields are optional support for later Takda use.',
+    tip: 'Tala does not create fake moods, journals, or advice. It only gives your first check-in a calm place to land.',
+    welcomeTitle: name => `Welcome to Buhay, ${name}. Start with Tala.`,
+    welcomeSub: 'You can begin with reflection and life admin without filling out every finance field. Currency is required, then Tala can stay private by default.',
+    recommendedTitle: 'Currency now. Turn on Tala quick start. Add finance only when ready.',
+    recommendedSteps: ['1. Pick currency', '2. Keep accounts and bills optional', '3. Start with one private check-in'],
+    stepOneSub: 'Choose Tala if your first goal is mood, journal, tasks, and life goals. Takda and Lakas stay available.',
+    selectedInsight: 'We will turn on the Tala quick start later, without forcing a long finance setup.',
+    accountsTitle: 'Optional Takda accounts',
+    accountsSub: 'You chose Tala. Add accounts only if you also want finance balances ready today.',
+    accountsHint: 'Skip this if you want to get to reflection faster. Takda can add accounts later.',
+    billsTitle: 'Optional Takda bills',
+    billsSub: 'Recurring bills help finance forecasts, but they are not needed to start Tala.',
+    billsHint: 'Skip this if your priority is reflection. You can add bills later from Takda.',
+    quickStartTitle: 'Turn on your Tala quick start',
+    quickStartSub: 'Set a gentle reminder and privacy default. This saves preferences only, not fake moods or journal entries.',
+  },
+  explore: {
+    sideTitle: 'Explore Buhay with only the basics.',
+    sideSub: 'Choose currency, skip detailed setup, and add real records later inside Takda, Lakas, or Tala.',
+    liveSub: 'Explore mode keeps setup minimal. Only currency is required before you enter the app.',
+    tip: 'Explore mode is safe: no fake finance, fitness, or reflection records are created.',
+    welcomeTitle: name => `Welcome to Buhay, ${name}. Explore first.`,
+    welcomeSub: 'You can enter with only currency, look around, then add real data later when a space feels useful.',
+    recommendedTitle: 'Currency now. Everything else can wait.',
+    recommendedSteps: ['1. Pick currency', '2. Skip optional setup', '3. Explore the three spaces'],
+    stepOneSub: 'Choose Explore first if you want to see the app before setting up finance, fitness, or reflection.',
+    selectedInsight: 'You will choose currency, skip detailed setup if you want, and enter Buhay quickly.',
+    accountsTitle: 'Optional accounts',
+    accountsSub: 'Add accounts only if you want a finance baseline before exploring.',
+    accountsHint: 'Skip this to enter Buhay faster. Accounts can be added later.',
+    billsTitle: 'Optional bills',
+    billsSub: 'Add recurring bills only if you want Takda planning ready before exploring.',
+    billsHint: 'Skip this to enter Buhay faster. Bills can be added later.',
+    quickStartTitle: 'Optional quick starts',
+    quickStartSub: 'You can keep Lakas and Tala off for now and turn them on later from each space.',
+  },
+}
+
+function getStartingSpaceCopy(spaceId) {
+  return STARTING_SPACE_COPY[spaceId] || STARTING_SPACE_COPY.takda
+}
 
 function createId(prefix = 'row') {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
@@ -329,6 +415,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   const totalSetupSteps = STEPS.length - 1
   const progressValue = step === 0 ? 'Introduction' : `Step ${step} of ${totalSetupSteps}`
   const startingSpace = SPACE_OPTIONS.find(option => option.id === form.startingSpace) || SPACE_OPTIONS[0]
+  const startingSpaceCopy = getStartingSpaceCopy(form.startingSpace)
   const quickStartCount = (form.quickStarts.lakas.enabled ? 1 : 0) + (form.quickStarts.tala.enabled ? 1 : 0)
 
   function validateAccountsStep() {
@@ -448,9 +535,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.brandBlock}>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.sideKicker}>First-time setup</div>
-            <div className={styles.sideTitle}>Start Buhay without the heavy setup.</div>
+            <div className={styles.sideTitle}>{startingSpaceCopy.sideTitle}</div>
             <div className={styles.sideSub}>
-              Choose where to begin, set Takda’s finance baseline if you want, then keep Lakas and Tala light until you need them.
+              {startingSpaceCopy.sideSub}
             </div>
           </div>
 
@@ -485,7 +572,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.liveKicker}>Live setup preview</div>
             <div className={styles.liveValue}>{fmt(startingBalance, symbol)}</div>
             <div className={styles.liveSub}>
-              Takda’s real starting balance comes from accounts. Lakas and Tala quick starts save preferences only.
+              {startingSpaceCopy.liveSub}
             </div>
             <div className={styles.liveMetrics}>
               <div className={styles.liveMetric}>
@@ -518,7 +605,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.tipCard}>
             <div className={styles.tipTitle}>This is a starting point</div>
             <div className={styles.tipText}>
-              Buhay will not create fake workouts, meals, journals, or moods. Real logs begin when you add them yourself.
+              {startingSpaceCopy.tip}
             </div>
           </div>
         </aside>
@@ -539,19 +626,17 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 0 && (
             <div className={`${styles.stepWrap} ${styles.stepWrapWelcome}`}>
               <div className={styles.kicker}>Before you start</div>
-              <div className={styles.stepTitle}>Welcome to Buhay, {name}.</div>
+              <div className={styles.stepTitle}>{startingSpaceCopy.welcomeTitle(name)}</div>
               <div className={styles.stepSub}>
-                Buhay has three focused spaces: Takda for money, Lakas for fitness, and Tala for mind and life admin. You can start simple and add real data later.
+                {startingSpaceCopy.welcomeSub}
               </div>
               <div className={styles.recommendedPathCard}>
                 <div>
                   <span className={styles.recommendedPathLabel}>Recommended beginner path</span>
-                  <strong className={styles.recommendedPathTitle}>Currency now. Accounts and bills if ready. Lakas and Tala later.</strong>
+                  <strong className={styles.recommendedPathTitle}>{startingSpaceCopy.recommendedTitle}</strong>
                 </div>
                 <div className={styles.recommendedPathSteps}>
-                  <span>1. Pick currency</span>
-                  <span>2. Add real finance baseline only if you know it</span>
-                  <span>3. Start logging real life inside the app</span>
+                  {startingSpaceCopy.recommendedSteps.map(stepLabel => <span key={stepLabel}>{stepLabel}</span>)}
                 </div>
               </div>
               <div className={styles.setupScopeGrid} aria-label="Setup requirements">
@@ -627,7 +712,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 1 of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Where do you want to start?</div>
-              <div className={styles.stepSub}>Takda is recommended because finance needs baseline data. Lakas and Tala stay available either way.</div>
+              <div className={styles.stepSub}>{startingSpaceCopy.stepOneSub}</div>
 
               <div className={styles.choiceGrid}>
                 {SPACE_OPTIONS.map(option => (
@@ -652,11 +737,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                 <div className={styles.insightLabel}>Selected start</div>
                 <div className={styles.insightValue}>{startingSpace.label}</div>
                 <div className={styles.insightSub}>
-                  {form.startingSpace === 'takda'
-                    ? 'You will continue into currency, accounts, bills, and a finance baseline review.'
-                    : form.startingSpace === 'explore'
-                      ? 'You will choose currency, skip detailed setup if you want, and enter Buhay quickly.'
-                      : `We will turn on the ${startingSpace.label} quick start later, without forcing a long setup.`}
+                  {startingSpaceCopy.selectedInsight}
                 </div>
               </div>
 
@@ -708,10 +789,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 3 && (
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 3 of {totalSetupSteps}</div>
-              <div className={styles.stepTitle}>Accounts and balances</div>
-              <div className={styles.stepSub}>Add the accounts you already use. These balances become your starting point for forecasts and net worth.</div>
+              <div className={styles.stepTitle}>{startingSpaceCopy.accountsTitle}</div>
+              <div className={styles.stepSub}>{startingSpaceCopy.accountsSub}</div>
               <div className={styles.stepHint}>
-                Not ready? Skip this step and Takda Finance will start from zero until you add accounts later.
+                {startingSpaceCopy.accountsHint}
               </div>
 
               <div className={styles.dynamicStack}>
@@ -769,10 +850,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 4 && (
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 4 of {totalSetupSteps}</div>
-              <div className={styles.stepTitle}>Recurring bills</div>
-              <div className={styles.stepSub}>Add the recurring bills that shape each month. One-off charges can wait until later.</div>
+              <div className={styles.stepTitle}>{startingSpaceCopy.billsTitle}</div>
+              <div className={styles.stepSub}>{startingSpaceCopy.billsSub}</div>
               <div className={styles.stepHint}>
-                Bills are optional here. Add accounts first if you want to choose a default pay-from account for each bill.
+                {startingSpaceCopy.billsHint}
               </div>
 
               <div className={styles.dynamicStack}>
@@ -884,8 +965,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 5 && (
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 5 of {totalSetupSteps}</div>
-              <div className={styles.stepTitle}>Optional Lakas and Tala quick starts</div>
-              <div className={styles.stepSub}>Keep this light. These save preferences only, not fake workouts, meals, journals, or mood logs.</div>
+              <div className={styles.stepTitle}>{startingSpaceCopy.quickStartTitle}</div>
+              <div className={styles.stepSub}>{startingSpaceCopy.quickStartSub}</div>
 
               <div className={styles.quickStartGrid}>
                 <div className={`${styles.quickStartCard} ${styles.quickStartLakas} ${form.quickStarts.lakas.enabled ? styles.quickStartActive : ''}`}>
@@ -962,8 +1043,8 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           {step === 6 && (
             <div className={styles.stepWrap}>
               <div className={styles.kicker}>Step 6 of {totalSetupSteps}</div>
-              <div className={styles.stepTitle}>Review your baseline</div>
-              <div className={styles.stepSub}>This is what Buhay will save. Takda gets real baseline data; Lakas and Tala only get lightweight preferences if selected.</div>
+              <div className={styles.stepTitle}>Review your starting setup</div>
+              <div className={styles.stepSub}>This is what Buhay will save. Currency is required; accounts, bills, Lakas, and Tala preferences are optional and editable later.</div>
 
               <div className={styles.summaryGrid}>
                 <div className={styles.summaryCard}>
@@ -1044,10 +1125,12 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               </div>
 
               <div className={styles.insightCard}>
-                <div className={styles.insightLabel}>Starting balance</div>
+                <div className={styles.insightLabel}>Takda baseline</div>
                 <div className={styles.insightValue}>{fmt(startingBalance, symbol)}</div>
                 <div className={styles.insightSub}>
-                  Takda Finance starts from your saved account balances. Recurring bills are saved separately and will shape your calendar after setup.
+                  {preparedAccounts.length
+                    ? 'Takda Finance starts from your saved account balances. Recurring bills are saved separately and shape the calendar after setup.'
+                    : 'No accounts yet. Takda can start from zero and you can add balances later when you are ready.'}
                 </div>
               </div>
 
@@ -1056,7 +1139,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                   <div className={styles.finalSaveLabel}>Ready to save</div>
                   <div className={styles.finalSaveTitle}>This creates your baseline, not a permanent decision.</div>
                   <div className={styles.finalSaveText}>
-                    Buhay will open with your selected currency, account balances, recurring bill entries, starting space, and optional Lakas/Tala preferences. Real logs still start when you add them.
+                    Buhay will open with your selected currency, starting space, any account or bill entries you added, and optional Lakas/Tala preferences. Real logs still start when you add them.
                   </div>
                 </div>
                 <div className={styles.finalSaveBadge}>{preparedAccounts.length + preparedBills.length + quickStartCount} setup item{preparedAccounts.length + preparedBills.length + quickStartCount === 1 ? '' : 's'}</div>

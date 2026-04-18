@@ -29,10 +29,10 @@ const REMEMBERED_EMAIL_KEY = 'sentimo_remembered_email'
 const REMEMBERED_EMAIL_MODE_KEY = 'sentimo_remembered_email_enabled'
 const AUTH_FLASH_KEY = 'takda_auth_flash'
 const AUTH_PROOF = [
-  'Three focused spaces',
+  'Start with one space',
   'Review before saving',
   'Private synced data',
-  'Installable PWA',
+  'Export anytime',
 ]
 
 function safeGet(key, fallback = '') {
@@ -155,8 +155,8 @@ export default function AuthScreen() {
   const authSubtitle = showForgot
     ? 'Enter your email and we will send a reset link so you can get back into your Buhay account.'
     : tab === 'register'
-      ? 'Set up your account, then Buhay will guide you through money, fitness, journal, tasks, and goals.'
-      : 'Open your finance, fitness, journal, tasks, goals, and daily dashboards.'
+      ? 'Create your account, choose a starting space, and keep setup light. Only currency is required to begin.'
+      : 'Open Takda for money, Lakas for fitness, or Tala for reflection without mixing everything together.'
 
   return (
     <div className={styles.screen}>
@@ -171,9 +171,9 @@ export default function AuthScreen() {
           <div>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.storyKicker}>Bawat araw, mas malinaw.</div>
-            <h1 className={styles.storyTitle}>One sign-in for your day.</h1>
+            <h1 className={styles.storyTitle}>One sign-in. Three calm spaces.</h1>
             <p className={styles.storyText}>
-              Enter Takda for money, Lakas for training and meals, and Tala for reflection, tasks, and goals from one calm workspace.
+              Start with the space you need today: Takda for money, Lakas for fitness, or Tala for reflection and life admin.
             </p>
           </div>
 
@@ -185,24 +185,24 @@ export default function AuthScreen() {
             <div className={styles.previewSpaceList}>
               <div className={`${styles.previewSpace} ${styles.previewSpaceTakda}`}>
                 <span>Takda</span>
-                <strong>Money calendar</strong>
+                <strong>Money clarity</strong>
                 <em>Balances, bills, receipts</em>
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceLakas}`}>
                 <span>Lakas</span>
-                <strong>Fitness rhythm</strong>
+                <strong>Safe training</strong>
                 <em>Workouts, meals, progress</em>
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceTala}`}>
                 <span>Tala</span>
-                <strong>Mind and life admin</strong>
+                <strong>Private reflection</strong>
                 <em>Journal, mood, tasks</em>
               </div>
             </div>
             <div className={styles.previewMetrics}>
-              <div><span>Today</span><strong>Review</strong></div>
+              <div><span>Setup</span><strong>Light</strong></div>
               <div><span>Privacy</span><strong>Ready</strong></div>
-              <div><span>Sync</span><strong>On</strong></div>
+              <div><span>Logs</span><strong>Real</strong></div>
             </div>
           </div>
 
@@ -327,9 +327,9 @@ export default function AuthScreen() {
           </>
         )}
           <div className={styles.trustStrip}>
-            <span>Per-user Firebase data</span>
+            <span>Per-user data</span>
             <span>Privacy controls</span>
-            <span>Export anytime</span>
+            <span>No fake progress</span>
           </div>
         </div>
       </div>

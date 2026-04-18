@@ -357,22 +357,22 @@ const APP_SPACES = [
 
 const SPACE_ASSURANCE = {
   takda: {
-    eyebrow: 'Takda trust path',
-    title: 'Keep money reliable before making it fancy.',
-    desc: 'Accounts, bills, receipts, and calendar balances each have a clear role so the finance space does not double-count.',
-    steps: ['Accounts move balances', 'Bills create expenses when paid', 'Receipts need review before History'],
+    eyebrow: 'Takda today',
+    title: 'Money moves only when you choose it.',
+    desc: 'Accounts hold balances, bills become expenses when paid, and receipts wait for review before reaching History. Takda tracks your records; it is not financial advice.',
+    steps: ['Review first', 'Pay once', 'Track only'],
   },
   lakas: {
-    eyebrow: 'Lakas safe path',
-    title: 'Start light, follow form, then save the real workout.',
-    desc: 'Gym Session prioritizes beginner-safe pacing: exercise video, form cues, set tracking, rest, and a final workout log.',
-    steps: ['Pick a routine', 'Watch proper form', 'Track sets and rest'],
+    eyebrow: 'Lakas today',
+    title: 'Train safely, then save the real session.',
+    desc: 'Start light, check form, track sets and rest, then log what actually happened. Lakas supports tracking and habits; it is not medical advice.',
+    steps: ['Start light', 'Watch form', 'Track only'],
   },
   tala: {
-    eyebrow: 'Tala calm path',
-    title: 'Capture one honest signal at a time.',
-    desc: 'Tala keeps check-ins, journal, mood, tasks, and goals gentle, private, and separate from performance pressure.',
-    steps: ['Check in', 'Write privately', 'Review patterns softly'],
+    eyebrow: 'Tala today',
+    title: 'One honest signal is enough.',
+    desc: 'Check in, write privately, clear one task, or review patterns without turning reflection into pressure. Tala is for tracking, not diagnosis or therapy.',
+    steps: ['Check in', 'Write privately', 'Track only'],
   },
 }
 
@@ -475,8 +475,8 @@ function TakdaMoneyPage({ financeToolSelections = {}, onFinanceToolSelect, ...pa
       activeTool={financeToolSelections.money}
       onActiveToolChange={tool => onFinanceToolSelect?.('money', tool)}
       eyebrow="Money"
-      title="Balances, ledger, and insight in one place."
-      description="Accounts, transaction history, and spending breakdowns are grouped here so money review does not feel scattered."
+      title="Balances, ledger, and insights without double-counting."
+      description="Accounts, transaction history, and spending breakdowns are grouped here so every money review starts from the same trusted records."
       {...pageProps}
     />
   )
@@ -489,8 +489,8 @@ function TakdaPlanPage({ financeToolSelections = {}, onFinanceToolSelect, ...pag
       activeTool={financeToolSelections.plan}
       onActiveToolChange={tool => onFinanceToolSelect?.('plan', tool)}
       eyebrow="Plan"
-      title="Goals, bills, and budget pressure together."
-      description="Savings, recurring bills, and monthly budgets share one planning surface because they all shape the same month-end reality."
+      title="Goals, bills, and budget pressure in one month view."
+      description="Savings, recurring bills, and budgets share one planning surface because they all shape the same month-end estimate."
       {...pageProps}
     />
   )

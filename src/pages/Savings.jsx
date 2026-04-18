@@ -80,9 +80,9 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
       <div className={sStyles.heroSection}>
         <div className={sStyles.heroCopy}>
           <div className={sStyles.pageEyebrow}>Savings</div>
-          <div className={sStyles.pageTitle}>Build goals with a clearer finish line.</div>
+          <div className={sStyles.pageTitle}>Turn goals into visible next steps.</div>
           <div className={sStyles.pageSub}>
-            Keep the target, remaining gap, and next contribution easy to scan on desktop and mobile.
+            Keep the target, remaining gap, and next contribution visible without pretending a goal is guaranteed.
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
           <div className={sStyles.summaryLabel}>Remaining gap</div>
           <div className={`${sStyles.summaryValue} ${sStyles.summaryValueBlue}`}>{money(totalRemaining)}</div>
           <div className={sStyles.summaryMeta}>
-            {goals.length ? displayValue(privacyMode, `${overallPct}% funded overall`, 'Progress hidden') : 'Nothing to fund yet'}
+            {goals.length ? displayValue(privacyMode, `${overallPct}% funded overall`, 'Progress hidden') : 'Add a real target when you are ready'}
           </div>
         </div>
         <div className={sStyles.summaryCard}>

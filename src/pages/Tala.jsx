@@ -42,44 +42,44 @@ const TALA_TAB_COPY = {
   today: {
     eyebrow: 'Tala today',
     title: 'Start with one honest check-in.',
-    sub: 'Mood, energy, gratitude, priority, and reflection in one quiet daily space.',
-    guide: ['Check mood', 'Name one priority', 'Write the truth'],
+    sub: 'Mood, energy, gratitude, priority, and reflection in one quiet daily space. Tala tracks patterns; it is not therapy or diagnosis.',
+    guide: ['Check mood', 'Name one priority', 'Stop there if enough'],
   },
   journal: {
     eyebrow: 'Journal',
     title: 'A private place to put the day down.',
-    sub: 'Capture long-form thoughts, memories, decisions, lessons, tags, and small notes you want to find later.',
-    guide: ['Write freely', 'Add tags', 'Review patterns'],
+    sub: 'Capture thoughts, memories, decisions, lessons, tags, and small notes without needing to solve everything today.',
+    guide: ['Write freely', 'Keep private', 'Review gently'],
   },
   mood: {
     eyebrow: 'Mood tracker',
     title: 'Notice patterns before they get loud.',
-    sub: 'Track mood, energy, stress, sleep quality, triggers, and notes with a lightweight daily log.',
-    guide: ['Log mood', 'Mark trigger', 'Watch trend'],
+    sub: 'Track mood, energy, stress, sleep quality, triggers, and notes as personal signals, not clinical conclusions.',
+    guide: ['Log mood', 'Mark trigger', 'Watch gently'],
   },
   tasks: {
     eyebrow: 'Tasks',
-    title: 'Keep life admin from floating away.',
-    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without becoming a full project manager.',
-    guide: ['Add task', 'Set due date', 'Clear the list'],
+    title: 'Keep life admin small enough to finish.',
+    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without turning life into a project manager.',
+    guide: ['Add one task', 'Set a date', 'Clear one loop'],
   },
   goals: {
     eyebrow: 'Life goals',
     title: 'Make the bigger thing visible.',
-    sub: 'Track personal goals, milestones, areas of life, progress, and notes over time.',
-    guide: ['Choose area', 'Set target', 'Update progress'],
+    sub: 'Track personal goals, milestones, areas of life, progress, and notes without treating progress as self-worth.',
+    guide: ['Choose area', 'Set next step', 'Update gently'],
   },
   calendar: {
     eyebrow: 'Calendar',
     title: 'See your inner life across the month.',
-    sub: 'Dots show check-ins, journal entries, mood logs, tasks, and goal dates so patterns become visible.',
+    sub: 'Dots show check-ins, journal entries, mood logs, tasks, and goal dates so patterns become visible without overexplaining them.',
     guide: ['Scan month', 'Spot gaps', 'Return gently'],
   },
   insights: {
     eyebrow: 'Insights',
     title: 'Tiny signals, calmer decisions.',
-    sub: 'Review streaks, mood averages, task completion, top tags, and common triggers.',
-    guide: ['Check streak', 'Read mood', 'Adjust next week'],
+    sub: 'Review streaks, mood averages, task completion, tags, and triggers as reflection aids, not mental-health advice.',
+    guide: ['Check pattern', 'Stay curious', 'Adjust gently'],
   },
   settings: {
     eyebrow: 'Tala settings',
@@ -786,7 +786,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             <div>
               <div className={tStyles.sectionKicker}>Daily check-in</div>
               <h3>How are you really?</h3>
-              <p className={tStyles.sectionHint}>A tiny daily snapshot: mood, energy, stress, priority, gratitude, and reflection.</p>
+              <p className={tStyles.sectionHint}>A tiny daily snapshot: mood, energy, stress, priority, gratitude, and reflection. Tracking only, not diagnosis.</p>
             </div>
           </div>
           <div className={tStyles.formGrid}>
@@ -1257,7 +1257,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             <div>
               <div className={tStyles.sectionKicker}>Insights</div>
               <h3>Patterns</h3>
-              <p className={tStyles.sectionHint}>Not diagnosis, not advice. Just your logged patterns made easier to see.</p>
+              <p className={tStyles.sectionHint}>Not diagnosis, not advice, and not therapy. Just your logged patterns made easier to see.</p>
             </div>
           </div>
           <div className={tStyles.chartGrid}>

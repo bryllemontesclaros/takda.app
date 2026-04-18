@@ -5,28 +5,28 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '..
 import styles from './LandingPage.module.css'
 
 const FEATURES = [
-  { icon: '💸', title: 'Takda finance space', tone: 'takda', desc: 'Daily balances, transactions, transfers, bills, budgets, savings goals, receipts, grocery trips, reports, and cashflow forecasts.' },
-  { icon: '🏋️', title: 'Lakas fitness space', tone: 'lakas', desc: 'Workout logs, routines, sets, reps, weight, duration, rest, meals, body progress, habits, reminders, and fitness goals.' },
-  { icon: '🌙', title: 'Tala mind space', tone: 'tala', desc: 'Daily check-ins, journal entries, mood, energy, stress, sleep quality, tasks, life goals, calendar dots, tags, and insights.' },
-  { icon: '📅', title: 'Calendar-first review', tone: 'buhay', desc: 'See what happened today, what is coming next, and which life space needs attention without mixing everything into one feed.' },
-  { icon: '📷', title: 'Photo-assisted capture', tone: 'lakas', desc: 'Scan receipts and log meal photos with user review before anything becomes saved data.' },
-  { icon: '🎯', title: 'Goals across life areas', tone: 'tala', desc: 'Track money targets, workout consistency, habits, body progress, personal milestones, and life goals under one account.' },
-  { icon: '🔒', title: 'Privacy and control', tone: 'takda', desc: 'Mask sensitive values, export backups, restore data, delete records, manage notifications, and keep user data scoped.' },
-  { icon: '☁️', title: 'Installable real-time PWA', tone: 'buhay', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive screens, service worker caching, and app-like navigation.' },
+  { icon: '💸', title: 'Takda keeps money honest', tone: 'takda', desc: 'Accounts, bills, receipts, budgets, savings, and calendar balances stay review-first so money does not get double-counted.' },
+  { icon: '🏋️', title: 'Lakas starts safe', tone: 'lakas', desc: 'Beginner routines, form cues, rest timers, sets, reps, meals, body logs, and habits help fitness build from real sessions.' },
+  { icon: '🌙', title: 'Tala keeps reflection private', tone: 'tala', desc: 'Check-ins, journals, moods, tasks, and life goals stay gentle, private, and separate from performance pressure.' },
+  { icon: '📅', title: 'One daily review', tone: 'buhay', desc: 'Open today, choose the space that needs attention, and keep finance, fitness, and reflection from becoming one messy feed.' },
+  { icon: '📷', title: 'Photos stay review-first', tone: 'lakas', desc: 'Receipt scans and meal photos help capture details, but the user reviews before anything changes saved data.' },
+  { icon: '🎯', title: 'Goals have context', tone: 'tala', desc: 'Track money targets, workout rhythm, habits, body progress, and personal milestones without hiding where each goal belongs.' },
+  { icon: '🔒', title: 'Control stays visible', tone: 'takda', desc: 'Privacy mode, exports, restore, delete controls, notifications, and settings stay close to the data they protect.' },
+  { icon: '☁️', title: 'Installable and synced', tone: 'buhay', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive screens, service worker caching, and app-like navigation.' },
 ]
 
 const USE_CASES = [
   {
     title: 'Start with one space',
-    desc: 'Begin with Takda finance if you want the strongest baseline, or enter with only the basics and add more later.',
+    desc: 'Pick Takda, Lakas, or Tala. Buhay does not need your whole life on day one.',
   },
   {
-    title: 'Keep each space focused',
-    desc: 'Takda, Lakas, and Tala have their own tabs and data, so Buhay feels organized instead of becoming one overloaded dashboard.',
+    title: 'Add real data only',
+    desc: 'No fake workouts, moods, receipts, or transactions. The app becomes useful because the logs are real.',
   },
   {
-    title: 'Grow when the routine is ready',
-    desc: 'Add workouts, meals, moods, journals, tasks, goals, and deeper settings only when they actually fit your day.',
+    title: 'Review without mixing everything',
+    desc: 'Money, body, and mind share one account, but each keeps its own language, tabs, and boundaries.',
   },
 ]
 
@@ -42,40 +42,40 @@ const HERO_CELLS = [
 ]
 
 const HERO_PROOF = [
-  { label: 'Takda', tone: 'takda', value: 'Money calendar, bills, receipts, budgets' },
-  { label: 'Lakas', tone: 'lakas', value: 'Training, meals, habits, progress' },
-  { label: 'Tala', tone: 'tala', value: 'Journal, mood, tasks, goals' },
+  { label: 'Takda', tone: 'takda', value: 'Money, bills, receipts' },
+  { label: 'Lakas', tone: 'lakas', value: 'Workouts, meals, progress' },
+  { label: 'Tala', tone: 'tala', value: 'Journal, mood, tasks' },
 ]
 
 const PRODUCT_TOUR = [
   {
     eyebrow: 'Takda',
-    title: 'Finance that starts with the calendar',
-    desc: 'See daily closing balances, account-linked transactions, recurring bills, receipt proof, grocery trips, budgets, savings goals, reports, and exports in one finance space.',
+    title: 'Money that stays accountable',
+    desc: 'Use accounts, transactions, bills, receipts, savings, budgets, and calendar balances with clear review steps before data affects history.',
     stat: '₱47.3K',
     meta: 'Projected balance',
     tone: 'takda',
   },
   {
     eyebrow: 'Lakas',
-    title: 'Fitness logging with routines and meals',
-    desc: 'Build routines, log exercises, sets, reps, weight, duration, rest, activity, habits, reminders, body measurements, progress photos, and meal photo logs.',
+    title: 'Fitness that starts light',
+    desc: 'Follow beginner-safe sessions, watch proper-form videos, track sets and rest, then save the real workout, meal, activity, or body log.',
     stat: '12',
-    meta: 'Workout tools',
+    meta: 'Guided tools',
     tone: 'lakas',
   },
   {
     eyebrow: 'Tala',
-    title: 'Mind, journal, and life admin',
-    desc: 'Track daily check-ins, mood, energy, stress, sleep, gratitude, private journal entries, tags, triggers, tasks, life goals, calendar dots, and insights.',
+    title: 'Reflection without pressure',
+    desc: 'Do one check-in, write privately, log mood patterns, clear tasks, and review life goals without turning reflection into a score.',
     stat: '7d',
     meta: 'Journal streak',
     tone: 'tala',
   },
   {
     eyebrow: 'Buhay',
-    title: 'Shared safety and app controls',
-    desc: 'Buhay keeps account security, privacy mode, notifications, backups, restore, data deletion, legal pages, and PWA navigation consistent across every space.',
+    title: 'One account, shared controls',
+    desc: 'Buhay keeps login, privacy mode, notifications, backups, restore, data deletion, legal pages, and PWA navigation consistent across every space.',
     stat: '1',
     meta: 'Secure account',
     tone: 'buhay',
@@ -83,18 +83,18 @@ const PRODUCT_TOUR = [
 ]
 
 const INCLUDED_TOOLS = [
-  'Takda finance: dashboard, calendar forecasts, income, expenses, transfers, bills, budgets, savings, receipts, grocery trips, history, and reports',
-  'Lakas fitness: workouts, routines, exercises, gym sessions, sets, reps, rest, meals, activity, body progress, habits, reminders, and goals',
-  'Tala mind: check-ins, journal, mood, energy, stress, sleep, gratitude, tasks, life goals, calendar patterns, tags, triggers, and insights',
-  'Photo capture: receipt scanning and meal photo logs with editable review before saving',
-  'Control layer: privacy mode, settings, feedback, notifications, legal pages, backups, restore, export, and account deletion',
-  'App platform: email/password auth, onboarding, per-user Firebase data, responsive navigation, PWA install support, and service worker caching',
+  'Takda: dashboard, calendar, accounts, history, bills, budget, savings, receipts, grocery trips, reports, and Ask Takda',
+  'Lakas: beginner sessions, routines, workout logs, exercise details, meals, activity, body progress, habits, reminders, and goals',
+  'Tala: daily check-ins, private journal, mood, energy, stress, sleep, tasks, life goals, calendar patterns, tags, and insights',
+  'Photos: receipt scanning and meal photo logs with editable review before saving',
+  'Controls: privacy mode, settings, feedback, notifications, legal pages, backup, restore, export, and deletion',
+  'Platform: email/password auth, onboarding, per-user Firebase data, responsive navigation, PWA install support, and service worker caching',
 ]
 
 const PRIVACY_POINTS = [
   { title: 'Review before save', desc: 'Receipts, imports, commands, meal logs, workouts, tasks, and goals are user-reviewed instead of silently changing data.' },
   { title: 'Per-user Firestore data', desc: 'Finance, fitness, and mind data are stored under each signed-in user and protected by user-scoped Firestore rules.' },
-  { title: 'Privacy mode built in', desc: 'Sensitive money and personal values can be masked across dashboards, calendars, reports, receipts, charts, and logs.' },
+  { title: 'Clear product boundaries', desc: 'Takda tracks money, Lakas tracks fitness, and Tala tracks reflection. Buhay is a tracker, not financial, medical, or mental-health advice.' },
 ]
 
 export default function LandingPage() {
@@ -109,7 +109,7 @@ export default function LandingPage() {
     <div className={styles.page}>
       <RouteMeta
         title="Buhay — All-in-One Life Tracker for Finance, Fitness, Mind, and Goals"
-        description="Track Takda finance, Lakas workouts and meals, Tala journal and mood, plus tasks, goals, receipts, budgets, backups, and daily life patterns in one app."
+        description="Check in with money, body, and mind using Takda finance, Lakas fitness, and Tala reflection spaces in one calm app."
         path="/"
       />
       <a href="#landing-main" className="skipLink">Skip to main content</a>
@@ -131,17 +131,17 @@ export default function LandingPage() {
         <div className={styles.heroCopy}>
           <div className={styles.heroBadge}>Bawat araw, mas malinaw.</div>
           <h1 className={styles.heroTitle}>
-            One calm home for money, fitness,
-            <span className={styles.heroAccent}> and your mind.</span>
+            Check in with money, body, and mind
+            <span className={styles.heroAccent}> without mixing them together.</span>
           </h1>
           <p className={styles.heroSub}>
-            Buhay is an all-in-one Filipino life app. Start with Takda for money, add Lakas for workouts and meals, and use Tala for journal, mood, tasks, goals, and daily reflection.
+            Buhay gives you three focused spaces: Takda for money, Lakas for fitness, and Tala for reflection and life admin. Start with one space, then add real logs only when they fit your day.
           </p>
           <div className={styles.heroBtns}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
-          <div className={styles.heroNote}>Start simple. Add only what you need. Installable PWA with real-time sync.</div>
+          <div className={styles.heroNote}>Only currency is required at setup. Everything else can grow later.</div>
           <div className={styles.heroProof}>
             {HERO_PROOF.map(item => (
               <div key={item.label} className={`${styles.heroProofCard} ${styles[`heroProof${item.tone[0].toUpperCase()}${item.tone.slice(1)}`]}`}>
@@ -158,13 +158,13 @@ export default function LandingPage() {
               <span />
               <span />
             </div>
-            <div className={styles.heroPanelApp}>Buhay setup preview</div>
+            <div className={styles.heroPanelApp}>Buhay daily preview</div>
             <div className={styles.heroPanelSync}>Live sync</div>
           </div>
           <div className={styles.heroPanelTop}>
             <div>
-              <div className={styles.heroPanelEyebrow}>Your day, separated cleanly</div>
-              <div className={styles.heroPanelTitle}>3 focused spaces, 1 account</div>
+              <div className={styles.heroPanelEyebrow}>One day, three clear spaces</div>
+              <div className={styles.heroPanelTitle}>Your life, not one messy feed</div>
               <div className={styles.heroPanelMeta}>Finance stays in Takda. Fitness stays in Lakas. Reflection and life admin stay in Tala.</div>
             </div>
             <div className={styles.heroPill}>Privacy-ready</div>
@@ -183,7 +183,7 @@ export default function LandingPage() {
           <div className={styles.heroBalanceBar}>
             <div>
               <div className={styles.heroBalanceBarLabel}>Today&apos;s review</div>
-              <div className={styles.heroBalanceBarMeta}>Money, workouts, meals, mood, tasks, goals, and reminders stay separate but easy to reach.</div>
+              <div className={styles.heroBalanceBarMeta}>Open the space that needs attention, do one honest action, then close the loop.</div>
             </div>
             <div className={styles.heroBalanceBarValue}>3 spaces</div>
           </div>
@@ -204,7 +204,7 @@ export default function LandingPage() {
           <div className={styles.heroInsight}>
             <div className={styles.heroInsightKicker}>Why one life app matters</div>
             <div className={styles.heroInsightText}>
-              Buhay does not flatten your life into one messy feed. Each space stays focused while sharing login, privacy, backup, and navigation.
+              Buhay keeps the product calm: separate spaces, shared privacy, real logs, and no fake progress.
             </div>
           </div>
         </div>
@@ -214,10 +214,10 @@ export default function LandingPage() {
           <div className={styles.sectionTop}>
             <div className={styles.sectionIntro}>
               <div className={styles.sectionLabel}>Start path</div>
-              <h2 className={styles.sectionTitle}>Use one space first, then grow into the whole system.</h2>
+              <h2 className={styles.sectionTitle}>Start with the part of life that needs attention first.</h2>
             </div>
             <p className={styles.sectionLead}>
-            The product is big, but setup should not feel big. Buhay lets you begin lightly and add the rest when your routine is ready.
+            Buhay can hold a lot, but it should never ask for everything at once. Start small and let the routine earn the next layer.
             </p>
           </div>
         <div className={styles.useCaseGrid}>
@@ -234,10 +234,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>10-second tour</div>
-            <h2 className={styles.sectionTitle}>The app is built around three focused spaces.</h2>
+            <h2 className={styles.sectionTitle}>Three spaces, three jobs, one account.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Open Takda for money, Lakas for training and meals, and Tala for reflection, mood, tasks, and life goals.
+            Open Takda when money needs clarity, Lakas when the body needs a plan, and Tala when the day needs a place to land.
           </p>
         </div>
         <div className={styles.productTourGrid}>
@@ -263,10 +263,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>What the app does</div>
-            <h2 className={styles.sectionTitle}>A life system, not another scattered folder of apps</h2>
+            <h2 className={styles.sectionTitle}>A life system that stays separated on purpose.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Money, workouts, meals, body progress, habits, journal entries, moods, tasks, goals, reminders, reports, and backups stay organized by space but feel like one product.
+            Money, workouts, meals, body progress, habits, journal entries, moods, tasks, goals, reminders, reports, and backups stay organized by space.
           </p>
         </div>
         <div className={styles.featureGrid}>
@@ -287,10 +287,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>How it works</div>
-            <h2 className={styles.sectionTitle}>Pick a starting point, log real life, review patterns</h2>
+            <h2 className={styles.sectionTitle}>Pick a space, log what really happened, review gently.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Buhay works best when it starts small: one useful baseline, real logs, then simple reviews that help you decide what to do next.
+            Buhay works best when each check-in is small and true. One useful baseline beats a perfect setup that never gets used.
           </p>
         </div>
         <div className={styles.steps}>
@@ -306,7 +306,7 @@ export default function LandingPage() {
             <div className={styles.stepNum}>2</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>Log real events only</div>
-              <div className={styles.stepDesc}>Capture expenses, receipts, grocery trips, workouts, meals, activity, habits, mood, journal entries, tasks, and goals when they happen.</div>
+              <div className={styles.stepDesc}>Capture expenses, receipts, workouts, meals, activity, habits, mood, journal entries, tasks, and goals when they actually happen.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>
@@ -324,10 +324,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>What’s inside</div>
-            <h2 className={styles.sectionTitle}>The signed-in app already has the full Buhay toolkit.</h2>
+            <h2 className={styles.sectionTitle}>The signed-in app has the full toolkit, but you do not have to use it all at once.</h2>
           </div>
           <p className={styles.sectionLead}>
-            These are not future marketing promises. This landing page now reflects the current app experience.
+            These are current app surfaces, grouped by the job they do.
           </p>
         </div>
         <div className={styles.accessCard}>
@@ -349,10 +349,10 @@ export default function LandingPage() {
         <div className={styles.sectionTop}>
           <div className={styles.sectionIntro}>
             <div className={styles.sectionLabel}>Trust and control</div>
-            <h2 className={styles.sectionTitle}>Private enough for real life behavior.</h2>
+            <h2 className={styles.sectionTitle}>Clear enough to trust with real behavior.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Life apps need calm UX, clear review steps, scoped data, exports, deletion controls, and privacy masking before users can trust them.
+            Life apps need calm UX, review steps, scoped data, exports, deletion controls, privacy masking, and honest boundaries.
           </p>
         </div>
         <div className={styles.privacyGrid}>
@@ -368,7 +368,7 @@ export default function LandingPage() {
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
           <div className={styles.ctaCopy}>
-            <h2 className={styles.ctaTitle}>Start with one space, grow into the whole system.</h2>
+            <h2 className={styles.ctaTitle}>Start with one honest check-in.</h2>
             <p className={styles.ctaSub}>Create your account, choose a starting space, then bring in finance, workouts, meals, journal, mood, tasks, and goals at your own pace.</p>
           </div>
           <div className={styles.ctaAction}>

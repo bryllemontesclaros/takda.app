@@ -241,7 +241,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
     tone: 'var(--accent)',
     eyebrow: 'Next best move',
     title: 'Keep the month visible',
-    body: 'A quick daily check-in keeps the forecast useful and your progress earned.',
+    body: 'One real check-in keeps the forecast useful. Takda shows tracking signals, not financial advice.',
   }
 
   if (!checkedInToday) {
@@ -256,7 +256,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
           tone: 'var(--blue)',
           eyebrow: 'Start strong',
           title: 'Make today your first check-in',
-          body: 'Log one real expense or income so the app starts working like a habit, not just a ledger.',
+          body: 'Log one real expense or income so Takda starts working like a habit, not just a ledger.',
         }
   } else if (biggestBudgetGap) {
     focusState = {
@@ -270,7 +270,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       tone: 'var(--amber)',
       eyebrow: 'Forecast risk',
       title: 'Protect month-end before it slips',
-      body: `You are on track for a ${money(Math.abs(eomBalance))} shortfall. Lighter spending over the next few days can still pull it back.`,
+      body: `Takda estimates a ${money(Math.abs(eomBalance))} shortfall. Treat it as an early planning signal, not a guaranteed bank result.`,
     }
   } else if (goalHighlight && goalHighlight.remaining > 0 && goalHighlight.pct >= 70) {
     focusState = {
@@ -291,7 +291,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       tone: 'var(--accent)',
       eyebrow: 'Momentum is healthy',
       title: 'This month is holding steady',
-      body: 'Net, forecast, and routine are all in good shape. Keep logging so it stays that way.',
+      body: 'Net, forecast, and routine are all in good shape. Keep logging real activity so the view stays trustworthy.',
     }
   }
 

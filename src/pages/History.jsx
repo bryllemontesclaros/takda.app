@@ -187,9 +187,9 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
       <div className={hStyles.heroSection}>
         <div className={hStyles.heroCopy}>
           <div className={hStyles.pageEyebrow}>History</div>
-          <div className={hStyles.pageTitle}>Review the ledger without the noise.</div>
+          <div className={hStyles.pageTitle}>Keep the ledger clean and explainable.</div>
           <div className={hStyles.pageSub}>
-            Search faster, isolate what matters, and keep recent income and expense activity easy to trust.
+            Search, filter, edit, and delete from one place so reports, forecasts, and balances stay easier to audit.
           </div>
         </div>
 
@@ -218,7 +218,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           <div className={`${hStyles.summaryValue} ${hStyles.summaryValueAccent}`}>
             {displayValue(privacyMode, `+${fmt(totalIncome, s)}`, `+${maskMoney(s)}`)}
           </div>
-          <div className={hStyles.summaryMeta}>Filtered receipts and income entries</div>
+          <div className={hStyles.summaryMeta}>Filtered income entries in this view</div>
         </div>
         <div className={hStyles.summaryCard}>
           <div className={hStyles.summaryLabel}>Expenses</div>
@@ -242,7 +242,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           privacyMode={privacyMode}
           compact
           title="Ledger review"
-          message="A clean history makes your reports, trends, and forecasts easier to trust."
+          message="A clean history makes Takda reports, trends, and forecasts easier to trust."
         />
       </div>
 

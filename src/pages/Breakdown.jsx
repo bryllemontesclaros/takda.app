@@ -199,9 +199,9 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
       <div className={bStyles.heroSection}>
         <div className={bStyles.heroCopy}>
           <div className={bStyles.pageEyebrow}>Breakdown</div>
-          <div className={bStyles.pageTitle}>See where money comes in and where it goes.</div>
+          <div className={bStyles.pageTitle}>Read patterns without treating them as advice.</div>
           <div className={bStyles.pageSub}>
-            Compare category mix, month flow, and recent trends without the older dashboard clutter.
+            Compare category mix, month flow, and recent trends as tracking signals, not automatic financial recommendations.
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
             <div className={bStyles.heroAsideFill} style={{ width: `${expenseShare}%` }} />
           </div>
           <div className={bStyles.heroAsideMeta}>
-            {tab === 'expenses' ? 'Reading expense categories right now.' : 'Reading income sources right now.'}
+            {tab === 'expenses' ? 'Reading expense categories as logged.' : 'Reading income sources as logged.'}
           </div>
         </div>
       </div>

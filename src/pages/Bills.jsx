@@ -247,7 +247,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Bills</div>
-        <div className={styles.sub}>Plan recurring bills, then mark each period paid when real money leaves an account.</div>
+        <div className={styles.sub}>Plan recurring bills here, then mark a period paid only when real money leaves an account.</div>
       </div>
 
       <div className={styles.trustGrid}>
@@ -269,14 +269,14 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
         <div className={styles.trustCard}>
           <span>Payment rule</span>
           <strong>Paid = expense</strong>
-          <small>Marking paid creates History expense; account movement happens only if an account is selected.</small>
+          <small>Marking paid creates one History expense; account movement happens only if an account is selected.</small>
         </div>
       </div>
 
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add bill</div>
         <p style={{ color: 'var(--text3)', marginTop: 0 }}>
-          The pay-from account is optional. When you mark this bill paid, Buhay will create a real expense and update that account balance.
+          The pay-from account is optional. Takda will not subtract anything until you mark a bill period paid.
         </p>
 
         <div className={styles.formGroup}>

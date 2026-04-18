@@ -645,8 +645,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
   async function handleReset() {
     const confirmed = await confirmApp({
-      title: 'Reset all financial data?',
-      message: 'This permanently deletes transactions, bills, savings goals, accounts, budgets, transfers, Lakas data, and saved receipts. This cannot be undone.',
+      title: 'Reset Takda and Lakas records?',
+      message: 'This permanently deletes Takda finance records, receipts, calendar events, and Lakas fitness records while keeping Tala entries and your login active. This cannot be undone.',
       confirmLabel: 'Reset data',
       cancelLabel: 'Keep data',
       tone: 'danger',
@@ -1360,17 +1360,17 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settingsDangerCardClass}>
         <CardHeader
           eyebrow="Danger zone"
-          title="Delete financial data"
-          description="Permanently delete transactions, bills, savings goals, accounts, budgets, transfers, and Lakas records while keeping your login active. Use this if you want to clear your financial records without closing the whole account."
+          title="Delete Takda and Lakas records"
+          description="Permanently delete finance records, receipts, calendar events, and Lakas records while keeping your login and Tala entries active. Use full account deletion if you want everything removed."
           badge="Irreversible"
         />
         {resetDone && (
           <div className={`${settStyles.statusBanner} ${settStyles.statusBannerOk}`}>
-            ✓ Financial data has been reset successfully.
+            ✓ Takda and Lakas records have been reset successfully.
           </div>
         )}
         <button className={`${settStyles.btnReset} ${settStyles.btnResetWide}`} onClick={handleReset} disabled={resetting}>
-          {resetting ? 'Resetting...' : 'Reset financial data'}
+          {resetting ? 'Resetting...' : 'Reset Takda and Lakas data'}
         </button>
       </div>
 

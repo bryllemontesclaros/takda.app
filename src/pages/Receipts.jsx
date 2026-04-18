@@ -545,9 +545,9 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
       <div className={receiptStyles.heroSection}>
         <div className={receiptStyles.heroCopy}>
           <div className={receiptStyles.pageEyebrow}>Receipts</div>
-          <div className={receiptStyles.pageTitle}>Scan, save, and revisit receipts without visual clutter.</div>
+          <div className={receiptStyles.pageTitle}>Keep proof separate until you choose otherwise.</div>
           <div className={receiptStyles.pageSub}>
-            Capture receipts, review the extracted details, and keep the receipt box searchable without mixing it into transaction history.
+            Capture receipts, review extracted details, and decide whether each receipt stays in the box or also becomes a History expense.
           </div>
         </div>
 
@@ -597,7 +597,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
           <div className={receiptStyles.sectionEyebrow}>Scan flow</div>
           <div className={receiptStyles.sectionTitle}>Capture the next receipt</div>
           <div className={receiptStyles.sectionCopy}>
-            Buhay cleans the image locally first, then runs OCR so you can review the merchant, total, and date before saving.
+            Buhay cleans the image locally first, then runs OCR when enabled. You review merchant, total, date, and save mode before anything changes balances.
           </div>
           <div className={receiptStyles.captureActions}>
             <button className={receiptStyles.primaryButton} onClick={() => {
@@ -616,7 +616,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
             </button>
           </div>
           <div className={receiptStyles.captureHint}>
-            For the best scan, place the receipt on a darker surface and fill most of the frame.
+            For the best scan, place the receipt on a darker surface and fill most of the frame. OCR can be wrong, so review totals before saving.
           </div>
         </div>
 

@@ -104,9 +104,9 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       <div className={bStyles.heroSection}>
         <div className={bStyles.heroCopy}>
           <div className={bStyles.pageEyebrow}>Budget</div>
-          <div className={bStyles.pageTitle}>Set limits early and read pressure faster.</div>
+          <div className={bStyles.pageTitle}>Use budgets as guardrails, not guilt.</div>
           <div className={bStyles.pageSub}>
-            Keep category limits, overall usage, and unbudgeted spending in one cleaner monthly view.
+            Keep category limits, overall usage, and unbudgeted spending in one monthly view so pressure is visible before it becomes a surprise.
           </div>
         </div>
 
@@ -141,7 +141,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Remaining</div>
           <div className={`${bStyles.summaryValue} ${totalRemaining >= 0 ? bStyles.summaryValueAccent : bStyles.summaryValueRed}`}>{money(totalRemaining)}</div>
-          <div className={bStyles.summaryMeta}>{totalRemaining >= 0 ? 'Available before limits hit' : 'You are over the planned total'}</div>
+          <div className={bStyles.summaryMeta}>{totalRemaining >= 0 ? 'Available before limits hit' : 'Over plan; adjust the category or next spend'}</div>
         </div>
       </div>
 
