@@ -423,6 +423,24 @@ function FinanceToolGroup({
 }) {
   const selectedTool = tools.find(tool => tool.id === activeTool) || tools[0]
   const ActiveComponent = selectedTool.Component
+  const contentRef = useRef(null)
+  const tabRefs = useRef({})
+  const previousToolRef = useRef(selectedTool.id)
+
+  useEffect(() => {
+    const activeTab = tabRefs.current[selectedTool.id]
+    activeTab?.scrollIntoView?.({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+
+    if (previousToolRef.current === selectedTool.id) return
+    previousToolRef.current = selectedTool.id
+
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(max-width: 768px)').matches) return
+
+    window.requestAnimationFrame(() => {
+      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [selectedTool.id])
 
   return (
     <div className={styles.financeGroupPage}>
@@ -436,6 +454,9 @@ function FinanceToolGroup({
           {tools.map(tool => (
             <button
               key={tool.id}
+              ref={node => {
+                if (node) tabRefs.current[tool.id] = node
+              }}
               type="button"
               className={`${styles.financeGroupTab} ${selectedTool.id === tool.id ? styles.financeGroupTabActive : ''}`}
               onClick={() => onActiveToolChange?.(tool.id)}
@@ -448,7 +469,9 @@ function FinanceToolGroup({
           ))}
         </div>
       </section>
-      <ActiveComponent {...pageProps} />
+      <div ref={contentRef} className={styles.financeGroupContent}>
+        <ActiveComponent {...pageProps} />
+      </div>
     </div>
   )
 }
@@ -523,6 +546,7 @@ export default function AppShell({ user }) {
   const [celebrationToast, setCelebrationToast] = useState(null)
   const [quickAddMenuOpen, setQuickAddMenuOpen] = useState(false)
   const [quickAddSheet, setQuickAddSheet] = useState({ open: false, mode: 'manual', type: 'expense', initialEntry: null })
+  const [spaceActionRequest, setSpaceActionRequest] = useState(null)
   const [askTakdaOpen, setAskTakdaOpen] = useState(false)
   const [mobileNavMenuOpen, setMobileNavMenuOpen] = useState(false)
   const [calendarQuickAddDate, setCalendarQuickAddDate] = useState('')
@@ -537,6 +561,8 @@ export default function AppShell({ user }) {
   const toastTimerRef = useRef(null)
   const syncingDueTransactionsRef = useRef(false)
   const preferredSpaceAppliedRef = useRef(false)
+  const mainRef = useRef(null)
+  const previousVisiblePageRef = useRef(null)
   const loadFlagsRef = useRef({
     income: false,
     expenses: false,
@@ -805,7 +831,31 @@ export default function AppShell({ user }) {
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
     if (activeSpace !== 'takda' || page !== 'calendar') setCalendarQuickAddDate('')
-  }, [activeSpace, page])
+  }, [activeSpace, page, lakasPage, talaPage])
+
+  const visiblePageKey = activeSpace === 'takda'
+    ? page
+    : activeSpace === 'lakas'
+      ? lakasPage
+      : talaPage
+
+  useEffect(() => {
+    if (previousVisiblePageRef.current == null) {
+      previousVisiblePageRef.current = `${activeSpace}:${visiblePageKey}`
+      return
+    }
+
+    const nextVisiblePage = `${activeSpace}:${visiblePageKey}`
+    if (previousVisiblePageRef.current === nextVisiblePage) return
+    previousVisiblePageRef.current = nextVisiblePage
+
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(max-width: 768px)').matches) return
+
+    window.requestAnimationFrame(() => {
+      mainRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }, [activeSpace, visiblePageKey])
 
   useEffect(() => {
     const nextVerified = Boolean(auth.currentUser?.emailVerified || user?.emailVerified)
@@ -935,6 +985,7 @@ export default function AppShell({ user }) {
     setMobileNavMenuOpen(false)
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
+    setSpaceActionRequest(null)
     setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
     const normalizedSpace = ['lakas', 'tala'].includes(nextSpace) ? nextSpace : 'takda'
     setActiveSpace(normalizedSpace)
@@ -1017,6 +1068,25 @@ export default function AppShell({ user }) {
     setAskTakdaOpen(false)
     setQuickAddMenuOpen(false)
     setQuickAddSheet({ open: true, mode: 'grocery', type: 'expense', initialEntry: null })
+  }
+
+  function openLakasFabAction(type) {
+    const targetPage = type === 'meal-photo' ? 'nutrition' : 'train'
+    openSpace('lakas')
+    setLakasPage(targetPage)
+    setSpaceActionRequest({ space: 'lakas', type, token: Date.now() })
+  }
+
+  function openTalaFabAction(type) {
+    const targetPage = type === 'mood' ? 'mood' : 'journal'
+    openSpace('tala')
+    setTalaPage(targetPage)
+    setSpaceActionRequest({ space: 'tala', type, token: Date.now() })
+  }
+
+  function handleSpaceActionHandled(token) {
+    if (!token) return
+    setSpaceActionRequest(current => (current?.token === token ? null : current))
   }
 
   function closeQuickAdd() {
@@ -1139,6 +1209,8 @@ export default function AppShell({ user }) {
     onFinanceToolSelect: handleFinanceToolSelect,
     onTogglePrivacy: handleTogglePrivacy,
     onSelectedDateChange: setCalendarQuickAddDate,
+    actionRequest: activeSpace !== 'takda' && spaceActionRequest?.space === activeSpace ? spaceActionRequest : null,
+    onActionHandled: handleSpaceActionHandled,
   }
 
   const quickAddDialogLabel = quickAddSheet.mode === 'import'
@@ -1148,6 +1220,34 @@ export default function AppShell({ user }) {
       : quickAddSheet.type === 'income'
         ? 'Log income'
         : 'Track expense'
+  const fabMenuLabel = activeSpace === 'lakas'
+    ? 'Lakas quick actions'
+    : activeSpace === 'tala'
+      ? 'Tala quick actions'
+      : 'Takda quick actions'
+  const fabButtonLabel = activeSpace === 'lakas'
+    ? 'Open Lakas quick actions'
+    : activeSpace === 'tala'
+      ? 'Open Tala quick actions'
+      : 'Open Takda quick actions'
+  const isContextualFabMenu = activeSpace === 'lakas' || activeSpace === 'tala'
+  const fabActions = activeSpace === 'lakas'
+    ? [
+        { key: 'meal-photo', label: 'Photo Meal Log', meta: 'Save a meal photo and nutrition estimate.', icon: 'ML', className: styles.fabActionMeal, onClick: () => openLakasFabAction('meal-photo') },
+        { key: 'gym-session', label: 'Start Gym Session', meta: 'Open guided workout mode right away.', icon: 'GS', className: styles.fabActionSession, onClick: () => openLakasFabAction('gym-session') },
+      ]
+    : activeSpace === 'tala'
+      ? [
+          { key: 'journal', label: 'Add Journal', meta: 'Write a private entry and land on the editor.', icon: 'JR', className: styles.fabActionJournal, onClick: () => openTalaFabAction('journal') },
+          { key: 'mood', label: 'What is your mood?', meta: 'Log mood, energy, stress, and triggers.', icon: 'MO', className: styles.fabActionMood, onClick: () => openTalaFabAction('mood') },
+        ]
+      : [
+          { key: 'ask', label: 'Ask Takda', icon: 'AI', className: styles.fabActionAsk, onClick: openAskTakda },
+          { key: 'expense', label: 'Expense', icon: '-', className: styles.fabActionExpense, onClick: () => openQuickAdd('expense') },
+          { key: 'income', label: 'Income', icon: '+', className: styles.fabActionIncome, onClick: () => openQuickAdd('income') },
+          { key: 'import', label: 'Import', icon: 'RC', className: styles.fabActionImport, onClick: openQuickImport },
+          { key: 'grocery', label: 'Grocery', icon: 'GR', className: styles.fabActionGrocery, onClick: openGroceryMode },
+        ]
 
   return (
     <div className={`${styles.shell} ${isCalendarPage ? styles.shellCalendar : ''} ${activeSpace === 'lakas' ? styles.shellLakas : ''} ${activeSpace === 'tala' ? styles.shellTala : ''}`}>
@@ -1349,7 +1449,7 @@ export default function AppShell({ user }) {
             </div>
           </div>
         )}
-        <main id="app-main" className={`${styles.main} ${isCalendarPage ? styles.mainCalendar : ''}`}>
+        <main ref={mainRef} id="app-main" className={`${styles.main} ${isCalendarPage ? styles.mainCalendar : ''}`}>
           <PageErrorBoundary key={pageBoundaryKey} onRecover={() => navigateToFinancePage(DEFAULT_SPACE_PAGES.takda)}>
             <Suspense fallback={<PageLoading />}>
               <PageComponent {...pageProps} />
@@ -1357,47 +1457,36 @@ export default function AppShell({ user }) {
           </PageErrorBoundary>
         </main>
       </div>
-      {activeSpace === 'takda' && (quickAddMenuOpen || quickAddSheet.open) && (
+      {(quickAddMenuOpen || (activeSpace === 'takda' && quickAddSheet.open)) && (
         <div
           className={styles.fabBackdrop}
           aria-hidden="true"
           onClick={() => {
             setQuickAddMenuOpen(false)
-            closeQuickAdd()
+            if (activeSpace === 'takda') closeQuickAdd()
           }}
         />
       )}
-      {activeSpace === 'takda' && (
+      {['takda', 'lakas', 'tala'].includes(activeSpace) && (
         <div className={`${styles.fabWrap} ${mobileNavMenuOpen ? styles.fabWrapHidden : ''}`}>
           {quickAddMenuOpen && (
-            <div className={styles.fabMenu} role="menu" aria-label="Quick add actions">
-              <button type="button" className={`${styles.fabAction} ${styles.fabActionAsk}`} onClick={openAskTakda} role="menuitem">
-                <span className={styles.fabActionIcon}>AI</span>
-                <span className={styles.fabActionText}>Ask Takda</span>
-              </button>
-              <button type="button" className={`${styles.fabAction} ${styles.fabActionExpense}`} onClick={() => openQuickAdd('expense')} role="menuitem">
-                <span className={styles.fabActionIcon}>−</span>
-                <span className={styles.fabActionText}>Expense</span>
-              </button>
-              <button type="button" className={`${styles.fabAction} ${styles.fabActionIncome}`} onClick={() => openQuickAdd('income')} role="menuitem">
-                <span className={styles.fabActionIcon}>+</span>
-                <span className={styles.fabActionText}>Income</span>
-              </button>
-              <button type="button" className={`${styles.fabAction} ${styles.fabActionImport}`} onClick={openQuickImport} role="menuitem">
-                <span className={styles.fabActionIcon}>🧾</span>
-                <span className={styles.fabActionText}>Import</span>
-              </button>
-              <button type="button" className={`${styles.fabAction} ${styles.fabActionGrocery}`} onClick={openGroceryMode} role="menuitem">
-                <span className={styles.fabActionIcon}>🛒</span>
-                <span className={styles.fabActionText}>Grocery</span>
-              </button>
+            <div className={`${styles.fabMenu} ${isContextualFabMenu ? styles.fabMenuContextual : ''}`} role="menu" aria-label={fabMenuLabel}>
+              {fabActions.map(action => (
+                <button key={action.key} type="button" className={`${styles.fabAction} ${action.className} ${action.meta ? styles.fabActionDetailed : ''}`} onClick={action.onClick} role="menuitem">
+                  <span className={styles.fabActionIcon}>{action.icon}</span>
+                  <span className={styles.fabActionCopy}>
+                    <span className={styles.fabActionText}>{action.label}</span>
+                    {action.meta && <span className={styles.fabActionMeta}>{action.meta}</span>}
+                  </span>
+                </button>
+              ))}
             </div>
           )}
           <button
             className={`${styles.fabButton} ${quickAddMenuOpen ? styles.fabButtonOpen : ''}`}
             onClick={toggleQuickAddMenu}
             aria-expanded={quickAddMenuOpen}
-            aria-label="Add transaction"
+            aria-label={fabButtonLabel}
             aria-haspopup="menu"
           >
             +

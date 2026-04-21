@@ -389,6 +389,10 @@
   gap: 12px;
 }
 
+.financeGroupContent {
+  min-width: 0;
+}
+
 .financeGroupHero {
   display: grid;
   grid-template-columns: minmax(0, 0.82fr) minmax(360px, 1.18fr);
@@ -939,6 +943,12 @@
   -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(155%);
   animation: takdaFloatIn var(--motion-duration-slow) var(--motion-ease-out) both;
 }
+.fabMenuContextual {
+  width: min(304px, calc(100vw - 32px));
+  min-width: 0;
+  padding: 12px;
+  gap: 8px;
+}
 .fabAction {
   --fab-tone: var(--accent);
   display: inline-flex;
@@ -977,6 +987,10 @@
 .fabActionAsk { --fab-tone: var(--purple); }
 .fabActionImport { --fab-tone: var(--blue); }
 .fabActionGrocery { --fab-tone: var(--amber); }
+.fabActionMeal { --fab-tone: var(--amber); }
+.fabActionSession { --fab-tone: var(--blue); }
+.fabActionJournal { --fab-tone: var(--purple); }
+.fabActionMood { --fab-tone: var(--text2); }
 .fabActionIcon {
   width: 30px;
   height: 30px;
@@ -990,10 +1004,29 @@
   color: var(--fab-tone);
   flex-shrink: 0;
 }
+.fabActionCopy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
 .fabActionText {
   font-size: 14px;
   line-height: 1.2;
   color: var(--text);
+}
+.fabActionMeta {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text3);
+  font-weight: 600;
+  text-align: left;
+}
+.fabActionDetailed {
+  min-height: 68px;
+  align-items: flex-start;
+  padding-block: 12px;
 }
 .fabButton {
   --fab-rotate: 0deg;
@@ -1172,13 +1205,34 @@
     font-size: 12px;
   }
   .financeGroupSwitch {
-    grid-template-columns: 1fr;
+    display: flex;
     gap: 6px;
+    margin: 2px -2px 0;
+    padding: 0 2px 2px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    align-content: unset;
+  }
+  .financeGroupSwitch::-webkit-scrollbar {
+    display: none;
   }
   .financeGroupTab {
-    min-height: 54px;
-    padding: 10px 11px;
+    min-width: max-content;
+    min-height: 42px;
+    padding: 10px 14px;
     border-radius: 16px;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+  .financeGroupTab strong {
+    font-size: 12px;
+    line-height: 1;
+  }
+  .financeGroupTab span {
+    display: none;
   }
   .mainCalendar {
     display: flex;
@@ -1324,9 +1378,31 @@
     width: min(352px, calc(100vw - 24px));
     align-items: stretch;
   }
+  .fabMenuContextual {
+    display: flex;
+    width: min(360px, calc(100vw - 20px));
+    padding: 12px;
+    gap: 8px;
+    border-radius: 24px;
+  }
   .fabAction {
     width: 100%;
     min-height: 58px;
+  }
+  .fabActionDetailed {
+    min-height: 72px;
+    padding: 12px 13px;
+    border-radius: 22px;
+  }
+  .fabActionDetailed .fabActionIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 14px;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .fabActionMeta {
+    font-size: 11px;
   }
   .quickAddLayer {
     padding: 8px 0 0;

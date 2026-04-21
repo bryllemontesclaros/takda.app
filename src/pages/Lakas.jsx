@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   fsAdd,
   fsDel,
@@ -85,10 +85,10 @@ const FORM_GUIDES = [
 
 const GYM_SESSION_TYPES = [
   {
-    key: 'beginner-a',
-    label: 'Beginner',
-    templateName: 'Beginner Foundation A',
-    desc: 'First gym day or coming back after a long break.',
+    key: 'beginner',
+    label: 'Beginner path',
+    templateName: '',
+    desc: 'Adaptive starter plan based on your workout place and equipment.',
   },
   {
     key: 'push',
@@ -115,10 +115,22 @@ const GYM_SESSION_TYPES = [
     desc: 'Simple all-around session for busy days.',
   },
   {
+    key: 'home',
+    label: 'Home workout',
+    templateName: 'Home Workout',
+    desc: 'No-equipment or low-equipment session for home days.',
+  },
+  {
     key: 'cardio',
     label: 'Cardio',
     templateName: 'Cardio Base',
     desc: 'Easy conditioning before chasing speed.',
+  },
+  {
+    key: 'recovery',
+    label: 'Recovery',
+    templateName: 'Recovery Flow',
+    desc: 'Light reset day for movement, mobility, and recovery.',
   },
 ]
 
@@ -219,6 +231,38 @@ const BUILT_IN_ROUTINES = [
     ],
   },
   {
+    name: 'Beginner Home A',
+    focus: 'Beginner',
+    difficulty: 'Beginner',
+    weeks: 'Weeks 1-2',
+    duration: 24,
+    progression: 'Add 1-2 reps only after the whole session feels easy and controlled.',
+    deload: 'If joints or low back feel irritated, shorten range, slow down, or walk instead.',
+    notes: 'Home-first foundation session. Use bodyweight or a very light dumbbell only if form stays clean.',
+    exercises: [
+      { name: 'Bodyweight squat', sets: 2, reps: 8, weight: 0, duration: 0, rest: 75, notes: 'Use a chair or box if depth feels shaky' },
+      { name: 'Incline push-up', sets: 2, reps: 6, weight: 0, duration: 0, rest: 75, notes: 'Hands on couch, table, or counter' },
+      { name: 'Glute bridge', sets: 2, reps: 10, weight: 0, duration: 0, rest: 60, notes: 'Squeeze glutes, keep ribs down' },
+      { name: 'Dead bug', sets: 2, reps: 8, weight: 0, duration: 0, rest: 45, notes: 'Slow control before longer sets' },
+    ],
+  },
+  {
+    name: 'Beginner Home B',
+    focus: 'Beginner',
+    difficulty: 'Beginner',
+    weeks: 'Weeks 1-2',
+    duration: 26,
+    progression: 'Repeat the same session until breathing and recovery feel normal, then add 1 rep per set.',
+    deload: 'If fatigue lingers, keep reps the same and shorten the walk.',
+    notes: 'Alternate this with Beginner Home A. Keep the pace easy enough that you can still speak in short sentences.',
+    exercises: [
+      { name: 'Bodyweight squat', sets: 2, reps: 10, weight: 0, duration: 0, rest: 75, notes: 'Slow lowering, stand tall' },
+      { name: 'Push-up', sets: 2, reps: 5, weight: 0, duration: 0, rest: 75, notes: 'Use incline if flat floor reps are not clean yet' },
+      { name: 'Dead bug', sets: 2, reps: 10, weight: 0, duration: 0, rest: 45, notes: 'Exhale as the leg reaches out' },
+      { name: 'Brisk walk', sets: 1, reps: 0, weight: 0, duration: 480, rest: 0, notes: 'Easy pace around home or outdoors' },
+    ],
+  },
+  {
     name: 'Push Day',
     focus: 'Hypertrophy',
     duration: 60,
@@ -286,6 +330,18 @@ const BUILT_IN_ROUTINES = [
     exercises: [
       { name: 'Brisk walk', sets: 1, reps: 0, weight: 0, duration: 1800, rest: 0, notes: 'Zone 2 pace' },
       { name: 'Cool down stretch', sets: 1, reps: 0, weight: 0, duration: 300, rest: 0, notes: '' },
+    ],
+  },
+  {
+    name: 'Recovery Flow',
+    focus: 'Mobility',
+    duration: 20,
+    notes: 'Use this on low-energy days to keep the habit without forcing intensity.',
+    exercises: [
+      { name: 'Brisk walk', sets: 1, reps: 0, weight: 0, duration: 480, rest: 0, notes: 'Easy pace to warm up' },
+      { name: 'Glute bridge', sets: 2, reps: 10, weight: 0, duration: 0, rest: 45, notes: 'Smooth reps only' },
+      { name: 'Dead bug', sets: 2, reps: 8, weight: 0, duration: 0, rest: 45, notes: 'Quiet lower back and slow breathing' },
+      { name: 'Cool down stretch', sets: 1, reps: 0, weight: 0, duration: 300, rest: 0, notes: 'Stay gentle and stop if anything feels sharp' },
     ],
   },
 ]
@@ -389,9 +445,9 @@ const LAKAS_TAB_COPY = {
   },
   settings: {
     eyebrow: 'Lakas settings',
-    title: 'Tune Lakas to how you train.',
-    sub: 'Set units, realistic targets, workout defaults, meal goals, reminders, privacy, backup, reset, and logout.',
-    guide: ['Set defaults', 'Manage reminders', 'Protect your data'],
+    title: 'Keep Lakas realistic, safe, and easy to return to.',
+    sub: 'Core settings stay up front, while training profile and advanced defaults stay tucked away until you actually need them.',
+    guide: ['Set basics', 'Adjust goals', 'Protect your data'],
   },
 }
 
@@ -605,6 +661,60 @@ function getYouTubeEmbedUrl(videoId = '', options = {}) {
   return `https://www.youtube-nocookie.com/embed/${videoId}?${params.toString()}`
 }
 
+function getPreferredTrainingTrack(settings = {}) {
+  const workoutPlace = settings?.baseline?.workoutPlace || 'Gym'
+  const equipment = settings?.baseline?.equipment || 'Full gym'
+  if (workoutPlace === 'Home' || equipment === 'None') return 'home'
+  if (workoutPlace === 'Both' && equipment === 'Dumbbells') return 'home'
+  return 'gym'
+}
+
+function getBeginnerTemplateCycle(settings = {}) {
+  return getPreferredTrainingTrack(settings) === 'home'
+    ? ['Beginner Home A', 'Beginner Home B']
+    : ['Beginner Foundation A', 'Beginner Foundation B']
+}
+
+function getResolvedRoutineDuration(duration, exercises = [], fallback = 0) {
+  const manualDuration = numberOrZero(duration)
+  if (manualDuration > 0) return manualDuration
+  const estimatedDuration = estimateRoutineMinutes(exercises)
+  if (estimatedDuration > 0) return estimatedDuration
+  return numberOrZero(fallback)
+}
+
+function getExerciseLoadHint(exerciseName = '', settings = {}) {
+  const normalized = String(exerciseName || '').trim().toLowerCase()
+  if (!normalized) return ''
+
+  const beginner = (settings?.training?.experienceLevel || 'Beginner') === 'Beginner'
+  const equipment = settings?.baseline?.equipment || 'Full gym'
+  const homeTrack = getPreferredTrainingTrack(settings) === 'home'
+
+  if (['push-up', 'push up', 'plank', 'dead bug', 'brisk walk', 'walk', 'stretch', 'bodyweight squat', 'glute bridge'].some(term => normalized.includes(term))) {
+    return 'Start with bodyweight only. Add load only after two clean sessions.'
+  }
+
+  if (['bench press', 'squat', 'romanian deadlift', 'barbell row'].some(term => normalized.includes(term))) {
+    return beginner ? 'Start with the empty bar or the lightest setup that feels smooth.' : 'Start with your last clean working weight, not your best-day weight.'
+  }
+
+  if (['lat pulldown', 'leg press', 'triceps pushdown', 'face pull'].some(term => normalized.includes(term))) {
+    return equipment === 'None'
+      ? 'Swap this for a home alternative or use resistance bands if available.'
+      : 'Start with the lightest machine setting that lets every rep stay controlled.'
+  }
+
+  if (['goblet squat', 'dumbbell row', 'shoulder press', 'curl'].some(term => normalized.includes(term))) {
+    if (equipment === 'None') return 'Use the bodyweight variation first, then add a backpack or dumbbell later.'
+    return homeTrack
+      ? 'Start with the lightest dumbbell you can fully control.'
+      : 'Start with a light dumbbell and keep 2-3 reps in reserve.'
+  }
+
+  return 'Start lighter than you think and only add load after two clean sessions.'
+}
+
 function getExerciseActiveSeconds(exercise = {}) {
   const timedDuration = numberOrZero(exercise.duration)
   if (timedDuration > 0) return timedDuration
@@ -688,8 +798,8 @@ function hydrateExerciseRows(rows = []) {
     name: row.name || '',
     sets: row.sets || row.sets === 0 ? String(row.sets) : '',
     reps: row.reps || row.reps === 0 ? String(row.reps) : '',
-    weight: row.weight || row.weight === 0 ? String(row.weight) : '',
-    duration: row.duration || row.duration === 0 ? String(row.duration) : '',
+    weight: numberOrZero(row.weight) > 0 ? String(row.weight) : '',
+    duration: numberOrZero(row.duration) > 0 ? String(row.duration) : '',
     rest: row.rest || row.rest === 0 ? String(row.rest) : '',
     notes: row.notes || '',
   }))
@@ -855,25 +965,34 @@ function getPersonalRecords(workouts = [], activities = []) {
   return records
 }
 
-function getBeginnerProgression(workouts = []) {
+function getBeginnerProgression(workouts = [], settings = {}) {
+  const beginnerTemplateNames = [
+    'Beginner Foundation A',
+    'Beginner Foundation B',
+    'Beginner Home A',
+    'Beginner Home B',
+  ]
+  const templateCycle = getBeginnerTemplateCycle(settings)
+  const trackLabel = getPreferredTrainingTrack(settings) === 'home' ? 'Home starter track' : 'Gym starter track'
   const foundationWorkouts = sortOldest(workouts).filter(workout => {
     const name = `${workout.title || ''} ${workout.routineName || ''}`.toLowerCase()
-    return name.includes('beginner foundation')
+    return beginnerTemplateNames.some(templateName => name.includes(templateName.toLowerCase()))
   })
   const completed = foundationWorkouts.length
   const phaseIndex = completed < 4 ? 0 : completed < 8 ? 1 : 2
-  const nextTemplateName = completed % 2 === 0 ? 'Beginner Foundation A' : 'Beginner Foundation B'
+  const nextTemplateName = templateCycle[completed % templateCycle.length]
   const lastSession = foundationWorkouts[foundationWorkouts.length - 1]
 
   return {
     completed,
+    trackLabel,
     phase: BEGINNER_PHASES[phaseIndex],
     progress: Math.min(100, Math.round((completed / 8) * 100)),
     nextTemplateName,
     weeklyTarget: completed < 8 ? 'Aim for 2 foundation sessions/week' : 'Keep 2-3 sessions/week',
     lastSessionLabel: lastSession ? `${lastSession.title || 'Foundation'} on ${formatDisplayDate(lastSession.date)}` : 'No foundation session yet',
     nextAction: completed === 0
-      ? 'Start Foundation A today. Keep every set easy enough that you could do 2-3 more reps.'
+      ? `Start with ${nextTemplateName} today. Keep every set easy enough that you could do 2-3 more reps.`
       : `Next recommended: ${nextTemplateName}. Repeat the same load if form, sleep, or soreness felt off.`,
     rules: [
       'Add reps before adding weight.',
@@ -909,7 +1028,7 @@ function MiniBarChart({ title, rows, unit = '', hidden = false }) {
   )
 }
 
-export default function Lakas({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today' }) {
+export default function Lakas({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today', actionRequest = null, onActionHandled = () => {} }) {
   const initialSettings = getLakasSettings(profile)
   const [routineForm, setRoutineForm] = useState(() => createRoutineForm(initialSettings))
   const [workoutForm, setWorkoutForm] = useState(() => createWorkoutForm(initialSettings))
@@ -930,11 +1049,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [deletingLakasData, setDeletingLakasData] = useState(false)
   const [photoPreview, setPhotoPreview] = useState('')
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
-  const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('beginner-a')
+  const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('beginner')
   const [gymSessionMode, setGymSessionMode] = useState({
     open: false,
-    sessionKey: 'beginner-a',
-    sessionLabel: 'Beginner',
+    sessionKey: 'beginner',
+    sessionLabel: 'Beginner path',
     templateName: 'Beginner Foundation A',
     exerciseIndex: 0,
     completed: {},
@@ -947,6 +1066,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [gymSessionNow, setGymSessionNow] = useState(Date.now())
   const savedLakasSettings = getLakasSettings(profile)
   const profileSettingsKey = JSON.stringify(profile?.lakasSettings || {})
+  const mealQuickActionRef = useRef(null)
+  const mealNameInputRef = useRef(null)
+  const handledActionTokenRef = useRef(null)
 
   const routines = sortNewest(normalizeRows(data.lakasRoutines))
   const workouts = sortNewest(normalizeRows(data.lakasWorkouts))
@@ -956,8 +1078,12 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const habits = sortNewest(normalizeRows(data.lakasHabits))
   const reminders = sortNewest(normalizeRows(data.lakasReminders))
   const goals = normalizeRows(data.lakasGoals)
+  const beginnerProgression = useMemo(() => getBeginnerProgression(workouts, savedLakasSettings), [workouts, profileSettingsKey])
+  const beginnerNextTemplate = BUILT_IN_ROUTINES.find(template => template.name === beginnerProgression.nextTemplateName) || BUILT_IN_ROUTINES[0]
   const selectedGymSession = GYM_SESSION_TYPES.find(session => session.key === selectedGymSessionKey) || GYM_SESSION_TYPES[0]
-  const selectedGymTemplate = BUILT_IN_ROUTINES.find(template => template.name === selectedGymSession.templateName) || BUILT_IN_ROUTINES[0]
+  const selectedGymTemplate = selectedGymSession.key === 'beginner'
+    ? beginnerNextTemplate
+    : BUILT_IN_ROUTINES.find(template => template.name === selectedGymSession.templateName) || BUILT_IN_ROUTINES[0]
   const selectedGymEstimate = selectedGymTemplate?.duration || estimateRoutineMinutes(selectedGymTemplate?.exercises)
   const activeGymSession = GYM_SESSION_TYPES.find(session => session.key === gymSessionMode.sessionKey) || {
     ...selectedGymSession,
@@ -995,10 +1121,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     ? Math.round((activeGymCompletedCount / activeGymExercises.length) * 100)
     : 0
   const activeGymFinished = activeGymExercises.length > 0 && activeGymCompletedCount >= activeGymExercises.length
-  const beginnerProgression = useMemo(() => getBeginnerProgression(workouts), [workouts])
-  const beginnerNextTemplate = BUILT_IN_ROUTINES.find(template => template.name === beginnerProgression.nextTemplateName) || BUILT_IN_ROUTINES[0]
   const beginnerNextSession = {
-    key: `beginner-${beginnerProgression.nextTemplateName.endsWith('B') ? 'b' : 'a'}-guided`,
+    key: 'beginner-guided',
     label: 'Beginner path',
     templateName: beginnerNextTemplate.name,
     desc: 'Guided foundation progression.',
@@ -1160,11 +1284,12 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
   function loadRoutine(routine) {
     if (!routine) return
+    const resolvedDuration = getResolvedRoutineDuration(routine.duration, routine.exercises, savedLakasSettings.workoutDefaults.durationMinutes)
     setWorkoutForm(current => ({
       ...current,
       routineId: routine._id || '',
       title: routine.name || current.title,
-      duration: routine.duration || routine.duration === 0 ? String(routine.duration) : current.duration,
+      duration: resolvedDuration ? String(resolvedDuration) : current.duration,
       exercises: hydrateExerciseRows(routine.exercises),
       notes: routine.notes || current.notes,
     }))
@@ -1173,12 +1298,13 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
   function openGymSessionMode(template = selectedGymTemplate, session = selectedGymSession) {
     if (!template) return
+    const resolvedDuration = getResolvedRoutineDuration(template.duration, template.exercises, savedLakasSettings.workoutDefaults.durationMinutes)
     setWorkoutForm(current => ({
       ...current,
       routineId: '',
       date: today(),
       title: template.name || session.label,
-      duration: String(template.duration || estimateRoutineMinutes(template.exercises)),
+      duration: String(resolvedDuration),
       exercises: hydrateExerciseRows(template.exercises),
       notes: [`Gym session: ${session.label}.`, buildTemplateNotes(template)].filter(Boolean).join(' '),
     }))
@@ -1290,10 +1416,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   }
 
   function applyRoutineTemplate(template) {
+    const resolvedDuration = getResolvedRoutineDuration(template.duration, template.exercises, savedLakasSettings.workoutDefaults.durationMinutes)
     setRoutineForm({
       name: template.name,
       focus: template.focus,
-      duration: String(template.duration || ''),
+      duration: String(resolvedDuration || ''),
       exercises: hydrateExerciseRows(template.exercises),
       notes: buildTemplateNotes(template),
     })
@@ -1314,6 +1441,13 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       <div className={lStyles.exerciseBuilder} aria-label={ariaLabel}>
         {rows.map((row, index) => {
           const guide = getExerciseGuide(row.name)
+          const loadHint = getExerciseLoadHint(row.name, savedLakasSettings)
+          const estimatedWork = estimateExerciseMinutes({
+            sets: row.sets,
+            reps: row.reps,
+            duration: row.duration,
+            rest: row.rest,
+          })
           return (
             <div key={row.rowId} className={lStyles.exerciseRow}>
               <div className={lStyles.exerciseRowTop}>
@@ -1357,7 +1491,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                   <input type="number" min="0" inputMode="decimal" value={row.weight} onChange={event => updateExerciseRow(formSetter, row.rowId, 'weight', event.target.value)} />
                 </label>
                 <label>
-                  <span>Duration (s)</span>
+                  <span>Timed work (s)</span>
                   <input type="number" min="0" inputMode="numeric" value={row.duration} onChange={event => updateExerciseRow(formSetter, row.rowId, 'duration', event.target.value)} />
                 </label>
                 <label>
@@ -1365,6 +1499,12 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                   <input type="number" min="0" inputMode="numeric" value={row.rest} onChange={event => updateExerciseRow(formSetter, row.rowId, 'rest', event.target.value)} />
                 </label>
               </div>
+              {(loadHint || row.name) && (
+                <div className={lStyles.exerciseHint}>
+                  {loadHint && <span>{loadHint}</span>}
+                  <small>{estimatedWork} min estimated work for this exercise. Use timed work only for holds, cardio, or timed drills.</small>
+                </div>
+              )}
               <label className={lStyles.exerciseNotes}>
                 <span>Exercise notes</span>
                 <input value={row.notes} placeholder="Warmup, RPE, form cue" onChange={event => updateExerciseRow(formSetter, row.rowId, 'notes', event.target.value)} />
@@ -1398,10 +1538,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     }
 
     const totals = getExerciseTotals(exercises)
+    const resolvedDuration = getResolvedRoutineDuration(routineForm.duration, exercises, savedLakasSettings.workoutDefaults.durationMinutes)
     await fsAdd(user.uid, 'lakasRoutines', {
       name: routineForm.name.trim(),
       focus: routineForm.focus,
-      duration: numberOrZero(routineForm.duration),
+      duration: resolvedDuration,
       exercises,
       exerciseCount: totals.exerciseCount,
       setCount: totals.setCount,
@@ -1424,13 +1565,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
     const routine = routines.find(row => row._id === nextWorkout.routineId)
     const totals = getExerciseTotals(exercises)
+    const resolvedDuration = getResolvedRoutineDuration(nextWorkout.duration, exercises, savedLakasSettings.workoutDefaults.durationMinutes)
 
     await fsAdd(user.uid, 'lakasWorkouts', {
       title: String(nextWorkout.title || '').trim(),
       routineId: routine?._id || '',
       routineName: routine?.name || '',
       date: nextWorkout.date,
-      duration: numberOrZero(nextWorkout.duration),
+      duration: resolvedDuration,
       exercises,
       exerciseCount: totals.exerciseCount,
       setCount: totals.setCount,
@@ -1832,6 +1974,35 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     ],
   })[currentTab] || []
 
+  useEffect(() => {
+    if (!actionRequest?.token || handledActionTokenRef.current === actionRequest.token) return undefined
+
+    if (actionRequest.type === 'gym-session') {
+      if (currentTab !== 'train') return undefined
+      handledActionTokenRef.current = actionRequest.token
+      const frameId = window.requestAnimationFrame(() => {
+        openGymSessionMode(selectedGymTemplate, selectedGymSession)
+        onActionHandled(actionRequest.token)
+      })
+      return () => window.cancelAnimationFrame(frameId)
+    }
+
+    if (actionRequest.type === 'meal-photo') {
+      if (currentTab !== 'nutrition') return undefined
+      handledActionTokenRef.current = actionRequest.token
+      const frameId = window.requestAnimationFrame(() => {
+        mealQuickActionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        mealNameInputRef.current?.focus()
+        onActionHandled(actionRequest.token)
+      })
+      return () => window.cancelAnimationFrame(frameId)
+    }
+
+    handledActionTokenRef.current = actionRequest.token
+    onActionHandled(actionRequest.token)
+    return undefined
+  }, [actionRequest, currentTab, onActionHandled, selectedGymSession, selectedGymTemplate])
+
   return (
     <div className={`${styles.page} ${lStyles.page}`}>
       <div className={lStyles.hero}>
@@ -1869,7 +2040,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       {(showOverview || showWorkoutLog || showActivity || showReminders) && (
       <div className={lStyles.insightGrid}>
         {(showOverview || showWorkoutLog) && (
-        <section className={lStyles.panel}>
+        <section ref={mealQuickActionRef} className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Records</div>
@@ -2033,7 +2204,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Gym session</div>
               <h3>Are you doing gym today?</h3>
-              <p className={lStyles.sectionHint}>Choose the day type and Lakas will load a ready routine with exercise timing, rest, form cues, and YouTube form help.</p>
+              <p className={lStyles.sectionHint}>Choose the day type and Lakas will load a ready session with estimated timing, rest, form cues, load guidance, and YouTube form help.</p>
             </div>
           </div>
 
@@ -2061,6 +2232,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 <span>{selectedGymTemplate.exercises.length} exercises</span>
                 <span>{selectedGymEstimate} min plan</span>
                 <span>{selectedGymTemplate.focus}</span>
+                {selectedGymSession.key === 'beginner' && <span>{beginnerProgression.trackLabel}</span>}
               </div>
               <div className={lStyles.gymSessionActions}>
                 <button type="button" className={lStyles.primaryBtn} onClick={() => openGymSessionMode(selectedGymTemplate, selectedGymSession)}>
@@ -2087,6 +2259,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                       <span>{exercise.rest || 0}s rest</span>
                       <span>{estimateExerciseMinutes(exercise)} min</span>
                     </div>
+                    <small>{getExerciseLoadHint(exercise.name, savedLakasSettings)}</small>
                     {guide && <p>{guide.setup} {guide.safety}</p>}
                     {exercise.notes && <small>{exercise.notes}</small>}
                     <span className={lStyles.gymExerciseVideoHint}>Video plays inside session mode</span>
@@ -2125,19 +2298,19 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 </button>
               </div>
             </div>
-            <div className={lStyles.beginnerCoachMetricGrid}>
-              <div>
-                <span>Foundation sessions</span>
-                <strong>{privacyMode ? '...' : `${beginnerProgression.completed}/8`}</strong>
-                <small>{beginnerProgression.weeklyTarget}</small>
-              </div>
-              <div>
-                <span>Next routine</span>
-                <strong>{beginnerNextTemplate.name.replace('Beginner ', '')}</strong>
-                <small>{beginnerNextTemplate.duration || estimateRoutineMinutes(beginnerNextTemplate.exercises)} min guided plan</small>
-              </div>
-              <div>
-                <span>Last foundation</span>
+              <div className={lStyles.beginnerCoachMetricGrid}>
+                <div>
+                  <span>Foundation sessions</span>
+                  <strong>{privacyMode ? '...' : `${beginnerProgression.completed}/8`}</strong>
+                  <small>{beginnerProgression.weeklyTarget}</small>
+                </div>
+                <div>
+                  <span>Next routine</span>
+                  <strong>{beginnerNextTemplate.name.replace('Beginner ', '')}</strong>
+                  <small>{beginnerProgression.trackLabel} · {beginnerNextTemplate.duration || estimateRoutineMinutes(beginnerNextTemplate.exercises)} min guided plan</small>
+                </div>
+                <div>
+                  <span>Last foundation</span>
                 <strong>{privacyMode ? 'Private' : beginnerProgression.lastSessionLabel}</strong>
                 <small>{beginnerProgression.progress}% through the starter block</small>
               </div>
@@ -2180,7 +2353,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Routines</div>
               <h3>Build a reusable routine</h3>
-              <p className={lStyles.sectionHint}>Start from Beginner Foundation, Push/Pull/Legs, Full Body, Home, or Cardio, then customize before saving.</p>
+              <p className={lStyles.sectionHint}>Start from Beginner, Push/Pull/Legs, Full Body, Home, Cardio, or Recovery templates, then customize before saving.</p>
             </div>
           </div>
           <div className={lStyles.templateRow}>
@@ -2214,14 +2387,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
           </div>
           {renderExerciseEditor(routineForm.exercises, setRoutineForm, 'Routine exercises')}
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddRoutine}>Save routine</button>
-          <div className={lStyles.routineList}>
+              <div className={lStyles.routineList}>
             {!routines.length ? (
               <div className={lStyles.empty}>No routines yet. Save your first template here.</div>
             ) : routines.slice(0, 4).map(routine => (
               <div key={routine._id} className={lStyles.routineCard}>
                 <div>
                   <strong>{routine.name}</strong>
-                  <span>{routine.focus || 'Routine'} · {routine.exerciseCount || 0} exercises · {routine.setCount || 0} sets</span>
+                  <span>{routine.focus || 'Routine'} · {getResolvedRoutineDuration(routine.duration, routine.exercises, savedLakasSettings.workoutDefaults.durationMinutes)} min · {routine.exerciseCount || 0} exercises · {routine.setCount || 0} sets</span>
                   {Array.isArray(routine.exercises) && routine.exercises.length > 0 && (
                     <small>{routine.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode, savedLakasSettings.units.weight)).join(' | ')}</small>
                   )}
@@ -2513,7 +2686,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
           <div className={lStyles.formGrid}>
             <label>
               <span>Meal</span>
-              <input value={mealForm.name} placeholder="Chicken adobo with rice" onChange={event => setMealForm(current => ({ ...current, name: event.target.value }))} />
+              <input ref={mealNameInputRef} value={mealForm.name} placeholder="Chicken adobo with rice" onChange={event => setMealForm(current => ({ ...current, name: event.target.value }))} />
             </label>
             <label>
               <span>Type</span>
@@ -2567,8 +2740,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Units & display</div>
-              <h3>Lakas preferences</h3>
-              <p className={lStyles.sectionHint}>Set the measurement system and privacy behavior used by the fitness space.</p>
+              <h3>Core preferences</h3>
+              <p className={lStyles.sectionHint}>Start with units and privacy behavior. These are the things most people actually revisit.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2614,8 +2787,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Daily targets</div>
-              <h3>What a good day means</h3>
-              <p className={lStyles.sectionHint}>These targets guide Lakas summaries without forcing you into a strict plan.</p>
+              <h3>What a good week looks like</h3>
+              <p className={lStyles.sectionHint}>These targets guide Lakas summaries without turning fitness into a rigid scoreboard.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2649,83 +2822,89 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
-              <div className={lStyles.sectionKicker}>Workout defaults</div>
-              <h3>Experience and progression</h3>
-              <p className={lStyles.sectionHint}>Beginner mode favors lighter defaults, form cues, and slower progression before heavier plans.</p>
+              <div className={lStyles.sectionKicker}>Training profile</div>
+              <h3>Beginner and progression setup</h3>
+              <p className={lStyles.sectionHint}>These settings shape starter routines and default templates, so they stay folded away unless you want to personalize training.</p>
             </div>
           </div>
-          <div className={lStyles.formGrid}>
-            <label>
-              <span>Experience level</span>
-              <select value={settingsForm.training.experienceLevel} onChange={event => updateSettingGroup('training', 'experienceLevel', event.target.value)}>
-                <option>Beginner</option>
-                <option>Returning</option>
-                <option>Intermediate</option>
-              </select>
-            </label>
-            <label>
-              <span>Progression mode</span>
-              <select value={settingsForm.training.progressionMode} onChange={event => updateSettingGroup('training', 'progressionMode', event.target.value)}>
-                <option>Guided</option>
-                <option>Flexible</option>
-              </select>
-            </label>
-            <label>
-              <span>Primary goal</span>
-              <select value={settingsForm.baseline.goal} onChange={event => updateSettingGroup('baseline', 'goal', event.target.value)}>
-                <option>Build consistency</option>
-                <option>Lose weight</option>
-                <option>Gain muscle</option>
-                <option>Get stronger</option>
-                <option>Move more</option>
-              </select>
-            </label>
-            <label>
-              <span>Workout place</span>
-              <select value={settingsForm.baseline.workoutPlace} onChange={event => updateSettingGroup('baseline', 'workoutPlace', event.target.value)}>
-                <option>Gym</option>
-                <option>Home</option>
-                <option>Both</option>
-              </select>
-            </label>
-            <label>
-              <span>Equipment</span>
-              <select value={settingsForm.baseline.equipment} onChange={event => updateSettingGroup('baseline', 'equipment', event.target.value)}>
-                <option>None</option>
-                <option>Dumbbells</option>
-                <option>Machines</option>
-                <option>Full gym</option>
-              </select>
-            </label>
-            <label className={lStyles.full}>
-              <span>Limitations or injury notes</span>
-              <input value={settingsForm.baseline.limitations} placeholder="Optional. Keep starter plans gentler." onChange={event => updateSettingGroup('baseline', 'limitations', event.target.value)} />
-            </label>
-            <label>
-              <span>Sets</span>
-              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.sets} onChange={event => updateSettingGroup('workoutDefaults', 'sets', event.target.value)} />
-            </label>
-            <label>
-              <span>Reps</span>
-              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.reps} onChange={event => updateSettingGroup('workoutDefaults', 'reps', event.target.value)} />
-            </label>
-            <label>
-              <span>Rest seconds</span>
-              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.restSeconds} onChange={event => updateSettingGroup('workoutDefaults', 'restSeconds', event.target.value)} />
-            </label>
-            <label>
-              <span>Duration min</span>
-              <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.durationMinutes} onChange={event => updateSettingGroup('workoutDefaults', 'durationMinutes', event.target.value)} />
-            </label>
-          </div>
+          <details className={lStyles.advancedBox}>
+            <summary className={lStyles.advancedSummary}>
+              <span>Open training profile and default set templates</span>
+              <small>Experience, goals, equipment, and default sets/reps.</small>
+            </summary>
+            <div className={lStyles.formGrid} style={{ padding: '0 12px 12px' }}>
+              <label>
+                <span>Experience level</span>
+                <select value={settingsForm.training.experienceLevel} onChange={event => updateSettingGroup('training', 'experienceLevel', event.target.value)}>
+                  <option>Beginner</option>
+                  <option>Returning</option>
+                  <option>Intermediate</option>
+                </select>
+              </label>
+              <label>
+                <span>Progression mode</span>
+                <select value={settingsForm.training.progressionMode} onChange={event => updateSettingGroup('training', 'progressionMode', event.target.value)}>
+                  <option>Guided</option>
+                  <option>Flexible</option>
+                </select>
+              </label>
+              <label>
+                <span>Primary goal</span>
+                <select value={settingsForm.baseline.goal} onChange={event => updateSettingGroup('baseline', 'goal', event.target.value)}>
+                  <option>Build consistency</option>
+                  <option>Lose weight</option>
+                  <option>Gain muscle</option>
+                  <option>Get stronger</option>
+                  <option>Move more</option>
+                </select>
+              </label>
+              <label>
+                <span>Workout place</span>
+                <select value={settingsForm.baseline.workoutPlace} onChange={event => updateSettingGroup('baseline', 'workoutPlace', event.target.value)}>
+                  <option>Gym</option>
+                  <option>Home</option>
+                  <option>Both</option>
+                </select>
+              </label>
+              <label>
+                <span>Equipment</span>
+                <select value={settingsForm.baseline.equipment} onChange={event => updateSettingGroup('baseline', 'equipment', event.target.value)}>
+                  <option>None</option>
+                  <option>Dumbbells</option>
+                  <option>Machines</option>
+                  <option>Full gym</option>
+                </select>
+              </label>
+              <label className={lStyles.full}>
+                <span>Limitations or injury notes</span>
+                <input value={settingsForm.baseline.limitations} placeholder="Optional. Keep starter plans gentler." onChange={event => updateSettingGroup('baseline', 'limitations', event.target.value)} />
+              </label>
+              <label>
+                <span>Sets</span>
+                <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.sets} onChange={event => updateSettingGroup('workoutDefaults', 'sets', event.target.value)} />
+              </label>
+              <label>
+                <span>Reps</span>
+                <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.reps} onChange={event => updateSettingGroup('workoutDefaults', 'reps', event.target.value)} />
+              </label>
+              <label>
+                <span>Rest seconds</span>
+                <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.restSeconds} onChange={event => updateSettingGroup('workoutDefaults', 'restSeconds', event.target.value)} />
+              </label>
+              <label>
+                <span>Duration min</span>
+                <input type="number" min="0" inputMode="numeric" value={settingsForm.workoutDefaults.durationMinutes} onChange={event => updateSettingGroup('workoutDefaults', 'durationMinutes', event.target.value)} />
+              </label>
+            </div>
+          </details>
         </section>
 
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Meals & reminders</div>
-              <h3>Fuel and reminder defaults</h3>
-              <p className={lStyles.sectionHint}>Keep nutrition and reminder defaults close to the way you actually live.</p>
+              <h3>Nutrition and reminder defaults</h3>
+              <p className={lStyles.sectionHint}>Keep meal targets and reminder timing close to real life, not an idealized plan.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2819,7 +2998,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div key={workout._id} className={lStyles.rowCard}>
               <div>
                 <strong>{workout.title}</strong>
-                <span>{formatDisplayDate(workout.date)} · {workout.duration ? `${workout.duration} min` : 'No duration'} · {workout.exerciseCount || 0} exercises · {workout.setCount || 0} sets · {formatNumber(workout.volume || getExerciseTotals(workout.exercises).volume)} {savedLakasSettings.units.weight} volume</span>
+                <span>{formatDisplayDate(workout.date)} · {getResolvedRoutineDuration(workout.duration, workout.exercises, savedLakasSettings.workoutDefaults.durationMinutes)} min · {workout.exerciseCount || 0} exercises · {workout.setCount || 0} sets · {formatNumber(workout.volume || getExerciseTotals(workout.exercises).volume)} {savedLakasSettings.units.weight} volume</span>
                 {Array.isArray(workout.exercises) && workout.exercises.length > 0 && (
                   <small>{workout.exercises.slice(0, 3).map(row => formatExerciseLine(row, privacyMode, savedLakasSettings.units.weight)).join(' | ')}</small>
                 )}
@@ -3047,6 +3226,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                   <div><span>Work</span><strong>{estimateExerciseMinutes(activeGymExercise)} min</strong></div>
                   <div><span>Rest</span><strong>{activeGymExercise.rest || 0}s</strong></div>
                 </div>
+                {activeGymExercise.name && (
+                  <p className={lStyles.gymModeNotes}>
+                    Suggested start: {getExerciseLoadHint(activeGymExercise.name, savedLakasSettings)}
+                  </p>
+                )}
                 {activeGymRestRemaining > 0 && (
                   <div className={lStyles.gymModeRestCard} role="timer" aria-live="polite">
                     <div>

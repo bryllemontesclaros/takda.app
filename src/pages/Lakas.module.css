@@ -1502,6 +1502,27 @@
   gap: 8px;
 }
 
+.exerciseHint {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.exerciseHint span,
+.exerciseHint small {
+  color: var(--text3);
+  line-height: 1.45;
+}
+
+.exerciseHint span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.exerciseHint small {
+  font-size: 11px;
+}
+
 .secondaryBtn,
 .ghostBtn,
 .chip,

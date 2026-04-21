@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { fsAdd, fsDel, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
 import { formatDisplayDate, today } from '../lib/utils'
@@ -83,9 +83,9 @@ const TALA_TAB_COPY = {
   },
   settings: {
     eyebrow: 'Tala settings',
-    title: 'Tune Tala to feel safe and useful.',
-    sub: 'Set reminder time, weekly review day, prompt style, privacy defaults, and data controls.',
-    guide: ['Set reminder', 'Choose privacy', 'Export anytime'],
+    title: 'Keep Tala gentle, private, and light.',
+    sub: 'The main Tala defaults stay simple, while data controls and logout stay easy to reach without making the page feel too administrative.',
+    guide: ['Set reminder', 'Choose privacy', 'Manage calmly'],
   },
 }
 
@@ -329,7 +329,7 @@ function MiniTrend({ title, rows, hidden = false }) {
   )
 }
 
-export default function Tala({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today' }) {
+export default function Tala({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today', actionRequest = null, onActionHandled = () => {} }) {
   const talaSettings = getTalaSettings(profile)
   const [todayForm, setTodayForm] = useState(createTodayForm)
   const [journalForm, setJournalForm] = useState(() => createJournalForm(talaSettings))
@@ -343,6 +343,11 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
   const [selectedTalaDate, setSelectedTalaDate] = useState(today())
   const settingsKey = JSON.stringify(profile?.talaSettings || {})
+  const journalQuickActionRef = useRef(null)
+  const journalTitleInputRef = useRef(null)
+  const moodQuickActionRef = useRef(null)
+  const moodSelectRef = useRef(null)
+  const handledActionTokenRef = useRef(null)
 
   const checkins = sortNewest(normalizeRows(data.talaCheckins))
   const journal = sortNewest(normalizeRows(data.talaJournal))
@@ -451,6 +456,36 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   const showSettings = currentTab === 'settings'
   const avgMoodLabel = insights.avgMood ? `${formatNumber(insights.avgMood, 1)}/5` : 'No log'
   const calmPlan = useMemo(() => getTalaCalmPlan(insights, journal, moods), [insights, journal, moods])
+
+  useEffect(() => {
+    if (!actionRequest?.token || handledActionTokenRef.current === actionRequest.token) return undefined
+
+    if (actionRequest.type === 'journal') {
+      if (!showJournal) return undefined
+      handledActionTokenRef.current = actionRequest.token
+      const frameId = window.requestAnimationFrame(() => {
+        journalQuickActionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        journalTitleInputRef.current?.focus()
+        onActionHandled(actionRequest.token)
+      })
+      return () => window.cancelAnimationFrame(frameId)
+    }
+
+    if (actionRequest.type === 'mood') {
+      if (!showMood) return undefined
+      handledActionTokenRef.current = actionRequest.token
+      const frameId = window.requestAnimationFrame(() => {
+        moodQuickActionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        moodSelectRef.current?.focus()
+        onActionHandled(actionRequest.token)
+      })
+      return () => window.cancelAnimationFrame(frameId)
+    }
+
+    handledActionTokenRef.current = actionRequest.token
+    onActionHandled(actionRequest.token)
+    return undefined
+  }, [actionRequest, onActionHandled, showJournal, showMood])
 
   const tabHeroCard = {
     today: {
@@ -781,7 +816,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
 
       {showToday && (
       <div className={tStyles.grid}>
-        <section className={tStyles.panel}>
+        <section ref={journalQuickActionRef} className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Daily check-in</div>
@@ -907,7 +942,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             </label>
             <label className={tStyles.full}>
               <span>Title</span>
-              <input value={journalForm.title} placeholder="What is this entry about?" onChange={event => setJournalForm(current => ({ ...current, title: event.target.value }))} />
+              <input ref={journalTitleInputRef} value={journalForm.title} placeholder="What is this entry about?" onChange={event => setJournalForm(current => ({ ...current, title: event.target.value }))} />
             </label>
             <label className={tStyles.full}>
               <span>Entry</span>
@@ -942,7 +977,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
           <button type="button" className={tStyles.primaryBtn} onClick={handleAddJournal}>Save journal</button>
         </section>
 
-        <section className={tStyles.panel}>
+        <section ref={moodQuickActionRef} className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Recent</div>
@@ -982,7 +1017,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             </label>
             <label>
               <span>Mood</span>
-              <select value={moodForm.mood} onChange={event => setMoodForm(current => ({ ...current, mood: event.target.value }))}>
+              <select ref={moodSelectRef} value={moodForm.mood} onChange={event => setMoodForm(current => ({ ...current, mood: event.target.value }))}>
                 {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
               </select>
             </label>
@@ -1307,7 +1342,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             <div>
               <div className={tStyles.sectionKicker}>Settings</div>
               <h3>Tala preferences</h3>
-              <p className={tStyles.sectionHint}>Keep the mind space gentle, private, and exportable.</p>
+              <p className={tStyles.sectionHint}>Keep the mind space gentle, private, and easy to return to.</p>
             </div>
           </div>
           <div className={tStyles.formGrid}>
@@ -1330,7 +1365,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               </select>
             </label>
             <label>
-              <span>Journal privacy</span>
+              <span>Default privacy</span>
               <select value={settingsForm.privateByDefault ? 'private' : 'open'} onChange={event => updateSettings('privateByDefault', event.target.value === 'private')}>
                 <option value="private">Private by default</option>
                 <option value="open">Open by default</option>
@@ -1352,9 +1387,9 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
         <section className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
-              <div className={tStyles.sectionKicker}>Data controls</div>
-              <h3>Tala-only backup and reset</h3>
-              <p className={tStyles.sectionHint}>Export or clear Tala data without touching Takda finance or Lakas fitness records.</p>
+              <div className={tStyles.sectionKicker}>Manage</div>
+              <h3>Data and account</h3>
+              <p className={tStyles.sectionHint}>Export or clear Tala-only data, then log out safely without switching back to Takda settings.</p>
             </div>
           </div>
           <div className={tStyles.settingsActions}>
@@ -1364,19 +1399,11 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             </button>
           </div>
           <div className={tStyles.empty}>Settings are kept when logs are deleted.</div>
-        </section>
-
-        <section className={tStyles.panel}>
-          <div className={tStyles.sectionHeader}>
-            <div>
-              <div className={tStyles.sectionKicker}>Account</div>
-              <h3>Leave this device safely</h3>
-              <p className={tStyles.sectionHint}>Log out of Buhay from Tala without switching back to Takda settings.</p>
-            </div>
+          <div className={tStyles.settingsActions}>
+            <button type="button" className={tStyles.ghostBtn} onClick={handleLogout}>
+              Log out
+            </button>
           </div>
-          <button type="button" className={tStyles.ghostBtn} onClick={handleLogout}>
-            Log out
-          </button>
         </section>
       </div>
       )}

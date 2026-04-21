@@ -630,10 +630,37 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   useEffect(() => {
     if (!selected || !selectedDayRef.current) return undefined
     const frameId = window.requestAnimationFrame(() => {
-      selectedDayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+      selectedDayRef.current?.focus()
     })
     return () => window.cancelAnimationFrame(frameId)
   }, [selected])
+
+  useEffect(() => {
+    if (!selected) return undefined
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [selected])
+
+  useEffect(() => {
+    if (!selected && !showModal) return undefined
+    const handleEscape = event => {
+      if (event.key !== 'Escape') return
+      if (showModal) {
+        closeTransactionEditor()
+        return
+      }
+      if (editingDayBalance) {
+        closeDayBalanceEditor()
+        return
+      }
+      closeSelectedDay()
+    }
+    window.addEventListener('keydown', handleEscape)
+    return () => window.removeEventListener('keydown', handleEscape)
+  }, [selected, showModal, editingDayBalance, dayBalanceSaving, defaultAccountId])
 
   return (
     <div className={`${styles.page} ${calStyles.page}`}>
@@ -661,12 +688,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
             </label>
             <button type="button" className={calStyles.navBtn} onClick={next} aria-label="Next month">→</button>
           </div>
-        </div>
-
-        <div className={calStyles.calendarTrustStrip} aria-label="Calendar balance guide">
-          <span>Closing balance: projected end-of-day</span>
-          <span>Pinned days override forecast</span>
-          <span>{privacyMode ? 'Screen privacy hides amounts only' : 'Firestore rules protect account access'}</span>
         </div>
 
         <div className={calStyles.monthBoard}>
@@ -747,9 +768,20 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           </div>
           <div className={`${calStyles.balanceRailValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(balanceFocusValue)}</div>
         </button>
+      </div>
 
-        {selected && (
-          <section ref={selectedDayRef} className={calStyles.dayPanel} aria-labelledby="calendar-day-panel-title">
+      {selected && (
+        <div className={calStyles.daySheetOverlay} onClick={closeSelectedDay} role="presentation">
+          <section
+            ref={selectedDayRef}
+            tabIndex={-1}
+            className={`${calStyles.dayPanel} ${calStyles.daySheet}`}
+            aria-labelledby="calendar-day-panel-title"
+            aria-modal="true"
+            role="dialog"
+            onClick={event => event.stopPropagation()}
+          >
+            <div className={calStyles.dayPanelHandle} aria-hidden="true" />
             <div className={calStyles.dayPanelTop}>
               <div className={calStyles.dayPanelHeader}>
                 <div className={calStyles.dayPanelHeaderMain}>
@@ -760,7 +792,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   <div id="calendar-day-panel-title" className={calStyles.dayPanelTitle}>{formatBalanceDate(selected)}</div>
                 </div>
                 <div className={calStyles.dayPanelHeaderRight}>
-                  <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Clear selected day">Clear</button>
+                  <button type="button" onClick={closeSelectedDay} className={calStyles.dayPanelClose} aria-label="Close day details">Close</button>
                 </div>
               </div>
             </div>
@@ -974,10 +1006,10 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   </div>
                 </details>
               )}
-          </div>
+            </div>
           </section>
-        )}
-      </div>
+        </div>
+      )}
 
       {showModal && (
         <div className={calStyles.modalOverlay} onClick={closeTransactionEditor}>

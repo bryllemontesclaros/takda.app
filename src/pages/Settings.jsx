@@ -11,7 +11,6 @@ import {
   verifyBeforeUpdateEmail,
 } from 'firebase/auth'
 import { deleteField } from 'firebase/firestore'
-import GamificationCard from '../components/GamificationCard'
 import { auth } from '../lib/firebase'
 import { fsAdd, fsDel, fsDeleteAccountData, fsResetFinancialData, fsRestoreBackup, fsSetProfile, fsUpdate } from '../lib/firestore'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
@@ -265,7 +264,28 @@ function CardHeader({ title, description, eyebrow, badge }) {
   )
 }
 
-export default function Settings({ user, data, profile, symbol, privacyMode = false, gamification }) {
+function DisclosureCard({ title, description, eyebrow, badge, className = '', defaultOpen = false, children }) {
+  return (
+    <details className={`${className} ${settStyles.disclosureCard}`} open={defaultOpen}>
+      <summary className={settStyles.disclosureSummary}>
+        <div className={settStyles.disclosureCopy}>
+          {eyebrow ? <div className={settStyles.sectionEyebrow}>{eyebrow}</div> : null}
+          <div className={settStyles.sectionTitleRow}>
+            <div className={settStyles.sectionTitle}>{title}</div>
+            {badge ? <span className={settStyles.sectionBadge}>{badge}</span> : null}
+          </div>
+          {description ? <p className={`${settStyles.sectionCopy} ${settStyles.disclosureMeta}`}>{description}</p> : null}
+        </div>
+        <span className={settStyles.disclosureChevron} aria-hidden="true">⌄</span>
+      </summary>
+      <div className={settStyles.disclosureBody}>
+        {children}
+      </div>
+    </details>
+  )
+}
+
+export default function Settings({ user, data, profile, symbol, privacyMode = false }) {
   const s = symbol || '₱'
   const restoreInputRef = useRef(null)
   const [profileForm, setProfileForm] = useState({ currency: 'PHP' })
@@ -787,15 +807,21 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     + (data.lakasReminders || []).length
     + (data.lakasMeals || []).length
     + (data.lakasGoals || []).length
-  const trackedRecords = totalTx + data.bills.length + data.goals.length + data.accounts.length + data.budgets.length + data.receipts.length + (data.transfers || []).length + lakasRecords
+  const talaRecords = (data.talaCheckins || []).length
+    + (data.talaJournal || []).length
+    + (data.talaMoods || []).length
+    + (data.talaTasks || []).length
+    + (data.talaGoals || []).length
+  const trackedRecords = totalTx
+    + data.bills.length
+    + data.goals.length
+    + data.accounts.length
+    + data.budgets.length
+    + data.receipts.length
+    + (data.transfers || []).length
+    + lakasRecords
+    + talaRecords
   const goalDateSelected = Boolean(goalForm.date)
-  const settingsReadiness = Math.max(
-    0,
-    Math.min(
-      100,
-      Math.round((((emailVerified ? 1 : 0) + Number(Boolean(profileForm.currency)) + (enabledNotificationCount / NOTIFICATION_OPTIONS.length)) / 3) * 100),
-    ),
-  )
   const settingsCardClass = `${styles.card} ${settStyles.surfaceCard}`
   const settingsWideCardClass = `${styles.card} ${settStyles.surfaceCard} ${settStyles.fullSpanCard}`
   const settingsDangerCardClass = `${styles.card} ${settStyles.surfaceCard} ${settStyles.dangerCard}`
@@ -804,57 +830,30 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settStyles.heroSection}>
         <div className={settStyles.heroCopy}>
           <div className={settStyles.pageEyebrow}>Settings</div>
-          <div className={settStyles.pageTitle}>Keep Buhay secure, personal, and easy to recover.</div>
+          <div className={settStyles.pageTitle}>Account, privacy, backup, and recovery in one place.</div>
           <div className={settStyles.pageSub}>
-            Everything sensitive lives here: account identity, notifications, backups, legal controls, and the tools you need if something goes wrong.
+            The essentials stay upfront here: identity, notifications, privacy, backup, and recovery. Lower-priority product extras stay tucked away so this page feels calmer to use.
           </div>
         </div>
 
         <div className={settStyles.heroAside}>
-          <div className={settStyles.heroAsideLabel}>Account profile</div>
-          <div className={settStyles.heroAsideValue}>{currentDisplayName || 'Buhay account'}</div>
-          <div className={settStyles.heroAsideTrack}>
-            <div className={settStyles.heroAsideFill} style={{ width: `${settingsReadiness}%` }} />
+          <div className={settStyles.heroAsideLabel}>Ready now</div>
+          <div className={settStyles.heroAsideValue}>{emailVerified ? 'Recovery-ready' : 'Needs one step'}</div>
+          <div className={settStyles.heroAsideTags}>
+            <span className={`${settStyles.statusPill} ${emailVerified ? settStyles.statusPillOk : settStyles.statusPillWarn}`}>
+              {emailVerified ? 'Verified email' : 'Verify email'}
+            </span>
+            <span className={settStyles.statusPill}>{profileForm.currency || 'PHP'}</span>
+            <span className={settStyles.statusPill}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length} alerts on</span>
           </div>
           <div className={settStyles.heroAsideMeta}>
+            {currentDisplayName || 'Buhay account'}
+            {' · '}
             {currentEmail || 'Signed in'}
             {' · '}
-            {emailVerified ? 'Verified and recovery-ready' : 'Verify email for smoother recovery'}
+            {trackedRecords} records saved across Takda, Lakas, and Tala
           </div>
         </div>
-      </div>
-
-      <div className={settStyles.heroStatsGrid}>
-        <div className={settStyles.heroStatCard}>
-          <div className={settStyles.heroStatLabel}>Email status</div>
-          <div className={settStyles.heroStatValue}>{emailVerified ? 'Verified' : 'Needs verification'}</div>
-          <div className={settStyles.heroStatMeta}>{emailVerified ? 'Recovery-ready account' : 'Verify for smoother recovery'}</div>
-        </div>
-        <div className={settStyles.heroStatCard}>
-          <div className={settStyles.heroStatLabel}>Currency</div>
-          <div className={`${settStyles.heroStatValue} ${settStyles.heroStatValueBlue}`}>{profileForm.currency || 'PHP'}</div>
-          <div className={settStyles.heroStatMeta}>Used across balances, goals, and reports</div>
-        </div>
-        <div className={settStyles.heroStatCard}>
-          <div className={settStyles.heroStatLabel}>Notifications</div>
-          <div className={`${settStyles.heroStatValue} ${settStyles.heroStatValueAccent}`}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length}</div>
-          <div className={settStyles.heroStatMeta}>In-app alert categories enabled</div>
-        </div>
-        <div className={settStyles.heroStatCard}>
-          <div className={settStyles.heroStatLabel}>Tracked records</div>
-          <div className={settStyles.heroStatValue}>{trackedRecords}</div>
-          <div className={settStyles.heroStatMeta}>Transactions, goals, bills, accounts, budgets, and receipts</div>
-        </div>
-      </div>
-
-      <div className={settStyles.gamificationWrap}>
-        <GamificationCard
-          gamification={gamification}
-          privacyMode={privacyMode}
-          compact
-          title="Profile progress"
-          message="Settings shape the experience. Consistent logging keeps the numbers useful."
-        />
       </div>
 
       <div className={settStyles.settingsGrid}>
@@ -862,7 +861,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Identity"
           title="Account & security"
-          description="Update your display name, verification status, and the email details tied to your Buhay account."
+          description="Handle the essentials here: your display name, verification status, email change, and password update."
         />
         <StatusBanner message={accountMsg} />
 
@@ -919,36 +918,37 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             {accountSaving ? 'Updating...' : 'Update email'}
           </button>
         </div>
-      </div>
 
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="Security"
-          title="Change password"
-          description="Keep your login secure and update your password without leaving Buhay."
-        />
-        {pwMsg.text && (
-          <div className={`${settStyles.statusBanner} ${pwMsg.ok ? settStyles.statusBannerOk : settStyles.statusBannerError}`} style={{ marginBottom: 12 }}>
-            {pwMsg.text}
+        <details className={settStyles.inlineDisclosure}>
+          <summary className={settStyles.inlineDisclosureSummary}>
+            <span>Change password</span>
+            <small>Only open this when you need to update your login.</small>
+          </summary>
+          <div className={settStyles.inlineDisclosureBody}>
+            {pwMsg.text && (
+              <div className={`${settStyles.statusBanner} ${pwMsg.ok ? settStyles.statusBannerOk : settStyles.statusBannerError}`} style={{ marginBottom: 12 }}>
+                {pwMsg.text}
+              </div>
+            )}
+            <div className={`${styles.formRow} ${styles.col3}`} style={{ marginBottom: 12 }}>
+              <div className={styles.formGroup}>
+                <label>Current password</label>
+                <input type="password" placeholder="••••••••" value={pwForm.current} onChange={event => setPwForm(current => ({ ...current, current: event.target.value }))} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>New password</label>
+                <input type="password" placeholder="Min. 6 characters" value={pwForm.next} onChange={event => setPwForm(current => ({ ...current, next: event.target.value }))} />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Confirm new password</label>
+                <input type="password" placeholder="••••••••" value={pwForm.confirm} onChange={event => setPwForm(current => ({ ...current, confirm: event.target.value }))} />
+              </div>
+            </div>
+            <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleChangePassword} disabled={pwLoading}>
+              {pwLoading ? 'Updating...' : 'Update password'}
+            </button>
           </div>
-        )}
-        <div className={`${styles.formRow} ${styles.col3}`} style={{ marginBottom: 12 }}>
-          <div className={styles.formGroup}>
-            <label>Current password</label>
-            <input type="password" placeholder="••••••••" value={pwForm.current} onChange={event => setPwForm(current => ({ ...current, current: event.target.value }))} />
-          </div>
-          <div className={styles.formGroup}>
-            <label>New password</label>
-            <input type="password" placeholder="Min. 6 characters" value={pwForm.next} onChange={event => setPwForm(current => ({ ...current, next: event.target.value }))} />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Confirm new password</label>
-            <input type="password" placeholder="••••••••" value={pwForm.confirm} onChange={event => setPwForm(current => ({ ...current, confirm: event.target.value }))} />
-          </div>
-        </div>
-        <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleChangePassword} disabled={pwLoading}>
-          {pwLoading ? 'Updating...' : 'Update password'}
-        </button>
+        </details>
       </div>
 
       <div className={settingsCardClass}>
@@ -1050,8 +1050,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settingsCardClass}>
         <CardHeader
           eyebrow="Formatting"
-          title="Currency & rates"
-          description="Choose the currency Buhay should use across the finance space and view indicative exchange rates for context."
+          title="Currency preference"
+          description="Choose the currency Buhay should use across Takda. Indicative exchange rates are still available when you need context."
         />
 
         <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
@@ -1061,38 +1061,40 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           </select>
         </div>
 
-        <div className={settStyles.subsection} style={{ marginBottom: '1.25rem' }}>
-          <div className={settStyles.subsectionTitle}>Live exchange rates</div>
-          <p className={settStyles.subsectionCopy}>
-            Indicative rates for your selected base currency. Helpful for context, not a core account setting.
-          </p>
-          {ratesLoading ? (
-            <div className={settStyles.emptyCopy}>Loading rates...</div>
-          ) : !rates ? (
-            <div className={settStyles.emptyCopy}>Could not load rates. Check your connection.</div>
-          ) : (
-            <>
-              <div className={settStyles.ratesGrid}>
-                <div className={settStyles.rateBaseCard}>
-                  <div className={settStyles.rateBaseLabel}>Your currency — Base</div>
-                  <div className={settStyles.rateBaseValue}>{s} {rates.base}</div>
+        <details className={settStyles.inlineDisclosure} style={{ marginBottom: '1.25rem' }}>
+          <summary className={settStyles.inlineDisclosureSummary}>
+            <span>View indicative exchange rates</span>
+            <small>Useful for context, not a core setting.</small>
+          </summary>
+          <div className={settStyles.inlineDisclosureBody}>
+            {ratesLoading ? (
+              <div className={settStyles.emptyCopy}>Loading rates...</div>
+            ) : !rates ? (
+              <div className={settStyles.emptyCopy}>Could not load rates. Check your connection.</div>
+            ) : (
+              <>
+                <div className={settStyles.ratesGrid}>
+                  <div className={settStyles.rateBaseCard}>
+                    <div className={settStyles.rateBaseLabel}>Your currency — Base</div>
+                    <div className={settStyles.rateBaseValue}>{s} {rates.base}</div>
+                  </div>
+                  {['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD', 'CAD', 'HKD', 'KRW', 'CNY', 'PHP'].filter(code => code !== rates.base).map(code => {
+                    if (!rates.data[code]) return null
+                    const unitsPerForeign = (1 / rates.data[code]).toFixed(2)
+                    return (
+                      <div key={code} className={settStyles.rateCard}>
+                        <div className={settStyles.rateLabel}>1 {code} =</div>
+                        <div className={settStyles.rateValue}>{s}{unitsPerForeign}</div>
+                        <div className={settStyles.rateMeta}>{rates.base}</div>
+                      </div>
+                    )
+                  })}
                 </div>
-                {['USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD', 'CAD', 'HKD', 'KRW', 'CNY', 'PHP'].filter(code => code !== rates.base).map(code => {
-                  if (!rates.data[code]) return null
-                  const unitsPerForeign = (1 / rates.data[code]).toFixed(2)
-                  return (
-                    <div key={code} className={settStyles.rateCard}>
-                      <div className={settStyles.rateLabel}>1 {code} =</div>
-                      <div className={settStyles.rateValue}>{s}{unitsPerForeign}</div>
-                      <div className={settStyles.rateMeta}>{rates.base}</div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className={settStyles.rateSource}>Source: exchangerate-api.com · Rates are indicative</div>
-            </>
-          )}
-        </div>
+                <div className={settStyles.rateSource}>Source: exchangerate-api.com · Rates are indicative</div>
+              </>
+            )}
+          </div>
+        </details>
 
         {profileSaved && (
           <div className={`${settStyles.statusBanner} ${settStyles.statusBannerOk}`}>
@@ -1103,84 +1105,6 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} onClick={handleSaveProfile}>
           Save profile
         </button>
-      </div>
-
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="Planning"
-          title="Savings goals"
-          description="Manage your finish lines here without leaving Settings."
-        />
-
-        <div className={settStyles.goalComposer}>
-        <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 8 }}>
-          <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={goalForm.name} onChange={event => setGoalForm(current => ({ ...current, name: event.target.value }))} /></div>
-          <div className={styles.formGroup}><label>Target ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.target} onChange={event => setGoalForm(current => ({ ...current, target: event.target.value }))} /></div>
-        </div>
-        <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
-          <div className={styles.formGroup}><label>Already saved ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.current} onChange={event => setGoalForm(current => ({ ...current, current: event.target.value }))} /></div>
-          <div className={styles.formGroup}>
-            <div className={styles.fieldLabelRow}>
-              <label htmlFor="settings-goal-date">Target date</label>
-              <span className={styles.fieldLabelNote}>Optional</span>
-            </div>
-            <div className={styles.dateFieldWrap}>
-              <div className={`${styles.dateFieldDisplay} ${!goalDateSelected ? styles.dateFieldPlaceholder : ''}`}>
-                {formatDisplayDate(goalForm.date)}
-              </div>
-              <input
-                id="settings-goal-date"
-                type="date"
-                className={styles.dateFieldNative}
-                value={goalForm.date}
-                onChange={event => setGoalForm(current => ({ ...current, date: event.target.value }))}
-              />
-            </div>
-          </div>
-        </div>
-        <div className={settStyles.actionRow}>
-          <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} style={{ marginBottom: data.goals.length ? '0.25rem' : 0 }} onClick={handleAddGoal}>Add goal</button>
-        </div>
-        </div>
-
-        {data.goals.map(goal => {
-          const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
-          return (
-            <div key={goal._id} className={`${styles.goalCard} ${settStyles.goalItem}`}>
-              <div className={settStyles.goalItemHeader}>
-                <div>
-                  <div className={styles.goalName}>{goal.name}</div>
-                  <div className={settStyles.goalItemMeta}>
-                    <span>{pct}% complete</span>
-                    {goal.date && <span className={styles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
-                  </div>
-                </div>
-                <button className={styles.delBtn} onClick={() => handleDelGoal(goal._id)}>✕</button>
-              </div>
-              <div className={styles.progressTrack}>
-                <div className={styles.progressFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
-              </div>
-              <div className={styles.goalMeta}>
-                <div className={styles.goalMetaPrimary}>
-                  <span className={styles.goalSaved}>{money(goal.current || 0)} saved</span>
-                  <span>of {money(goal.target)}</span>
-                </div>
-              </div>
-              <div className={settStyles.goalContributionRow}>
-                <input
-                  type="number"
-                  min="0"
-                  placeholder={`Add amount (${s})`}
-                  value={contribs[goal._id] || ''}
-                  onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
-                  className={settStyles.goalContributionInput}
-                />
-                <button className={settStyles.btnExport} onClick={() => handleGoalContrib(goal)}>+ Add</button>
-              </div>
-            </div>
-          )
-        })}
-        {!data.goals.length && <div className={settStyles.emptyCopy} style={{ marginTop: 8 }}>No savings goals yet. Add one above to start tracking progress.</div>}
       </div>
 
       <div className={settingsWideCardClass}>
@@ -1265,97 +1189,173 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
             </>
           )}
         </div>
-      </div>
-
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="Snapshot"
-          title="Your data"
-          description="A quick read of how much information is currently stored in Buhay."
-        />
-        <div className={settStyles.summaryGrid}>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.income.length}</div><div className={settStyles.summaryLabel}>Income entries</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.expenses.length}</div><div className={settStyles.summaryLabel}>Expenses</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.bills.length}</div><div className={settStyles.summaryLabel}>Bills</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.goals.length}</div><div className={settStyles.summaryLabel}>Savings goals</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.accounts.length}</div><div className={settStyles.summaryLabel}>Accounts</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.budgets.length}</div><div className={settStyles.summaryLabel}>Budgets</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.receipts.length}</div><div className={settStyles.summaryLabel}>Receipts</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{(data.transfers || []).length}</div><div className={settStyles.summaryLabel}>Transfers</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{lakasRecords}</div><div className={settStyles.summaryLabel}>Lakas records</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal} style={{ color: 'var(--accent)' }}>{money(savingsTotal)}</div><div className={settStyles.summaryLabel}>Total saved</div></div>
-          <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{totalTx}</div><div className={settStyles.summaryLabel}>Total transactions</div></div>
-        </div>
-      </div>
-
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="Product loop"
-          title="Feedback & reviews"
-          description="Share ideas, report issues, rate the app, or opt in to a testimonial for the landing page."
-        />
-        {feedbackSaved && <div className={settStyles.feedbackSaved}>{feedbackSaved}</div>}
-        <div className={settStyles.feedbackGrid}>
-          <button className={settStyles.feedbackAction} onClick={() => openFeedback('feedback')}>
-            <strong>Send Feedback</strong>
-            <span>Suggestions and product ideas</span>
-          </button>
-          <button className={settStyles.feedbackAction} onClick={() => openFeedback('bug')}>
-            <strong>Report a Bug</strong>
-            <span>Keep support messages organized</span>
-          </button>
-          <button className={settStyles.feedbackAction} onClick={() => openFeedback('rating')}>
-            <strong>Rate Your Experience</strong>
-            <span>1-5 stars stored inside Buhay</span>
-          </button>
-          <button className={settStyles.feedbackAction} onClick={() => openFeedback('testimonial')}>
-            <strong>Share a Testimonial</strong>
-            <span>Only featured with your consent</span>
-          </button>
-        </div>
-      </div>
-
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="App info"
-          title="About"
-          description="Version, brand details, and the account currently signed in."
-        />
-        <div className={settStyles.aboutBlock}>
-          <div className={settStyles.aboutLogo}>Buhay</div>
-          <div className={settStyles.aboutTagline}>Bawat piso, sinusubaybayan.</div>
-          <div className={settStyles.aboutMeta}>Version {VERSION}</div>
-          <div className={settStyles.aboutDesc}>
-            A personal finance tracker for Filipinos. Track income, expenses, bills, and goals with a month view that stays in sync across devices.
-          </div>
-          <div className={settStyles.aboutUser}>Logged in as <strong>{currentDisplayName || user.email}</strong></div>
-        </div>
-      </div>
-
-      <div className={settingsCardClass}>
-        <CardHeader
-          eyebrow="Support"
-          title="Support Buhay"
-          description="If Buhay helps you, you can support the app with a coffee using the wallets below."
-        />
-        <StatusBanner message={donationMsg} />
-        <div className={settStyles.donateGrid}>
-          {DONATION_WALLETS.map(wallet => (
-            <div key={wallet.key} className={settStyles.donateCard}>
-              <div className={settStyles.donateTop}>
-                <div>
-                  <div className={settStyles.donateTitle}>{wallet.title}</div>
-                  <div className={settStyles.donateMeta}>{wallet.shortTitle} wallet</div>
-                </div>
-                <button className={settStyles.btnExport} onClick={() => handleCopyWallet(wallet.title, wallet.address)}>
-                  Copy
-                </button>
-              </div>
-              <div className={settStyles.donateAddress}>{wallet.address}</div>
+        <details className={settStyles.inlineDisclosure}>
+          <summary className={settStyles.inlineDisclosureSummary}>
+            <span>View data snapshot</span>
+            <small>See how much is currently stored in Buhay.</small>
+          </summary>
+          <div className={settStyles.inlineDisclosureBody}>
+            <div className={settStyles.summaryGrid}>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.income.length}</div><div className={settStyles.summaryLabel}>Income entries</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.expenses.length}</div><div className={settStyles.summaryLabel}>Expenses</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.bills.length}</div><div className={settStyles.summaryLabel}>Bills</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.goals.length}</div><div className={settStyles.summaryLabel}>Savings goals</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.accounts.length}</div><div className={settStyles.summaryLabel}>Accounts</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.budgets.length}</div><div className={settStyles.summaryLabel}>Budgets</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{data.receipts.length}</div><div className={settStyles.summaryLabel}>Receipts</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{(data.transfers || []).length}</div><div className={settStyles.summaryLabel}>Transfers</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{lakasRecords}</div><div className={settStyles.summaryLabel}>Lakas records</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{talaRecords}</div><div className={settStyles.summaryLabel}>Tala records</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal} style={{ color: 'var(--accent)' }}>{money(savingsTotal)}</div><div className={settStyles.summaryLabel}>Total saved</div></div>
+              <div className={settStyles.summaryItem}><div className={settStyles.summaryVal}>{totalTx}</div><div className={settStyles.summaryLabel}>Total transactions</div></div>
             </div>
-          ))}
-        </div>
+          </div>
+        </details>
       </div>
+
+      <DisclosureCard
+        className={settingsWideCardClass}
+        eyebrow="Planning extras"
+        title="Savings goals"
+        description="Savings goal management still lives here if you need it, but it stays tucked away so Settings can focus on account and recovery first."
+      >
+        <div className={settStyles.goalComposer}>
+          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 8 }}>
+            <div className={styles.formGroup}><label>Goal name</label><input placeholder="e.g. Emergency fund" value={goalForm.name} onChange={event => setGoalForm(current => ({ ...current, name: event.target.value }))} /></div>
+            <div className={styles.formGroup}><label>Target ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.target} onChange={event => setGoalForm(current => ({ ...current, target: event.target.value }))} /></div>
+          </div>
+          <div className={`${styles.formRow} ${styles.col2}`} style={{ marginBottom: 12 }}>
+            <div className={styles.formGroup}><label>Already saved ({s})</label><input type="number" min="0" placeholder="0.00" value={goalForm.current} onChange={event => setGoalForm(current => ({ ...current, current: event.target.value }))} /></div>
+            <div className={styles.formGroup}>
+              <div className={styles.fieldLabelRow}>
+                <label htmlFor="settings-goal-date">Target date</label>
+                <span className={styles.fieldLabelNote}>Optional</span>
+              </div>
+              <div className={styles.dateFieldWrap}>
+                <div className={`${styles.dateFieldDisplay} ${!goalDateSelected ? styles.dateFieldPlaceholder : ''}`}>
+                  {formatDisplayDate(goalForm.date)}
+                </div>
+                <input
+                  id="settings-goal-date"
+                  type="date"
+                  className={styles.dateFieldNative}
+                  value={goalForm.date}
+                  onChange={event => setGoalForm(current => ({ ...current, date: event.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <div className={settStyles.actionRow}>
+            <button className={`${styles.btnAdd} ${settStyles.inlinePrimary}`} style={{ marginBottom: data.goals.length ? '0.25rem' : 0 }} onClick={handleAddGoal}>Add goal</button>
+          </div>
+        </div>
+
+        {data.goals.map(goal => {
+          const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
+          return (
+            <div key={goal._id} className={`${styles.goalCard} ${settStyles.goalItem}`}>
+              <div className={settStyles.goalItemHeader}>
+                <div>
+                  <div className={styles.goalName}>{goal.name}</div>
+                  <div className={settStyles.goalItemMeta}>
+                    <span>{pct}% complete</span>
+                    {goal.date && <span className={styles.goalDateChip}>Target {formatDisplayDate(goal.date)}</span>}
+                  </div>
+                </div>
+                <button className={styles.delBtn} onClick={() => handleDelGoal(goal._id)}>✕</button>
+              </div>
+              <div className={styles.progressTrack}>
+                <div className={styles.progressFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
+              </div>
+              <div className={styles.goalMeta}>
+                <div className={styles.goalMetaPrimary}>
+                  <span className={styles.goalSaved}>{money(goal.current || 0)} saved</span>
+                  <span>of {money(goal.target)}</span>
+                </div>
+              </div>
+              <div className={settStyles.goalContributionRow}>
+                <input
+                  type="number"
+                  min="0"
+                  placeholder={`Add amount (${s})`}
+                  value={contribs[goal._id] || ''}
+                  onChange={event => setContribs(current => ({ ...current, [goal._id]: event.target.value }))}
+                  className={settStyles.goalContributionInput}
+                />
+                <button className={settStyles.btnExport} onClick={() => handleGoalContrib(goal)}>+ Add</button>
+              </div>
+            </div>
+          )
+        })}
+        {!data.goals.length && <div className={settStyles.emptyCopy} style={{ marginTop: 8 }}>No savings goals yet. Add one above to start tracking progress.</div>}
+      </DisclosureCard>
+
+      <DisclosureCard
+        className={settingsWideCardClass}
+        eyebrow="Help & app"
+        title="Feedback, about, and support"
+        description="These product extras are still available, but they stay collapsed so the main Settings flow stays focused on account, privacy, and recovery."
+      >
+        {feedbackSaved && <div className={settStyles.feedbackSaved}>{feedbackSaved}</div>}
+
+        <div className={settStyles.subsection}>
+          <div className={settStyles.subsectionTitle}>Feedback</div>
+          <p className={settStyles.subsectionCopy}>Share ideas, report issues, rate the app, or opt in to a testimonial for the landing page.</p>
+          <div className={settStyles.feedbackGrid}>
+            <button className={settStyles.feedbackAction} onClick={() => openFeedback('feedback')}>
+              <strong>Send Feedback</strong>
+              <span>Suggestions and product ideas</span>
+            </button>
+            <button className={settStyles.feedbackAction} onClick={() => openFeedback('bug')}>
+              <strong>Report a Bug</strong>
+              <span>Keep support messages organized</span>
+            </button>
+            <button className={settStyles.feedbackAction} onClick={() => openFeedback('rating')}>
+              <strong>Rate Your Experience</strong>
+              <span>1-5 stars stored inside Buhay</span>
+            </button>
+            <button className={settStyles.feedbackAction} onClick={() => openFeedback('testimonial')}>
+              <strong>Share a Testimonial</strong>
+              <span>Only featured with your consent</span>
+            </button>
+          </div>
+        </div>
+
+        <div className={settStyles.subsection}>
+          <div className={settStyles.subsectionTitle}>About Buhay</div>
+          <div className={settStyles.aboutBlock}>
+            <div className={settStyles.aboutLogo}>Buhay</div>
+            <div className={settStyles.aboutTagline}>Bawat piso, sinusubaybayan.</div>
+            <div className={settStyles.aboutMeta}>Version {VERSION}</div>
+            <div className={settStyles.aboutDesc}>
+              A personal finance tracker for Filipinos. Track income, expenses, bills, and goals with a month view that stays in sync across devices.
+            </div>
+            <div className={settStyles.aboutUser}>Logged in as <strong>{currentDisplayName || user.email}</strong></div>
+          </div>
+        </div>
+
+        <div className={settStyles.subsection}>
+          <div className={settStyles.subsectionTitle}>Support Buhay</div>
+          <p className={settStyles.subsectionCopy}>If Buhay helps you, you can support the app with a coffee using the wallets below.</p>
+          <StatusBanner message={donationMsg} />
+          <div className={settStyles.donateGrid}>
+            {DONATION_WALLETS.map(wallet => (
+              <div key={wallet.key} className={settStyles.donateCard}>
+                <div className={settStyles.donateTop}>
+                  <div>
+                    <div className={settStyles.donateTitle}>{wallet.title}</div>
+                    <div className={settStyles.donateMeta}>{wallet.shortTitle} wallet</div>
+                  </div>
+                  <button className={settStyles.btnExport} onClick={() => handleCopyWallet(wallet.title, wallet.address)}>
+                    Copy
+                  </button>
+                </div>
+                <div className={settStyles.donateAddress}>{wallet.address}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </DisclosureCard>
 
       <div className={settingsDangerCardClass}>
         <CardHeader
