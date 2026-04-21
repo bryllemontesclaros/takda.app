@@ -294,24 +294,6 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
               </button>
             ))}
           </div>
-          <select
-            value={form.presetKey || 'other-custom'}
-            onChange={event => {
-              const preset = getBillPresetByKey(event.target.value)
-              if (!preset || preset.isCustom) {
-                applyPreset(null)
-                return
-              }
-              applyPreset(preset)
-            }}
-          >
-            <option value="other-custom">Custom bill</option>
-            {presetGroups.map(group => (
-              <optgroup key={group.label} label={group.label}>
-                {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
-              </optgroup>
-            ))}
-          </select>
           <div className={styles.helper}>
             {selectedPreset && !selectedPreset.isCustom
               ? `${selectedPreset.label} auto-fills Bills -> ${selectedPreset.subcat}.`
@@ -325,46 +307,73 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
             <input placeholder="e.g. Meralco" value={form.name} onChange={e => handleNameChange(e.target.value)} />
           </div>
           <div className={styles.formGroup}>
-            <label>Bill type</label>
-            <select value={form.subcat} onChange={e => handleSubcategoryChange(e.target.value)}>
-              {subcategories.map(option => <option key={option}>{option}</option>)}
-            </select>
-          </div>
-        </div>
-
-        <div className={`${styles.formRow} ${styles.col3}`}>
-          <div className={styles.formGroup}>
             <label>Amount ({s})</label>
             <input type="number" min="0" placeholder="0.00" value={form.amount} onChange={e => set('amount', e.target.value)} />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Due day (1-31)</label>
-            <input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Frequency</label>
-            <select value={form.freq} onChange={e => set('freq', e.target.value)}>
-              {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-            </select>
           </div>
         </div>
 
         <div className={`${styles.formRow} ${styles.col2}`}>
           <div className={styles.formGroup}>
-            <label>Default pay-from account</label>
-            <select value={form.accountId} onChange={e => set('accountId', e.target.value)}>
-              <option value="">Choose when paying</option>
-              {accounts.map(acc => (
-                <option key={acc._id} value={acc._id}>
-                  {acc.name} - {acc.type}
-                </option>
-              ))}
-            </select>
-            <div className={styles.helper}>
-              {accounts.length ? 'This is only the default. You can change the account each time you pay.' : 'Add accounts first if you want payments to update balances automatically.'}
-            </div>
+            <label>Due day (1-31)</label>
+            <input type="number" min={1} max={31} placeholder="e.g. 15" value={form.due} onChange={e => set('due', e.target.value)} />
           </div>
         </div>
+
+        <details className={styles.advancedBox}>
+          <summary className={styles.advancedSummary}>
+            <span>More options</span>
+            <small>Bill type, frequency, default account</small>
+          </summary>
+          <div className={`${styles.formRow} ${styles.col2} ${styles.advancedBody}`}>
+            <div className={styles.formGroup}>
+              <label>Browse bill presets</label>
+              <select
+                value={form.presetKey || 'other-custom'}
+                onChange={event => {
+                  const preset = getBillPresetByKey(event.target.value)
+                  if (!preset || preset.isCustom) {
+                    applyPreset(null)
+                    return
+                  }
+                  applyPreset(preset)
+                }}
+              >
+                <option value="other-custom">Custom bill</option>
+                {presetGroups.map(group => (
+                  <optgroup key={group.label} label={group.label}>
+                    {group.items.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                  </optgroup>
+                ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Bill type</label>
+              <select value={form.subcat} onChange={e => handleSubcategoryChange(e.target.value)}>
+                {subcategories.map(option => <option key={option}>{option}</option>)}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Frequency</label>
+              <select value={form.freq} onChange={e => set('freq', e.target.value)}>
+                {BILL_FREQS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Default pay-from account</label>
+              <select value={form.accountId} onChange={e => set('accountId', e.target.value)}>
+                <option value="">Choose when paying</option>
+                {accounts.map(acc => (
+                  <option key={acc._id} value={acc._id}>
+                    {acc.name} - {acc.type}
+                  </option>
+                ))}
+              </select>
+              <div className={styles.helper}>
+                {accounts.length ? 'This is only the default. You can change the account each time you pay.' : 'Add accounts first if you want payments to update balances automatically.'}
+              </div>
+            </div>
+          </div>
+        </details>
 
         <div className={styles.formRow}>
           <button className={styles.btnAdd} onClick={handleAdd}>Add bill</button>

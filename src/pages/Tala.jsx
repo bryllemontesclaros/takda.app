@@ -801,36 +801,44 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               </select>
             </label>
             <label>
-              <span>Energy</span>
-              <select value={todayForm.energy} onChange={event => setTodayForm(current => ({ ...current, energy: event.target.value }))}>
-                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Stress</span>
-              <select value={todayForm.stress} onChange={event => setTodayForm(current => ({ ...current, stress: event.target.value }))}>
-                {STRESS_OPTIONS.map(option => <option key={option}>{option}</option>)}
-              </select>
-            </label>
-            <label>
-              <span>Sleep quality</span>
-              <select value={todayForm.sleepQuality} onChange={event => setTodayForm(current => ({ ...current, sleepQuality: event.target.value }))}>
-                {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
-              </select>
-            </label>
-            <label>
               <span>Top priority</span>
               <input value={todayForm.priority} placeholder="One thing that matters today" onChange={event => setTodayForm(current => ({ ...current, priority: event.target.value }))} />
-            </label>
-            <label className={tStyles.full}>
-              <span>Gratitude</span>
-              <input value={todayForm.gratitude} placeholder="Something small but real" onChange={event => setTodayForm(current => ({ ...current, gratitude: event.target.value }))} />
             </label>
             <label className={tStyles.full}>
               <span>Reflection</span>
               <textarea value={todayForm.reflection} placeholder="What should future you remember about today?" onChange={event => setTodayForm(current => ({ ...current, reflection: event.target.value }))} />
             </label>
           </div>
+          <details className={tStyles.advancedBox}>
+            <summary className={tStyles.advancedSummary}>
+              <span>More check-in details</span>
+              <small>Energy, stress, sleep, gratitude</small>
+            </summary>
+            <div className={tStyles.advancedGrid}>
+              <label>
+                <span>Energy</span>
+                <select value={todayForm.energy} onChange={event => setTodayForm(current => ({ ...current, energy: event.target.value }))}>
+                  {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Stress</span>
+                <select value={todayForm.stress} onChange={event => setTodayForm(current => ({ ...current, stress: event.target.value }))}>
+                  {STRESS_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Sleep quality</span>
+                <select value={todayForm.sleepQuality} onChange={event => setTodayForm(current => ({ ...current, sleepQuality: event.target.value }))}>
+                  {ENERGY_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Gratitude</span>
+                <input value={todayForm.gratitude} placeholder="Something small but real" onChange={event => setTodayForm(current => ({ ...current, gratitude: event.target.value }))} />
+              </label>
+            </div>
+          </details>
           <button type="button" className={tStyles.primaryBtn} onClick={handleSaveToday}>Save check-in</button>
         </section>
 
@@ -897,32 +905,40 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               <span>Date</span>
               <input type="date" value={journalForm.date} onChange={event => setJournalForm(current => ({ ...current, date: event.target.value }))} />
             </label>
-            <label>
-              <span>Mood</span>
-              <select value={journalForm.mood} onChange={event => setJournalForm(current => ({ ...current, mood: event.target.value }))}>
-                {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
-              </select>
-            </label>
             <label className={tStyles.full}>
               <span>Title</span>
               <input value={journalForm.title} placeholder="What is this entry about?" onChange={event => setJournalForm(current => ({ ...current, title: event.target.value }))} />
             </label>
             <label className={tStyles.full}>
-              <span>Tags</span>
-              <input value={journalForm.tags} placeholder="family, work, gratitude" onChange={event => setJournalForm(current => ({ ...current, tags: event.target.value }))} />
-            </label>
-            <label className={tStyles.full}>
               <span>Entry</span>
               <textarea value={journalForm.body} placeholder="Write without performing. Tala can hold it." onChange={event => setJournalForm(current => ({ ...current, body: event.target.value }))} />
             </label>
-            <label>
-              <span>Privacy</span>
-              <select value={journalForm.private ? 'private' : 'open'} onChange={event => setJournalForm(current => ({ ...current, private: event.target.value === 'private' }))}>
-                <option value="private">Private</option>
-                <option value="open">Open</option>
-              </select>
-            </label>
           </div>
+          <details className={tStyles.advancedBox}>
+            <summary className={tStyles.advancedSummary}>
+              <span>More journal details</span>
+              <small>Mood, tags, privacy</small>
+            </summary>
+            <div className={tStyles.advancedGrid}>
+              <label>
+                <span>Mood</span>
+                <select value={journalForm.mood} onChange={event => setJournalForm(current => ({ ...current, mood: event.target.value }))}>
+                  {MOOD_OPTIONS.map(option => <option key={option}>{option}</option>)}
+                </select>
+              </label>
+              <label>
+                <span>Privacy</span>
+                <select value={journalForm.private ? 'private' : 'open'} onChange={event => setJournalForm(current => ({ ...current, private: event.target.value === 'private' }))}>
+                  <option value="private">Private</option>
+                  <option value="open">Open</option>
+                </select>
+              </label>
+              <label className={tStyles.full}>
+                <span>Tags</span>
+                <input value={journalForm.tags} placeholder="family, work, gratitude" onChange={event => setJournalForm(current => ({ ...current, tags: event.target.value }))} />
+              </label>
+            </div>
+          </details>
           <button type="button" className={tStyles.primaryBtn} onClick={handleAddJournal}>Save journal</button>
         </section>
 

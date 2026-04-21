@@ -261,35 +261,43 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
                 onChange={event => set('balance', event.target.value)}
               />
             </div>
-
-            <div className={accStyles.field}>
-              <label className={accStyles.fieldLabel} htmlFor="account-notes">Notes</label>
-              <input
-                id="account-notes"
-                className={accStyles.fieldInput}
-                placeholder="e.g. Emergency only"
-                value={form.notes}
-                onChange={event => set('notes', event.target.value)}
-              />
-            </div>
           </div>
 
-          <div className={accStyles.colorSection}>
-            <div className={accStyles.fieldLabel}>Color</div>
-            <div className={accStyles.colorGrid}>
-              {COLORS.map(color => (
-                <button
-                  key={color.value}
-                  type="button"
-                  onClick={() => set('color', color.value)}
-                  className={`${accStyles.colorBtn} ${form.color === color.value ? accStyles.colorBtnActive : ''}`}
-                  style={{ '--swatch': color.value }}
-                  title={color.name}
-                  aria-pressed={form.color === color.value}
+          <details className={accStyles.advancedBox}>
+            <summary className={accStyles.advancedSummary}>
+              <span>More options</span>
+              <small>Notes and card color</small>
+            </summary>
+            <div className={accStyles.advancedBody}>
+              <div className={accStyles.field}>
+                <label className={accStyles.fieldLabel} htmlFor="account-notes">Notes</label>
+                <input
+                  id="account-notes"
+                  className={accStyles.fieldInput}
+                  placeholder="e.g. Emergency only"
+                  value={form.notes}
+                  onChange={event => set('notes', event.target.value)}
                 />
-              ))}
+              </div>
+
+              <div className={accStyles.colorSection}>
+                <div className={accStyles.fieldLabel}>Color</div>
+                <div className={accStyles.colorGrid}>
+                  {COLORS.map(color => (
+                    <button
+                      key={color.value}
+                      type="button"
+                      onClick={() => set('color', color.value)}
+                      className={`${accStyles.colorBtn} ${form.color === color.value ? accStyles.colorBtnActive : ''}`}
+                      style={{ '--swatch': color.value }}
+                      title={color.name}
+                      aria-pressed={form.color === color.value}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          </details>
 
           <div className={accStyles.editorActions}>
             <button type="button" onClick={closeEditor} className={accStyles.secondaryButton}>Cancel</button>

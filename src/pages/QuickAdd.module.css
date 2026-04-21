@@ -88,6 +88,55 @@
 .fieldLabel { font-size: 12px; color: var(--text3); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
 .fieldControl { width: 100%; box-sizing: border-box; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 16px; line-height: 1.2; outline: none; font-family: var(--font-body); min-height: 44px; }
 .fieldControl:focus { border-color: var(--accent); }
+.advancedBox {
+  border: 1px solid color-mix(in srgb, var(--glass-border) 64%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--glass-1) 74%, var(--surface2) 26%);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 32%, transparent);
+  overflow: hidden;
+}
+.advancedSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.advancedSummary::-webkit-details-marker { display: none; }
+.advancedSummary::after {
+  content: '+';
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface2) 78%, white 22%);
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 16px;
+  line-height: 1;
+}
+.advancedBox[open] .advancedSummary::after { content: '-'; }
+.advancedSummary small {
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.advancedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 12px 12px;
+}
 select.fieldControl {
   appearance: none;
   -webkit-appearance: none;
@@ -240,16 +289,20 @@ select.fieldControl {
 .saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 .saveBtn:hover:not(:disabled) { opacity: 0.9; }
 .saveDock {
-  position: static;
-  margin-top: 8px;
-  padding: 0;
-  background: none;
-  border-top: none;
+  position: sticky;
+  bottom: calc(-1rem - env(safe-area-inset-bottom));
+  margin: 2px -1rem calc(-1rem - env(safe-area-inset-bottom));
+  padding: 10px 1rem calc(1rem + env(safe-area-inset-bottom));
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--surface) 97%, #ffffff 3%) 26%);
+  backdrop-filter: blur(10px);
+  z-index: 2;
   box-sizing: border-box;
 }
 
 @media (max-width: 420px) {
-  .metaGrid { grid-template-columns: 1fr; }
+  .metaGrid,
+  .advancedGrid { grid-template-columns: 1fr; }
   .utilityRow { grid-template-columns: 1fr; }
   .receiptSaveCard {
     flex-direction: column;
@@ -264,7 +317,6 @@ select.fieldControl {
   .wrap { gap: 10px; }
   .sectionLabel,
   .fieldLabel { font-size: 11px; }
-  .metaGrid { grid-template-columns: 1fr; }
   .amountDisplay { padding: 12px 14px; }
   .currencySign { font-size: 20px; }
   .amountInput { font-size: 34px; letter-spacing: -1px; }
@@ -272,7 +324,8 @@ select.fieldControl {
   .quickCat { padding: 6px 10px; font-size: 11px; }
   .numpad { display: none; }
   .saveDock {
-    margin-top: 8px;
-    padding-bottom: env(safe-area-inset-bottom);
+    bottom: calc(-12px - env(safe-area-inset-bottom));
+    margin: 0 -12px calc(-12px - env(safe-area-inset-bottom));
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
   }
 }

@@ -1080,18 +1080,6 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                 <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
               </div>
               <div className={styles.formGroup}>
-                <label>Category</label>
-                <select value={form.cat} onChange={event => applyComposerCategory(event.target.value)} disabled={formSaving}>
-                  {cats.map(option => <option key={option}>{option}</option>)}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Subcategory</label>
-                <select value={form.subcat} onChange={event => applyComposerSubcategory(event.target.value)} disabled={formSaving}>
-                  {subcats.map(option => <option key={option}>{option}</option>)}
-                </select>
-              </div>
-              <div className={styles.formGroup}>
                 <label>Account</label>
                 <select value={form.accountId} onChange={event => set('accountId', event.target.value)} disabled={formSaving}>
                   <option value="">No account selected</option>
@@ -1114,25 +1102,45 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
 
             <div className={calStyles.accountHint}>{accountHint}</div>
 
-            {formError && <div className={calStyles.formError} role="alert">{formError}</div>}
-
-            <div className={styles.formGroup} style={{ marginBottom: '1.25rem' }}>
-              <label>Recurrence</label>
-              <div className={calStyles.recurGrid}>
-                {RECUR_OPTIONS.map(option => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => set('recur', option.value)}
-                    className={`${calStyles.recurChip} ${form.recur === option.value ? calStyles.recurChipActive : ''}`}
-                    disabled={formSaving}
-                    aria-pressed={form.recur === option.value}
-                  >
-                    {option.label}
-                  </button>
-                ))}
+            <details className={calStyles.advancedBox}>
+              <summary className={calStyles.advancedSummary}>
+                <span>More options</span>
+                <small>Category, subcategory, recurrence</small>
+              </summary>
+              <div className={calStyles.advancedGrid}>
+                <div className={styles.formGroup}>
+                  <label>Category</label>
+                  <select value={form.cat} onChange={event => applyComposerCategory(event.target.value)} disabled={formSaving}>
+                    {cats.map(option => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Subcategory</label>
+                  <select value={form.subcat} onChange={event => applyComposerSubcategory(event.target.value)} disabled={formSaving}>
+                    {subcats.map(option => <option key={option}>{option}</option>)}
+                  </select>
+                </div>
+                <div className={`${styles.formGroup} ${calStyles.advancedFull}`}>
+                  <label>Recurrence</label>
+                  <div className={calStyles.recurGrid}>
+                    {RECUR_OPTIONS.map(option => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        onClick={() => set('recur', option.value)}
+                        className={`${calStyles.recurChip} ${form.recur === option.value ? calStyles.recurChipActive : ''}`}
+                        disabled={formSaving}
+                        aria-pressed={form.recur === option.value}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            </details>
+
+            {formError && <div className={calStyles.formError} role="alert">{formError}</div>}
 
             {formImpact && (
               <div

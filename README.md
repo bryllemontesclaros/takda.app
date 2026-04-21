@@ -12,8 +12,8 @@ Buhay is an all-in-one life tracker built for Filipinos. It brings three focused
 
 Takda finance:
 
-- Today
 - Calendar
+- Overview
 - Money
   - Accounts
   - History
@@ -27,7 +27,6 @@ Takda finance:
 
 Lakas fitness:
 
-- Today
 - Train
   - Beginner-friendly gym session mode
   - Routines and workout logging
@@ -43,11 +42,11 @@ Lakas fitness:
   - Body
   - Goals
   - Records and charts
+- Overview
 - Settings
 
 Tala mind and life admin:
 
-- Today
 - Journal
 - Mood
 - Tasks
@@ -55,6 +54,7 @@ Tala mind and life admin:
 - Calendar
   - Selectable days with inline check-in, journal, mood, task, and goal details
 - Insights
+- Check-in
 - Settings
 
 ## Core Features
@@ -63,6 +63,7 @@ Tala mind and life admin:
 - First-run onboarding for preferred currency, opening account balances, recurring bills, and optional bill pay-from accounts.
 - Mobile-first all-in-one app shell with separate Takda, Lakas, and Tala spaces.
 - Desktop sidebar and mobile bottom navigation with per-space tabs and More sheets.
+- Space homes are action-first: Takda opens Calendar, Lakas opens Gym Session/Train, and Tala opens Journal.
 - Grouped Takda pages keep finance tools easier to reach: Money groups Accounts, History, and Insights; Plan groups Savings, Bills, and Budget.
 - Grouped Lakas pages keep fitness focused: Train, Log, Nutrition, Progress, and Settings.
 - Liquid-glass inspired UI, light/dark theme, privacy mode, and responsive desktop/mobile layouts.
@@ -212,10 +213,10 @@ Manual QA:
 
 - Auth: sign up, log in, log out, remember-me, password reset, and email verification banner.
 - Onboarding: currency, opening balances, recurring bills, bill pay-from account, and optional Lakas/Tala starter paths.
-- Takda: dashboard, quick add, calendar selected-day detail, accounts, history, savings, bills, budget, breakdown, receipts, grocery mode, and Ask Takda confirmation.
+- Takda: calendar home, overview dashboard, quick add, selected-day detail, accounts, history, savings, bills, budget, breakdown, receipts, grocery mode, and Ask Takda confirmation.
 - Bills/receipts trust check: marking a bill paid should create only one expense when enabled; receipt-only saves should not move balances; receipt+expense saves should clearly show account impact.
 - Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal photo log, body log, activity, habits, goals, and settings/logout.
-- Tala: today check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
+- Tala: journal home, check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
 - PWA: install on iOS Safari and Android Chrome, launch from home screen, navigate while offline, then reconnect and verify Firebase-backed data refreshes.
 - Firebase/Vercel: Firestore rules, Storage rules, App Check site key/enforcement status, Firebase Auth authorized domains, Vercel environment variables, OCR key if enabled, and service worker cache version.
 

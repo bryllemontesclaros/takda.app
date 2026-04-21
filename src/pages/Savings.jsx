@@ -162,41 +162,49 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
               onChange={event => set('target', event.target.value)}
             />
           </div>
+        </div>
 
-          <div className={sStyles.field}>
-            <div className={sStyles.fieldLabelRow}>
-              <label className={sStyles.fieldLabel} htmlFor="savings-target-date">Target date</label>
-              <span className={sStyles.fieldNote}>Optional</span>
-            </div>
-            <div className={sStyles.dateFieldWrap}>
-              <div className={`${sStyles.dateFieldDisplay} ${!hasTargetDate ? sStyles.dateFieldPlaceholder : ''}`}>
-                {formatDisplayDate(form.date)}
+        <details className={sStyles.advancedBox}>
+          <summary className={sStyles.advancedSummary}>
+            <span>More options</span>
+            <small>Target date, starting amount</small>
+          </summary>
+          <div className={sStyles.advancedGrid}>
+            <div className={sStyles.field}>
+              <div className={sStyles.fieldLabelRow}>
+                <label className={sStyles.fieldLabel} htmlFor="savings-target-date">Target date</label>
+                <span className={sStyles.fieldNote}>Optional</span>
               </div>
+              <div className={sStyles.dateFieldWrap}>
+                <div className={`${sStyles.dateFieldDisplay} ${!hasTargetDate ? sStyles.dateFieldPlaceholder : ''}`}>
+                  {formatDisplayDate(form.date)}
+                </div>
+                <input
+                  id="savings-target-date"
+                  type="date"
+                  className={sStyles.dateFieldNative}
+                  value={form.date}
+                  aria-label="Target date"
+                  onChange={event => set('date', event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className={sStyles.field}>
+              <label className={sStyles.fieldLabel} htmlFor="savings-goal-current">Current saved ({s})</label>
               <input
-                id="savings-target-date"
-                type="date"
-                className={sStyles.dateFieldNative}
-                value={form.date}
-                aria-label="Target date"
-                onChange={event => set('date', event.target.value)}
+                id="savings-goal-current"
+                className={sStyles.fieldInput}
+                type="number"
+                min="0"
+                inputMode="decimal"
+                placeholder="0.00"
+                value={form.current}
+                onChange={event => set('current', event.target.value)}
               />
             </div>
           </div>
-
-          <div className={sStyles.field}>
-            <label className={sStyles.fieldLabel} htmlFor="savings-goal-current">Current saved ({s})</label>
-            <input
-              id="savings-goal-current"
-              className={sStyles.fieldInput}
-              type="number"
-              min="0"
-              inputMode="decimal"
-              placeholder="0.00"
-              value={form.current}
-              onChange={event => set('current', event.target.value)}
-            />
-          </div>
-        </div>
+        </details>
 
         <div className={sStyles.composerFooter}>
           <div className={sStyles.composerHint}>

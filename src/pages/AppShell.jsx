@@ -355,6 +355,12 @@ const APP_SPACES = [
   { id: 'tala', label: 'Tala', meta: 'Mind', iconKey: 'tala' },
 ]
 
+const DEFAULT_SPACE_PAGES = {
+  takda: 'calendar',
+  lakas: 'train',
+  tala: 'journal',
+}
+
 const FINANCE_PAGE_ALIASES = {
   accounts: { page: 'money', tool: 'accounts' },
   history: { page: 'money', tool: 'history' },
@@ -485,9 +491,9 @@ function getEmailActionSettings() {
 
 export default function AppShell({ user }) {
   const [activeSpace, setActiveSpace] = useState('takda')
-  const [page, setPage] = useState('dashboard')
-  const [lakasPage, setLakasPage] = useState('today')
-  const [talaPage, setTalaPage] = useState('today')
+  const [page, setPage] = useState(DEFAULT_SPACE_PAGES.takda)
+  const [lakasPage, setLakasPage] = useState(DEFAULT_SPACE_PAGES.lakas)
+  const [talaPage, setTalaPage] = useState(DEFAULT_SPACE_PAGES.tala)
   const [financeToolSelections, setFinanceToolSelections] = useState({ money: 'accounts', plan: 'savings' })
   const [data, setData] = useState({
     income: [],
@@ -666,7 +672,9 @@ export default function AppShell({ user }) {
     if (!['takda', 'lakas', 'tala'].includes(profile?.preferredSpace)) return
     preferredSpaceAppliedRef.current = true
     setActiveSpace(profile.preferredSpace)
-    if (profile.preferredSpace === 'takda') setPage('dashboard')
+    if (profile.preferredSpace === 'takda') setPage(DEFAULT_SPACE_PAGES.takda)
+    if (profile.preferredSpace === 'lakas') setLakasPage(DEFAULT_SPACE_PAGES.lakas)
+    if (profile.preferredSpace === 'tala') setTalaPage(DEFAULT_SPACE_PAGES.tala)
   }, [profile?.preferredSpace])
 
   useEffect(() => {
@@ -806,29 +814,29 @@ export default function AppShell({ user }) {
   }, [user])
 
   const nav = [
-    { id: 'dashboard', label: 'Today', iconKey: 'home', section: 'Core' },
-    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
+    { id: 'calendar', label: 'Home', iconKey: 'calendar', section: 'Core' },
+    { id: 'dashboard', label: 'Overview', iconKey: 'home', section: null },
     { id: 'money', label: 'Money', iconKey: 'accounts', section: null },
     { id: 'plan', label: 'Plan', iconKey: 'budget', section: null },
     { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: 'Tools' },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const lakasNav = [
-    { id: 'today', label: 'Today', iconKey: 'today', section: 'Core' },
-    { id: 'train', label: 'Train', iconKey: 'workouts', section: null },
+    { id: 'train', label: 'Home', iconKey: 'workouts', section: 'Core' },
     { id: 'log', label: 'Log', iconKey: 'history', section: null },
     { id: 'nutrition', label: 'Nutrition', iconKey: 'meals', section: 'Fuel' },
     { id: 'progress', label: 'Progress', iconKey: 'body', section: 'Review' },
+    { id: 'today', label: 'Overview', iconKey: 'today', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const talaNav = [
-    { id: 'today', label: 'Today', iconKey: 'today', section: 'Core' },
-    { id: 'journal', label: 'Journal', iconKey: 'journal', section: null },
+    { id: 'journal', label: 'Home', iconKey: 'journal', section: 'Core' },
     { id: 'mood', label: 'Mood', iconKey: 'mood', section: null },
     { id: 'tasks', label: 'Tasks', iconKey: 'tasks', section: null },
     { id: 'goals', label: 'Goals', iconKey: 'goals', section: 'More' },
     { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
     { id: 'insights', label: 'Insights', iconKey: 'insights', section: null },
+    { id: 'today', label: 'Check-in', iconKey: 'today', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
 
@@ -870,44 +878,44 @@ export default function AppShell({ user }) {
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
 
   const financeBottomNav = [
-    { id: 'dashboard', label: 'Today', iconKey: 'home', space: 'takda' },
-    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', space: 'takda' },
+    { id: 'calendar', label: 'Home', iconKey: 'calendar', space: 'takda' },
     { id: 'money', label: 'Money', iconKey: 'accounts', space: 'takda' },
     { id: 'plan', label: 'Plan', iconKey: 'budget', space: 'takda' },
+    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', space: 'takda' },
   ]
   const lakasBottomNav = [
-    { id: 'today', label: 'Today', iconKey: 'today', space: 'lakas' },
-    { id: 'train', label: 'Train', iconKey: 'workouts', space: 'lakas' },
+    { id: 'train', label: 'Home', iconKey: 'workouts', space: 'lakas' },
     { id: 'log', label: 'Log', iconKey: 'history', space: 'lakas' },
     { id: 'nutrition', label: 'Food', iconKey: 'meals', space: 'lakas' },
+    { id: 'progress', label: 'Progress', iconKey: 'body', space: 'lakas' },
   ]
   const talaBottomNav = [
-    { id: 'today', label: 'Today', iconKey: 'today', space: 'tala' },
-    { id: 'journal', label: 'Journal', iconKey: 'journal', space: 'tala' },
+    { id: 'journal', label: 'Home', iconKey: 'journal', space: 'tala' },
     { id: 'mood', label: 'Mood', iconKey: 'mood', space: 'tala' },
     { id: 'tasks', label: 'Tasks', iconKey: 'tasks', space: 'tala' },
+    { id: 'goals', label: 'Goals', iconKey: 'goals', space: 'tala' },
   ]
   const bottomNav = activeSpace === 'lakas' ? lakasBottomNav : activeSpace === 'tala' ? talaBottomNav : financeBottomNav
   const financeMoreNav = nav
-    .filter(item => ['receipts', 'settings'].includes(item.id))
+    .filter(item => ['dashboard', 'settings'].includes(item.id))
     .map(item => ({
       ...item,
       iconKey: item.id,
       space: 'takda',
     }))
   const lakasMoreNav = lakasNav
-    .filter(item => ['progress', 'settings'].includes(item.id))
+    .filter(item => ['today', 'settings'].includes(item.id))
     .map(item => ({ ...item, space: 'lakas' }))
   const talaMoreNav = talaNav
-    .filter(item => ['goals', 'calendar', 'insights', 'settings'].includes(item.id))
+    .filter(item => ['today', 'calendar', 'insights', 'settings'].includes(item.id))
     .map(item => ({ ...item, space: 'tala' }))
   const mobileMoreNav = activeSpace === 'lakas' ? lakasMoreNav : activeSpace === 'tala' ? talaMoreNav : financeMoreNav
   const mobileMoreTitle = activeSpace === 'lakas' ? 'More Lakas' : activeSpace === 'tala' ? 'More Tala' : 'More'
   const mobileMoreMeta = activeSpace === 'lakas'
-    ? 'Open progress, goals, body tracking, reminders, and settings.'
+    ? 'Open overview, reminders, and settings.'
     : activeSpace === 'tala'
-      ? 'Open goals, calendar, insights, and settings.'
-      : 'Open receipts and finance settings here.'
+      ? 'Open check-in, calendar, insights, and settings.'
+      : 'Open overview and finance settings here.'
   const isMorePage = activeSpace === 'lakas'
     ? lakasMoreNav.some(item => item.id === lakasPage)
     : activeSpace === 'tala'
@@ -928,10 +936,14 @@ export default function AppShell({ user }) {
     setQuickAddMenuOpen(false)
     setAskTakdaOpen(false)
     setQuickAddSheet(current => current.open ? { ...current, open: false } : current)
-    setActiveSpace(['lakas', 'tala'].includes(nextSpace) ? nextSpace : 'takda')
+    const normalizedSpace = ['lakas', 'tala'].includes(nextSpace) ? nextSpace : 'takda'
+    setActiveSpace(normalizedSpace)
+    if (normalizedSpace === 'takda') setPage(DEFAULT_SPACE_PAGES.takda)
+    if (normalizedSpace === 'lakas') setLakasPage(DEFAULT_SPACE_PAGES.lakas)
+    if (normalizedSpace === 'tala') setTalaPage(DEFAULT_SPACE_PAGES.tala)
   }
 
-  function navigateToFinancePage(nextPage = 'dashboard') {
+  function navigateToFinancePage(nextPage = DEFAULT_SPACE_PAGES.takda) {
     const alias = FINANCE_PAGE_ALIASES[nextPage]
     setActiveSpace('takda')
     if (alias) {
@@ -939,7 +951,7 @@ export default function AppShell({ user }) {
       setPage(alias.page)
       return
     }
-    setPage(nextPage || 'dashboard')
+    setPage(nextPage || DEFAULT_SPACE_PAGES.takda)
   }
 
   function handleFinanceToolSelect(group, tool) {
@@ -949,17 +961,17 @@ export default function AppShell({ user }) {
   function handleBottomNavSelect(item) {
     if (item.space === 'lakas') {
       openSpace('lakas')
-      setLakasPage(item.id || 'today')
+      setLakasPage(item.id || DEFAULT_SPACE_PAGES.lakas)
       return
     }
 
     if (item.space === 'tala') {
       openSpace('tala')
-      setTalaPage(item.id || 'today')
+      setTalaPage(item.id || DEFAULT_SPACE_PAGES.tala)
       return
     }
 
-    navigateToFinancePage(item.id || 'dashboard')
+    navigateToFinancePage(item.id || DEFAULT_SPACE_PAGES.takda)
   }
 
   async function handleTogglePrivacy() {
@@ -1099,13 +1111,13 @@ export default function AppShell({ user }) {
   function handleCommandNavigate(nextPage) {
     if (nextPage === 'lakas') {
       openSpace('lakas')
-      setLakasPage('today')
+      setLakasPage(DEFAULT_SPACE_PAGES.lakas)
       return
     }
 
     if (nextPage === 'tala') {
       openSpace('tala')
-      setTalaPage('today')
+      setTalaPage(DEFAULT_SPACE_PAGES.tala)
       return
     }
 
@@ -1338,7 +1350,7 @@ export default function AppShell({ user }) {
           </div>
         )}
         <main id="app-main" className={`${styles.main} ${isCalendarPage ? styles.mainCalendar : ''}`}>
-          <PageErrorBoundary key={pageBoundaryKey} onRecover={() => navigateToFinancePage('dashboard')}>
+          <PageErrorBoundary key={pageBoundaryKey} onRecover={() => navigateToFinancePage(DEFAULT_SPACE_PAGES.takda)}>
             <Suspense fallback={<PageLoading />}>
               <PageComponent {...pageProps} />
             </Suspense>

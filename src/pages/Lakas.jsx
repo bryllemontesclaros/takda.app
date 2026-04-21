@@ -2263,15 +2263,23 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               <span>Date</span>
               <input type="date" value={workoutForm.date} onChange={event => setWorkoutForm(current => ({ ...current, date: event.target.value }))} />
             </label>
-            <label>
-              <span>Duration (min)</span>
-              <input type="number" min="0" inputMode="decimal" value={workoutForm.duration} placeholder="60" onChange={event => setWorkoutForm(current => ({ ...current, duration: event.target.value }))} />
-            </label>
-            <label className={lStyles.full}>
-              <span>Notes</span>
-              <input value={workoutForm.notes} placeholder="Energy, soreness, form notes" onChange={event => setWorkoutForm(current => ({ ...current, notes: event.target.value }))} />
-            </label>
           </div>
+          <details className={lStyles.advancedBox}>
+            <summary className={lStyles.advancedSummary}>
+              <span>Session details</span>
+              <small>Duration and notes</small>
+            </summary>
+            <div className={lStyles.advancedGrid}>
+              <label>
+                <span>Duration (min)</span>
+                <input type="number" min="0" inputMode="decimal" value={workoutForm.duration} placeholder="60" onChange={event => setWorkoutForm(current => ({ ...current, duration: event.target.value }))} />
+              </label>
+              <label>
+                <span>Notes</span>
+                <input value={workoutForm.notes} placeholder="Energy, soreness, form notes" onChange={event => setWorkoutForm(current => ({ ...current, notes: event.target.value }))} />
+              </label>
+            </div>
+          </details>
           {renderExerciseEditor(workoutForm.exercises, setWorkoutForm, 'Workout exercises')}
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddWorkout}>Save workout</button>
         </section>
@@ -2301,27 +2309,35 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               <span>Steps</span>
               <input type="number" min="0" inputMode="numeric" value={activityForm.steps} placeholder="8000" onChange={event => setActivityForm(current => ({ ...current, steps: event.target.value }))} />
             </label>
-            <label>
-              <span>Walk min</span>
-              <input type="number" min="0" inputMode="numeric" value={activityForm.walkingMinutes} placeholder="30" onChange={event => setActivityForm(current => ({ ...current, walkingMinutes: event.target.value }))} />
-            </label>
-            <label>
-              <span>Cardio min</span>
-              <input type="number" min="0" inputMode="numeric" value={activityForm.cardioMinutes} placeholder="20" onChange={event => setActivityForm(current => ({ ...current, cardioMinutes: event.target.value }))} />
-            </label>
-            <label>
-              <span>Active min</span>
-              <input type="number" min="0" inputMode="numeric" value={activityForm.activeMinutes} placeholder="45" onChange={event => setActivityForm(current => ({ ...current, activeMinutes: event.target.value }))} />
-            </label>
-            <label>
-              <span>Distance ({savedLakasSettings.units.distance})</span>
-              <input type="number" min="0" inputMode="decimal" value={activityForm.distance} placeholder="3.5" onChange={event => setActivityForm(current => ({ ...current, distance: event.target.value }))} />
-            </label>
-            <label>
-              <span>Notes</span>
-              <input value={activityForm.notes} placeholder="Easy pace, errands, commute" onChange={event => setActivityForm(current => ({ ...current, notes: event.target.value }))} />
-            </label>
           </div>
+          <details className={lStyles.advancedBox}>
+            <summary className={lStyles.advancedSummary}>
+              <span>More activity details</span>
+              <small>Minutes, distance, notes</small>
+            </summary>
+            <div className={lStyles.advancedGrid}>
+              <label>
+                <span>Walk min</span>
+                <input type="number" min="0" inputMode="numeric" value={activityForm.walkingMinutes} placeholder="30" onChange={event => setActivityForm(current => ({ ...current, walkingMinutes: event.target.value }))} />
+              </label>
+              <label>
+                <span>Cardio min</span>
+                <input type="number" min="0" inputMode="numeric" value={activityForm.cardioMinutes} placeholder="20" onChange={event => setActivityForm(current => ({ ...current, cardioMinutes: event.target.value }))} />
+              </label>
+              <label>
+                <span>Active min</span>
+                <input type="number" min="0" inputMode="numeric" value={activityForm.activeMinutes} placeholder="45" onChange={event => setActivityForm(current => ({ ...current, activeMinutes: event.target.value }))} />
+              </label>
+              <label>
+                <span>Distance ({savedLakasSettings.units.distance})</span>
+                <input type="number" min="0" inputMode="decimal" value={activityForm.distance} placeholder="3.5" onChange={event => setActivityForm(current => ({ ...current, distance: event.target.value }))} />
+              </label>
+              <label className={lStyles.full}>
+                <span>Notes</span>
+                <input value={activityForm.notes} placeholder="Easy pace, errands, commute" onChange={event => setActivityForm(current => ({ ...current, notes: event.target.value }))} />
+              </label>
+            </div>
+          </details>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddActivity}>Save activity</button>
         </section>
         )}
@@ -2513,23 +2529,31 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               <span>Calories</span>
               <input type="number" min="0" inputMode="decimal" value={mealForm.calories} placeholder="450" onChange={event => setMealForm(current => ({ ...current, calories: event.target.value }))} />
             </label>
-            <label>
-              <span>Protein (g)</span>
-              <input type="number" min="0" inputMode="decimal" value={mealForm.protein} placeholder="30" onChange={event => setMealForm(current => ({ ...current, protein: event.target.value }))} />
-            </label>
-            <label>
-              <span>Carbs (g)</span>
-              <input type="number" min="0" inputMode="decimal" value={mealForm.carbs} placeholder="50" onChange={event => setMealForm(current => ({ ...current, carbs: event.target.value }))} />
-            </label>
-            <label>
-              <span>Fat (g)</span>
-              <input type="number" min="0" inputMode="decimal" value={mealForm.fat} placeholder="12" onChange={event => setMealForm(current => ({ ...current, fat: event.target.value }))} />
-            </label>
-            <label className={lStyles.full}>
-              <span>Notes</span>
-              <input value={mealForm.notes} placeholder="Portion notes, sauce, drink, etc." onChange={event => setMealForm(current => ({ ...current, notes: event.target.value }))} />
-            </label>
           </div>
+          <details className={lStyles.advancedBox}>
+            <summary className={lStyles.advancedSummary}>
+              <span>Nutrition details</span>
+              <small>Macros and notes</small>
+            </summary>
+            <div className={lStyles.advancedGrid}>
+              <label>
+                <span>Protein (g)</span>
+                <input type="number" min="0" inputMode="decimal" value={mealForm.protein} placeholder="30" onChange={event => setMealForm(current => ({ ...current, protein: event.target.value }))} />
+              </label>
+              <label>
+                <span>Carbs (g)</span>
+                <input type="number" min="0" inputMode="decimal" value={mealForm.carbs} placeholder="50" onChange={event => setMealForm(current => ({ ...current, carbs: event.target.value }))} />
+              </label>
+              <label>
+                <span>Fat (g)</span>
+                <input type="number" min="0" inputMode="decimal" value={mealForm.fat} placeholder="12" onChange={event => setMealForm(current => ({ ...current, fat: event.target.value }))} />
+              </label>
+              <label>
+                <span>Notes</span>
+                <input value={mealForm.notes} placeholder="Portion notes, sauce, drink, etc." onChange={event => setMealForm(current => ({ ...current, notes: event.target.value }))} />
+              </label>
+            </div>
+          </details>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddMeal} disabled={savingMeal}>
             {savingMeal ? 'Saving meal...' : 'Save meal'}
           </button>

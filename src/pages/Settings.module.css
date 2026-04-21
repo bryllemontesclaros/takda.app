@@ -8,7 +8,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
   gap: 8px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.7rem;
 }
 
 .heroCopy,
@@ -25,12 +25,12 @@
 }
 
 .heroCopy {
-  padding: 1.15rem 1.1rem;
+  padding: 0.95rem 1rem;
 }
 
 .heroAside,
 .heroStatCard {
-  padding: 1rem 1.05rem;
+  padding: 0.9rem 0.95rem;
 }
 
 .pageEyebrow {
@@ -44,7 +44,7 @@
 
 .pageTitle {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 26px;
   line-height: 0.98;
   letter-spacing: -0.04em;
   color: var(--text);
@@ -52,10 +52,10 @@
 }
 
 .pageSub {
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: 48ch;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text2);
 }
 
@@ -75,7 +75,7 @@
 
 .heroAsideValue {
   font-family: var(--font-display);
-  font-size: 25px;
+  font-size: 22px;
   line-height: 1.08;
   color: var(--text);
 }
@@ -104,7 +104,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.7rem;
 }
 
 .heroStatLabel {
@@ -118,7 +118,7 @@
 
 .heroStatValue {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 21px;
   line-height: 1.05;
   color: var(--text);
 }
@@ -1061,7 +1061,7 @@
 @media (max-width: 640px) {
   .heroCopy,
   .heroAside {
-    padding: 1rem;
+    padding: 0.95rem;
   }
 
   .pageTitle {
@@ -1069,8 +1069,23 @@
   }
 
   .heroStatsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
     gap: 8px;
+    margin-inline: -0.85rem;
+    padding-inline: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .heroStatsGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .heroStatCard {
+    min-width: min(230px, 72vw);
+    scroll-snap-align: start;
   }
 
   .overviewCard {

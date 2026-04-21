@@ -7,7 +7,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.9fr);
   gap: 8px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.7rem;
 }
 
 .heroCopy,
@@ -28,7 +28,7 @@
 }
 
 .heroCopy {
-  padding: 1.15rem 1.1rem;
+  padding: 0.95rem 1rem;
 }
 
 .pageEyebrow,
@@ -48,7 +48,7 @@
 
 .pageTitle {
   font-family: var(--font-display);
-  font-size: 30px;
+  font-size: 26px;
   line-height: 0.98;
   letter-spacing: -0.04em;
   color: var(--text);
@@ -56,15 +56,15 @@
 }
 
 .pageSub {
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: 48ch;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text2);
 }
 
 .heroAside {
-  padding: 1rem 1.05rem;
+  padding: 0.9rem 0.95rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -73,7 +73,7 @@
 
 .heroAsideValue {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 22px;
   line-height: 0.98;
   letter-spacing: -0.03em;
   color: var(--text);
@@ -104,11 +104,11 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.7rem;
 }
 
 .summaryCard {
-  padding: 0.95rem 1rem;
+  padding: 0.85rem 0.9rem;
 }
 
 .summaryValue {
@@ -477,7 +477,22 @@
 
 @media (max-width: 640px) {
   .summaryGrid {
-    grid-template-columns: 1fr;
+    display: flex;
+    margin-inline: -0.85rem;
+    padding-inline: 0.85rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .summaryGrid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .summaryCard {
+    min-width: min(230px, 72vw);
+    scroll-snap-align: start;
   }
 
   .heroCopy,

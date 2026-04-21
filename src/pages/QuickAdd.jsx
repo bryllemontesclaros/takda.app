@@ -458,26 +458,6 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
 
       <div className={styles.metaGrid}>
         <label className={styles.metaField}>
-          <span className={styles.fieldLabel}>Category</span>
-          <select
-            className={styles.fieldControl}
-            value={cat}
-            onChange={handleCategoryChange}
-          >
-            {categories.map(option => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </label>
-        <label className={styles.metaField}>
-          <span className={styles.fieldLabel}>Subcategory</span>
-          <select
-            className={styles.fieldControl}
-            value={subcat}
-            onChange={handleSubcategoryChange}
-          >
-            {subcategories.map(option => <option key={option} value={option}>{option}</option>)}
-          </select>
-        </label>
-        <label className={styles.metaField}>
           <span className={styles.fieldLabel}>Date</span>
           <div className={styles.dateFieldWrap}>
             <div className={`${styles.fieldControl} ${styles.dateFieldDisplay}`}>
@@ -496,19 +476,6 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           </div>
         </label>
         <label className={styles.metaField}>
-          <span className={styles.fieldLabel}>Recurrence</span>
-          <select
-            className={styles.fieldControl}
-            value={recur}
-            onChange={event => {
-              setRecur(event.target.value)
-              setError('')
-            }}
-          >
-            {RECUR_OPTIONS.map(option => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
-          </select>
-        </label>
-        <label className={`${styles.metaField} ${styles.metaFieldFull}`}>
           <span className={styles.fieldLabel}>Account</span>
           <select
             className={styles.fieldControl}
@@ -527,6 +494,48 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           </select>
         </label>
       </div>
+
+      <details className={styles.advancedBox}>
+        <summary className={styles.advancedSummary}>
+          <span>More options</span>
+          <small>Category, subcategory, recurrence</small>
+        </summary>
+        <div className={styles.advancedGrid}>
+          <label className={styles.metaField}>
+            <span className={styles.fieldLabel}>Category</span>
+            <select
+              className={styles.fieldControl}
+              value={cat}
+              onChange={handleCategoryChange}
+            >
+              {categories.map(option => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+          <label className={styles.metaField}>
+            <span className={styles.fieldLabel}>Subcategory</span>
+            <select
+              className={styles.fieldControl}
+              value={subcat}
+              onChange={handleSubcategoryChange}
+            >
+              {subcategories.map(option => <option key={option} value={option}>{option}</option>)}
+            </select>
+          </label>
+          <label className={`${styles.metaField} ${styles.metaFieldFull}`}>
+            <span className={styles.fieldLabel}>Recurrence</span>
+            <select
+              className={styles.fieldControl}
+              value={recur}
+              onChange={event => {
+                setRecur(event.target.value)
+                setError('')
+              }}
+            >
+              {RECUR_OPTIONS.map(option => <option key={option.value || 'none'} value={option.value}>{option.label}</option>)}
+            </select>
+          </label>
+        </div>
+      </details>
 
       <div className={styles.accountNote}>{accountHint}</div>
 
