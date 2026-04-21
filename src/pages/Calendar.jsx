@@ -20,6 +20,16 @@ import { fmt, normalizeDate, RECUR_OPTIONS, today } from '../lib/utils'
 import styles from './Page.module.css'
 import calStyles from './Calendar.module.css'
 
+function formatRoundedBalance(value, symbol = '') {
+  const numericValue = Number(value) || 0
+  const rounded = new Intl.NumberFormat('en-PH', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(Math.abs(numericValue))
+
+  return `${numericValue < 0 ? '−' : ''}${symbol}${rounded}`
+}
+
 function getEmptyForm(type = 'income', defaultAccountId = '') {
   return { ...getDefaultTransactionDraft(type), accountId: defaultAccountId }
 }
@@ -38,7 +48,7 @@ function buildDayAriaLabel({ ds, day, forecast, hasIncome, hasExpense, hasManual
     `${day}, ${new Date(`${ds}T00:00:00`).toLocaleDateString('en-PH', { month: 'long', day: 'numeric', year: 'numeric' })}`,
   ]
   if (privacyMode) parts.push('Balance hidden')
-  else parts.push(`Closing balance ${fmt(forecast?.runningBalance || 0, s)}`)
+  else parts.push(`Closing balance ${formatRoundedBalance(forecast?.runningBalance || 0, s)}`)
   if (hasIncome) parts.push('has income')
   if (hasExpense) parts.push('has expenses')
   if (hasManualBalance) parts.push('has manual balance override')
@@ -124,6 +134,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     return [...limited.slice(0, 5), selectedPreset]
   }, [quickPresets, selectedPreset])
   const money = value => (privacyMode ? 'Hidden' : fmt(value, s))
+  const balanceMoney = value => (privacyMode ? 'Hidden' : formatRoundedBalance(value, s))
   const formatBalanceDate = value => {
     if (!value) return ''
     const parsed = new Date(`${value}T00:00:00`)
@@ -138,14 +149,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
   }
   const formatCellBalance = value => {
     if (privacyMode) return ''
-    const numericValue = Number(value) || 0
-    const abs = Math.abs(numericValue)
-    const hasDecimals = Math.round(abs * 100) !== Math.round(abs) * 100
-    const exact = new Intl.NumberFormat('en-PH', {
-      minimumFractionDigits: hasDecimals ? 2 : 0,
-      maximumFractionDigits: hasDecimals ? 2 : 0,
-    }).format(abs)
-    return `${numericValue < 0 ? '−' : ''}${exact}`
+    return formatRoundedBalance(value)
   }
 
   function bumpMonth(direction) {
@@ -405,7 +409,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       showEntryFeedback({
         eyebrow: 'Day balance',
         title: hasManualBalanceOnSelectedDay ? 'Balance updated' : 'Balance pinned',
-        body: `${selected} now closes at ${fmt(value, s)}. Later days inherit from this point until another manual day balance appears.`,
+        body: `${selected} now closes at ${formatRoundedBalance(value, s)}. Later days inherit from this point until another manual day balance appears.`,
         tone: 'var(--blue)',
       })
       closeDayBalanceEditor()
@@ -736,7 +740,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                   {!privacyMode && (
                     <div
                       className={calStyles.cellBalance}
-                      title={fmt(forecast?.runningBalance || 0, s)}
+                      title={formatRoundedBalance(forecast?.runningBalance || 0, s)}
                     >
                       {balanceLabel}
                     </div>
@@ -757,7 +761,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
           className={calStyles.balanceRail}
           onClick={onTogglePrivacy}
           aria-pressed={privacyMode}
-          aria-label={`${balanceRailLabel}. ${privacyMode ? 'Balance hidden.' : `${fmt(balanceFocusValue, s)}.`} ${balanceRailHint}`}
+          aria-label={`${balanceRailLabel}. ${privacyMode ? 'Balance hidden.' : `${formatRoundedBalance(balanceFocusValue, s)}.`} ${balanceRailHint}`}
         >
           <div className={calStyles.balanceRailCopy}>
             <div className={calStyles.balanceRailLabel}>{balanceRailLabel}</div>
@@ -766,7 +770,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               {privacyMode ? 'Privacy mode on' : balanceRailMeta}
             </div>
           </div>
-          <div className={`${calStyles.balanceRailValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(balanceFocusValue)}</div>
+          <div className={`${calStyles.balanceRailValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{balanceMoney(balanceFocusValue)}</div>
         </button>
       </div>
 
@@ -807,7 +811,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                         Edit
                       </button>
                     </div>
-                    <div className={`${calStyles.dayBalanceValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{money(selectedDayBalance)}</div>
+                    <div className={`${calStyles.dayBalanceValue} ${privacyMode ? calStyles.privacyValuePill : ''}`}>{balanceMoney(selectedDayBalance)}</div>
                     <div className={calStyles.dayBalanceStats}>
                       <div className={calStyles.dayBalanceStat}>
                         <span className={calStyles.dayBalanceStatLabel}>Entries</span>
