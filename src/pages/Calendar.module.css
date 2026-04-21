@@ -821,7 +821,10 @@
     font-size: 12px;
   }
   .cellBalance {
-    display: none;
+    display: -webkit-box;
+    font-size: 9px;
+    line-height: 1.12;
+    -webkit-line-clamp: 2;
   }
   .dots {
     gap: 3px;
