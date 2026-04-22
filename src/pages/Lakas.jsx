@@ -10,6 +10,7 @@ import {
   fsUpdate,
 } from '../lib/firestore'
 import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { loadStorageObjectUrl } from '../lib/storageMedia'
 import { formatDisplayDate, today } from '../lib/utils'
 import styles from './Page.module.css'
 import lStyles from './Lakas.module.css'
@@ -775,6 +776,12 @@ function sortNewest(rows = []) {
   })
 }
 
+function revokeObjectUrl(value = '') {
+  if (typeof value === 'string' && value.startsWith('blob:')) {
+    URL.revokeObjectURL(value)
+  }
+}
+
 function sortOldest(rows = []) {
   return [...rows].sort((a, b) => {
     const dateCompare = String(a.date || '').localeCompare(String(b.date || ''))
@@ -1069,6 +1076,10 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const mealQuickActionRef = useRef(null)
   const mealNameInputRef = useRef(null)
   const handledActionTokenRef = useRef(null)
+  const mealPhotoUrlsRef = useRef({})
+  const bodyPhotoUrlsRef = useRef({})
+  const [mealPhotoUrls, setMealPhotoUrls] = useState({})
+  const [bodyPhotoUrls, setBodyPhotoUrls] = useState({})
 
   const routines = sortNewest(normalizeRows(data.lakasRoutines))
   const workouts = sortNewest(normalizeRows(data.lakasWorkouts))
@@ -1078,6 +1089,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const habits = sortNewest(normalizeRows(data.lakasHabits))
   const reminders = sortNewest(normalizeRows(data.lakasReminders))
   const goals = normalizeRows(data.lakasGoals)
+  const visibleMeals = useMemo(() => meals.slice(0, 6), [meals])
+  const visibleBodyLogs = useMemo(() => bodyLogs.slice(0, 6), [bodyLogs])
   const beginnerProgression = useMemo(() => getBeginnerProgression(workouts, savedLakasSettings), [workouts, profileSettingsKey])
   const beginnerNextTemplate = BUILT_IN_ROUTINES.find(template => template.name === beginnerProgression.nextTemplateName) || BUILT_IN_ROUTINES[0]
   const selectedGymSession = GYM_SESSION_TYPES.find(session => session.key === selectedGymSessionKey) || GYM_SESSION_TYPES[0]
@@ -1958,7 +1971,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       { label: 'Calories', value: displayMetric(insights.caloriesToday, 'kcal', privacyMode, 0), meta: 'Today' },
       { label: 'Protein', value: displayMetric(insights.proteinToday, 'g', privacyMode, 0), meta: 'Today' },
       { label: 'Meals', value: displayMetric(mealsToday, '', privacyMode, 0), meta: 'Today' },
-      { label: 'Photos', value: displayMetric(meals.filter(row => row.photoUrl).length, '', privacyMode, 0), meta: 'Saved meals' },
+      { label: 'Photos', value: displayMetric(meals.filter(row => row.photoPath || row.photoUrl).length, '', privacyMode, 0), meta: 'Saved meals' },
     ],
     progress: [
       { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
@@ -1973,6 +1986,109 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       { label: 'Meal target', value: displayMetric(savedLakasSettings.meals.calorieGoal, 'kcal', privacyMode, 0), meta: `${savedLakasSettings.meals.proteinGoal}g protein` },
     ],
   })[currentTab] || []
+
+  useEffect(() => {
+    mealPhotoUrlsRef.current = mealPhotoUrls
+  }, [mealPhotoUrls])
+
+  useEffect(() => {
+    bodyPhotoUrlsRef.current = bodyPhotoUrls
+  }, [bodyPhotoUrls])
+
+  useEffect(() => {
+    return () => {
+      Object.values(mealPhotoUrlsRef.current).forEach(revokeObjectUrl)
+      Object.values(bodyPhotoUrlsRef.current).forEach(revokeObjectUrl)
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const visibleIds = new Set(visibleMeals.map(meal => meal._id))
+
+    setMealPhotoUrls(current => {
+      let changed = false
+      const next = {}
+      Object.entries(current).forEach(([id, value]) => {
+        if (visibleIds.has(id)) {
+          next[id] = value
+        } else {
+          changed = true
+          revokeObjectUrl(value)
+        }
+      })
+      return changed ? next : current
+    })
+
+    visibleMeals.forEach(meal => {
+      if (!meal.photoPath || mealPhotoUrlsRef.current[meal._id]) return
+
+      loadStorageObjectUrl(meal.photoPath)
+        .then(url => {
+          if (cancelled) {
+            revokeObjectUrl(url)
+            return
+          }
+
+          setMealPhotoUrls(current => {
+            if (current[meal._id]) {
+              revokeObjectUrl(url)
+              return current
+            }
+            return { ...current, [meal._id]: url }
+          })
+        })
+        .catch(() => {})
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [visibleMeals])
+
+  useEffect(() => {
+    let cancelled = false
+    const visibleIds = new Set(visibleBodyLogs.map(log => log._id))
+
+    setBodyPhotoUrls(current => {
+      let changed = false
+      const next = {}
+      Object.entries(current).forEach(([id, value]) => {
+        if (visibleIds.has(id)) {
+          next[id] = value
+        } else {
+          changed = true
+          revokeObjectUrl(value)
+        }
+      })
+      return changed ? next : current
+    })
+
+    visibleBodyLogs.forEach(log => {
+      if (!log.photoPath || bodyPhotoUrlsRef.current[log._id]) return
+
+      loadStorageObjectUrl(log.photoPath)
+        .then(url => {
+          if (cancelled) {
+            revokeObjectUrl(url)
+            return
+          }
+
+          setBodyPhotoUrls(current => {
+            if (current[log._id]) {
+              revokeObjectUrl(url)
+              return current
+            }
+            return { ...current, [log._id]: url }
+          })
+        })
+        .catch(() => {})
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [visibleBodyLogs])
 
   useEffect(() => {
     if (!actionRequest?.token || handledActionTokenRef.current === actionRequest.token) return undefined
@@ -3043,17 +3159,20 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               <p className={lStyles.sectionHint}>Saved meal photos and macro estimates live here for easy review.</p>
             </div>
           </div>
-          {!meals.length ? <div className={lStyles.empty}>No meals logged yet.</div> : meals.slice(0, 6).map(meal => (
-            <div key={meal._id} className={lStyles.mealRow}>
-              {meal.photoUrl && !privacyMode ? <img src={meal.photoUrl} alt="" /> : <div className={lStyles.photoPlaceholder}>{meal.photoUrl ? 'Hidden' : 'Meal'}</div>}
-              <div>
-                <strong>{meal.name}</strong>
-                <span>{formatDisplayDate(meal.date)} · {meal.mealType} · {displayMetric(meal.calories, 'kcal', privacyMode)}</span>
-                <small>{displayMetric(meal.protein, 'g protein', privacyMode)} · {displayMetric(meal.carbs, 'g carbs', privacyMode)} · {displayMetric(meal.fat, 'g fat', privacyMode)}</small>
+          {!meals.length ? <div className={lStyles.empty}>No meals logged yet.</div> : visibleMeals.map(meal => {
+            const mealImage = mealPhotoUrls[meal._id] || meal.photoUrl || ''
+            return (
+              <div key={meal._id} className={lStyles.mealRow}>
+                {mealImage && !privacyMode ? <img src={mealImage} alt="" /> : <div className={lStyles.photoPlaceholder}>{mealImage || meal.photoPath ? 'Hidden' : 'Meal'}</div>}
+                <div>
+                  <strong>{meal.name}</strong>
+                  <span>{formatDisplayDate(meal.date)} · {meal.mealType} · {displayMetric(meal.calories, 'kcal', privacyMode)}</span>
+                  <small>{displayMetric(meal.protein, 'g protein', privacyMode)} · {displayMetric(meal.carbs, 'g carbs', privacyMode)} · {displayMetric(meal.fat, 'g fat', privacyMode)}</small>
+                </div>
+                <button type="button" onClick={async () => { if (await confirmDeleteApp(meal.name)) await fsDeleteLakasMeal(user.uid, meal) }}>Delete</button>
               </div>
-              <button type="button" onClick={async () => { if (await confirmDeleteApp(meal.name)) await fsDeleteLakasMeal(user.uid, meal) }}>Delete</button>
-            </div>
-          ))}
+            )
+          })}
         </section>
         )}
 
@@ -3066,17 +3185,20 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               <p className={lStyles.sectionHint}>Measurements and photos are summarized without exposing them in privacy mode.</p>
             </div>
           </div>
-          {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : bodyLogs.slice(0, 6).map(log => (
-            <div key={log._id} className={lStyles.mealRow}>
-              {log.photoUrl && !hideBodyPhotos ? <img src={log.photoUrl} alt="" /> : <div className={lStyles.photoPlaceholder}>{log.photoUrl ? 'Hidden' : 'Body'}</div>}
-              <div>
-                <strong>{formatDisplayDate(log.date)}</strong>
-                <span>{log.weight ? displayMetric(log.weight, savedLakasSettings.units.weight, privacyMode) : 'No weight'} · {log.waist ? displayMetric(log.waist, `${savedLakasSettings.units.body} waist`, privacyMode) : 'No waist'} · {!shouldShowBmi ? 'BMI hidden' : privacyMode && log.bmi ? 'BMI ...' : log.bmi ? `BMI ${formatNumber(log.bmi, 1)}` : 'No BMI'}</span>
-                <small>{privacyMode ? 'Private measurements' : ['chest', 'hips', 'arm', 'thigh'].map(key => log[key] ? `${key} ${formatNumber(log[key], 1)}${savedLakasSettings.units.body}` : '').filter(Boolean).join(' · ') || log.notes || 'No measurements'}</small>
+          {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : visibleBodyLogs.map(log => {
+            const bodyImage = bodyPhotoUrls[log._id] || log.photoUrl || ''
+            return (
+              <div key={log._id} className={lStyles.mealRow}>
+                {bodyImage && !hideBodyPhotos ? <img src={bodyImage} alt="" /> : <div className={lStyles.photoPlaceholder}>{bodyImage || log.photoPath ? 'Hidden' : 'Body'}</div>}
+                <div>
+                  <strong>{formatDisplayDate(log.date)}</strong>
+                  <span>{log.weight ? displayMetric(log.weight, savedLakasSettings.units.weight, privacyMode) : 'No weight'} · {log.waist ? displayMetric(log.waist, `${savedLakasSettings.units.body} waist`, privacyMode) : 'No waist'} · {!shouldShowBmi ? 'BMI hidden' : privacyMode && log.bmi ? 'BMI ...' : log.bmi ? `BMI ${formatNumber(log.bmi, 1)}` : 'No BMI'}</span>
+                  <small>{privacyMode ? 'Private measurements' : ['chest', 'hips', 'arm', 'thigh'].map(key => log[key] ? `${key} ${formatNumber(log[key], 1)}${savedLakasSettings.units.body}` : '').filter(Boolean).join(' · ') || log.notes || 'No measurements'}</small>
+                </div>
+                <button type="button" onClick={async () => { if (await confirmDeleteApp('this body log')) await fsDeleteLakasBodyLog(user.uid, log) }}>Delete</button>
               </div>
-              <button type="button" onClick={async () => { if (await confirmDeleteApp('this body log')) await fsDeleteLakasBodyLog(user.uid, log) }}>Delete</button>
-            </div>
-          ))}
+            )
+          })}
         </section>
         )}
 

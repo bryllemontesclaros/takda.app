@@ -338,16 +338,6 @@ const NAV_ICONS = {
 }
 
 const STREAK_MILESTONES = [3, 7, 14]
-const HEADER_EXP_LABELS = {
-  dashboard: 'Money momentum',
-  calendar: 'Tracking habit',
-  money: 'Balance view',
-  plan: 'Planning habit',
-  receipts: 'Receipt box',
-  breakdown: 'Trend view',
-  accounts: 'Balance view',
-  bills: 'Payment habit',
-}
 
 const APP_SPACES = [
   { id: 'takda', label: 'Takda', meta: 'Finance', iconKey: 'finance' },
@@ -905,20 +895,13 @@ export default function AppShell({ user }) {
     bills: Bills,
   }
   const PageComponent = activeSpace === 'lakas' ? Lakas : activeSpace === 'tala' ? Tala : financePages[page] || Dashboard
-  const headerExpLabel = activeSpace === 'takda' ? HEADER_EXP_LABELS[page] || '' : ''
   const activeSpaceConfig = APP_SPACES.find(space => space.id === activeSpace) || APP_SPACES[0]
-  const activeSpaceProgress = gamification?.spaces?.[activeSpace] || gamification
   const selectedFinanceTool = page === 'money'
     ? MONEY_TOOLS.find(tool => tool.id === financeToolSelections.money)
     : page === 'plan'
       ? PLAN_TOOLS.find(tool => tool.id === financeToolSelections.plan)
       : null
-  const activeStatusLabel = activeSpace === 'takda'
-    ? selectedFinanceTool
-      ? `${headerExpLabel}: ${selectedFinanceTool.label}`
-      : headerExpLabel
-    : `${activeSpaceConfig.label} progress`
-  const pageGamification = activeSpace === 'takda' && page !== 'settings' ? activeSpaceProgress : gamification
+  const activeStatusLabel = 'Buhay progress'
   const isCalendarPage = activeSpace === 'takda' && page === 'calendar'
   const pageBoundaryKey = activeSpace === 'takda'
     ? `${page}:${selectedFinanceTool?.id || 'main'}`
@@ -1202,7 +1185,7 @@ export default function AppShell({ user }) {
     profile,
     symbol,
     privacyMode,
-    gamification: pageGamification,
+    gamification,
     billPaymentTarget,
     activeTab: activeSpace === 'lakas' ? lakasPage : activeSpace === 'tala' ? talaPage : page,
     financeToolSelections,
@@ -1340,15 +1323,15 @@ export default function AppShell({ user }) {
             </div>
           </div>
           <div className={styles.topBarRight}>
-            {activeStatusLabel && activeSpaceProgress && (
+            {activeStatusLabel && gamification && (
               <div
                 className={styles.topBarStatus}
-                aria-label={`${activeStatusLabel}. Level ${activeSpaceProgress.level}. ${activeSpaceProgress.totalExp} EXP.`}
+                aria-label={`${activeStatusLabel}. Level ${gamification.level}. ${gamification.totalExp} EXP.`}
               >
-                <div className={styles.topBarStatusBadge}>Lv {activeSpaceProgress.level}</div>
+                <div className={styles.topBarStatusBadge}>Lv {gamification.level}</div>
                 <div className={styles.topBarStatusMain}>
                   <div className={styles.topBarStatusLabel}>{activeStatusLabel}</div>
-                  <div className={styles.topBarStatusMeta}>{activeSpaceProgress.totalExp} EXP</div>
+                  <div className={styles.topBarStatusMeta}>{gamification.totalExp} EXP</div>
                 </div>
               </div>
             )}

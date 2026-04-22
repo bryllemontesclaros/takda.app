@@ -249,14 +249,14 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       ? {
           tone: 'var(--accent)',
           eyebrow: 'Keep the streak',
-          title: 'Log one transaction today',
-          body: `One real entry today keeps your ${gamification.currentStreakDays}-day streak moving.`,
+          title: 'Log one real action today',
+          body: `One real check-in today keeps your ${gamification.currentStreakDays}-day streak moving across Buhay.`,
         }
       : {
           tone: 'var(--blue)',
           eyebrow: 'Start strong',
           title: 'Make today your first check-in',
-          body: 'Log one real expense or income so Takda starts working like a habit, not just a ledger.',
+          body: 'Log one real finance, fitness, or journal check-in so Buhay starts working like a habit, not just a dashboard.',
         }
   } else if (biggestBudgetGap) {
     focusState = {

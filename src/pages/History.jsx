@@ -241,8 +241,8 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           gamification={gamification}
           privacyMode={privacyMode}
           compact
-          title="Ledger review"
-          message="A clean history makes Takda reports, trends, and forecasts easier to trust."
+          title="Buhay progress"
+          message="Takda, Lakas, and Tala all feed the same level, streak, and EXP now."
         />
       </div>
 

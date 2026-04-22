@@ -219,8 +219,8 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
           gamification={gamification}
           privacyMode={privacyMode}
           compact
-          title="Savings progress"
-          message="Goals work better when the finish line and the remaining gap stay visible."
+          title="Buhay progress"
+          message="Takda, Lakas, and Tala all feed the same level, streak, and EXP now."
         />
       </div>
 

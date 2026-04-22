@@ -444,19 +444,8 @@ export function getGamificationSnapshot(input = [], expenses = [], bills = [], g
   const takdaCheckins = buildCheckinEntries(data.income || [], data.expenses || [], data.bills || [], activeProfile)
   const lakasLedger = buildLakasLedger(data)
   const talaLedger = buildTalaLedger(data)
-
-  const takda = buildProgressSnapshot(takdaLedger, takdaCheckins, { label: 'Takda' })
-  const lakas = buildProgressSnapshot(lakasLedger, lakasLedger, { label: 'Lakas' })
-  const tala = buildProgressSnapshot(talaLedger, talaLedger, { label: 'Tala' })
   const combinedLedger = [...takdaLedger, ...lakasLedger, ...talaLedger]
   const combinedCheckins = [...takdaCheckins, ...lakasLedger, ...talaLedger]
 
-  return {
-    ...buildProgressSnapshot(combinedLedger, combinedCheckins, { label: 'Buhay' }),
-    spaces: {
-      takda,
-      lakas,
-      tala,
-    },
-  }
+  return buildProgressSnapshot(combinedLedger, combinedCheckins, { label: 'Buhay' })
 }

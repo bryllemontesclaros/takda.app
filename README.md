@@ -82,7 +82,7 @@ Tala mind and life admin:
 - Accounts for cash, bank, e-wallet, credit card, investment, and other balances.
 - Savings goals with target dates, progress tracking, contribution updates, and summaries.
 - Budgets with category limits, overspending warnings, unbudgeted spending visibility, and budget status.
-- Receipts with camera/upload flow, local image cleanup, optional OCR.Space parsing, editable receipt review, receipt box, thumbnails, merchant/category summaries, and expense saving.
+- Receipts with camera/upload flow, local image cleanup, editable receipt review, receipt box, thumbnails, merchant/category summaries, and expense saving.
 - Grocery mode for price-tag scanning/manual items and one-trip expense saving.
 - History with search, filters, sorting, and inline editing.
 - Breakdown charts with category views, trends, and month comparisons.
@@ -124,7 +124,7 @@ Tala mind and life admin:
 - Receipt, import, command, meal, workout, task, and goal flows use review-before-save behavior where relevant.
 - JSON backups include app data and image metadata links, but image files are not re-uploaded from backups.
 - Account deletion and data reset tools are available in Settings.
-- Legal pages explain privacy, terms, third-party services, OCR/import behavior, and product limits.
+- Legal pages explain privacy, terms, third-party services, import behavior, and product limits.
 
 ## Tech Stack
 
@@ -134,7 +134,7 @@ Tala mind and life admin:
 - Storage: Firebase Storage for receipt, meal, and body progress images
 - Hosting: Vercel
 - PWA: Installable web app with service worker caching
-- OCR/import: OCR.Space for receipt, wallet screenshot, and image-assisted parsing when enabled
+- Import flow: local image cleanup plus manual review for receipts, screenshots, and grocery images
 
 ## Getting Started
 
@@ -146,7 +146,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Fill in Firebase and OCR values in `.env.local`.
+Fill in Firebase values in `.env.local`.
 
 ## Environment Variables
 
@@ -159,10 +159,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 VITE_FIREBASE_APPCHECK_SITE_KEY=your_recaptcha_v3_site_key
-VITE_OCR_SPACE_API_KEY=your_ocr_space_api_key
 ```
-
-`VITE_OCR_SPACE_API_KEY` is optional, but recommended for receipt, wallet screenshot, and image-assisted import features.
 
 `VITE_FIREBASE_APPCHECK_SITE_KEY` is optional for local development. For production, create a Firebase App Check reCAPTCHA v3 provider for the deployed domain, add the site key to Vercel, and keep token auto-refresh enabled in the app.
 
@@ -187,10 +184,9 @@ firebase deploy --only firestore:rules,storage
 1. Push to GitHub.
 2. Import the repo into Vercel.
 3. Add all `VITE_FIREBASE_*` environment variables in Vercel project settings.
-4. Add `VITE_OCR_SPACE_API_KEY` if OCR import should be enabled in production.
-5. Deploy.
-6. Add the Vercel domain to Firebase Console > Authentication > Authorized domains.
-7. Add the Vercel domain to Firebase App Check, set `VITE_FIREBASE_APPCHECK_SITE_KEY`, confirm App Check requests are healthy, then enforce App Check for Firestore and Storage.
+4. Deploy.
+5. Add the Vercel domain to Firebase Console > Authentication > Authorized domains.
+6. Add the Vercel domain to Firebase App Check, set `VITE_FIREBASE_APPCHECK_SITE_KEY`, confirm App Check requests are healthy, then enforce App Check for Firestore and Storage.
 
 ## PWA Install
 
@@ -218,7 +214,7 @@ Manual QA:
 - Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal photo log, body log, activity, habits, goals, and settings/logout.
 - Tala: journal home, check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
 - PWA: install on iOS Safari and Android Chrome, launch from home screen, navigate while offline, then reconnect and verify Firebase-backed data refreshes.
-- Firebase/Vercel: Firestore rules, Storage rules, App Check site key/enforcement status, Firebase Auth authorized domains, Vercel environment variables, OCR key if enabled, and service worker cache version.
+- Firebase/Vercel: Firestore rules, Storage rules, App Check site key/enforcement status, Firebase Auth authorized domains, Vercel environment variables, and service worker cache version.
 
 ## Firestore Structure
 
@@ -269,7 +265,7 @@ users/{uid}/
 - The finance space inside Buhay is still named Takda.
 - Ask Takda is intentionally finance-focused for now.
 - Google Sign-In is not enabled in the active auth screen.
-- OCR import depends on `VITE_OCR_SPACE_API_KEY` when cloud OCR is enabled.
+- Receipt and wallet imports currently use local image cleanup plus manual review before saving.
 - JSON backup/restore covers Takda, Lakas, Tala, profile settings, and metadata links for images.
 - Build verification requires Node/npm. If this environment has no Node/npm installed, `npm run build` cannot run.
 

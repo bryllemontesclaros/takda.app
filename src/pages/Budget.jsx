@@ -150,8 +150,8 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
           gamification={gamification}
           privacyMode={privacyMode}
           compact
-          title="Budget guard"
-          message="Budgets work best when they warn early and stay easy to read."
+          title="Buhay progress"
+          message="Takda, Lakas, and Tala all feed the same level, streak, and EXP now."
         />
       </div>
 

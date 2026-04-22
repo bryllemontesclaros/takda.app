@@ -3,7 +3,7 @@ import {
   collection, addDoc, deleteDoc, updateDoc, setDoc, deleteField,
   doc, query, orderBy, onSnapshot, getDoc, getDocs, writeBatch, increment
 } from 'firebase/firestore'
-import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { deleteObject, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { getAccountBalanceDelta, shouldAffectCurrentAccountBalance } from './finance'
 import { getBillPeriodInfo } from './bills'
 import { normalizeDate, today } from './utils'
@@ -317,10 +317,9 @@ async function uploadReceiptAsset(uid, receiptId, label, blob, fileName = '') {
   const target = storageRef(storage, path)
   await uploadBytes(target, blob, {
     contentType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
-    cacheControl: 'public,max-age=3600',
+    cacheControl: 'private,max-age=0,no-transform',
   })
-  const url = await getDownloadURL(target)
-  return { path, url }
+  return { path }
 }
 
 async function deleteReceiptAsset(path) {
@@ -372,11 +371,11 @@ export async function fsSaveReceipt(uid, payload = {}) {
       source: payload.source || 'receipt',
       transactionId: payload.transactionId || '',
       transactionCollection: payload.transactionCollection || '',
-      imageUrl: originalUpload?.url || cleanedUpload?.url || '',
+      imageUrl: '',
       imagePath: originalUpload?.path || '',
-      cleanedImageUrl: cleanedUpload?.url || originalUpload?.url || '',
+      cleanedImageUrl: '',
       cleanedImagePath: cleanedUpload?.path || '',
-      thumbnailUrl: cleanedUpload?.url || originalUpload?.url || '',
+      thumbnailUrl: '',
       cleanupSummary: payload.cleanupSummary || '',
       confidence,
       extractedData,
@@ -420,10 +419,9 @@ async function uploadLakasImage(uid, folder, docId, blob, fileName = '') {
   const target = storageRef(storage, path)
   await uploadBytes(target, blob, {
     contentType: blob.type || `image/${extension === 'jpg' ? 'jpeg' : extension}`,
-    cacheControl: 'public,max-age=3600',
+    cacheControl: 'private,max-age=0,no-transform',
   })
-  const url = await getDownloadURL(target)
-  return { path, url }
+  return { path }
 }
 
 async function deleteLakasAsset(path) {
@@ -467,7 +465,7 @@ export async function fsSaveLakasMeal(uid, payload = {}) {
       carbs: Number(payload.carbs) || 0,
       fat: Number(payload.fat) || 0,
       notes: payload.notes || '',
-      photoUrl: photoUpload?.url || '',
+      photoUrl: '',
       photoPath: photoUpload?.path || '',
       source: payload.source || 'photo-meal-log',
       createdAt: Date.now(),
@@ -504,7 +502,7 @@ export async function fsSaveLakasBodyLog(uid, payload = {}) {
       thigh: Number(payload.thigh) || 0,
       bmi: Number(payload.bmi) || 0,
       notes: payload.notes || '',
-      photoUrl: photoUpload?.url || '',
+      photoUrl: '',
       photoPath: photoUpload?.path || '',
       source: payload.source || 'lakas-body',
       createdAt: Date.now(),
@@ -763,7 +761,7 @@ export async function fsDeleteAccountData(uid) {
     ...bodySnapshot.docs.map(snapshot => deleteLakasBodyPhoto((snapshot.data() || {}).photoPath)),
   ])
 
-  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts', 'transfers', 'calendarEvents', 'lakasRoutines', 'lakasWorkouts', 'lakasBodyLogs', 'lakasActivities', 'lakasHabits', 'lakasReminders', 'lakasMeals', 'lakasGoals']
+  const collections = ['income', 'expenses', 'bills', 'goals', 'accounts', 'budgets', 'feedback', 'receipts', 'transfers', 'calendarEvents', 'lakasRoutines', 'lakasWorkouts', 'lakasBodyLogs', 'lakasActivities', 'lakasHabits', 'lakasReminders', 'lakasMeals', 'lakasGoals', 'talaCheckins', 'talaJournal', 'talaMoods', 'talaTasks', 'talaGoals']
 
   for (const col of collections) {
     await fsDeleteCollection(uid, col)

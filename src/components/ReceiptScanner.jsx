@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { parseReceiptText, parseWalletText } from '../lib/importParser'
 import {
   findPresetByLabel,
   getDefaultTransactionDraft,
@@ -7,12 +6,10 @@ import {
   sanitizeTransactionCategory,
   sanitizeTransactionSubcategory,
 } from '../lib/transactionOptions'
-import { detectReceiptCurrency, preprocessReceiptImage } from '../lib/receiptUtils'
+import { preprocessReceiptImage } from '../lib/receiptUtils'
 import { formatDisplayDate, today } from '../lib/utils'
 import rStyles from './ReceiptScanner.module.css'
 
-const OCR_API = 'https://api.ocr.space/parse/image'
-const OCR_KEY = import.meta.env.VITE_OCR_SPACE_API_KEY || ''
 const EXPENSE_CATS = getTransactionCategories('expense')
 const INCOME_CATS = getTransactionCategories('income')
 
@@ -103,15 +100,6 @@ function getBlankDraft(context = 'transaction') {
   }
 }
 
-function getStoredCloudOcrPreference() {
-  if (typeof window === 'undefined') return false
-  try {
-    return window.localStorage.getItem('takda-cloud-ocr') === 'enabled'
-  } catch {
-    return false
-  }
-}
-
 export default function ReceiptScanner({
   onResult,
   onClose,
@@ -137,15 +125,12 @@ export default function ReceiptScanner({
   const [cameraStatus, setCameraStatus] = useState('idle')
   const [cameraError, setCameraError] = useState('')
   const [cameraFacing, setCameraFacing] = useState('environment')
-  const [cloudOcrEnabled, setCloudOcrEnabled] = useState(getStoredCloudOcrPreference)
   const fileRef = useRef(null)
   const cameraRef = useRef(null)
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const liveCameraSupported = typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia)
   const canCapturePhoto = mode !== 'wallet' || receiptOnly || isGrocery
-  const cloudOcrAvailable = Boolean(OCR_KEY)
-  const useCloudOcr = cloudOcrAvailable && cloudOcrEnabled
 
   useEffect(() => {
     return () => {
@@ -169,15 +154,6 @@ export default function ReceiptScanner({
       stopLiveCamera()
     }
   }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      window.localStorage.setItem('takda-cloud-ocr', cloudOcrEnabled ? 'enabled' : 'disabled')
-    } catch {
-      // Private browsing or locked-down PWAs can block localStorage.
-    }
-  }, [cloudOcrEnabled])
 
   useEffect(() => {
     if (!cameraOpen) {
@@ -325,104 +301,20 @@ export default function ReceiptScanner({
       setCaptureArtifacts(null)
     }
 
-    if (!useCloudOcr) {
-      setRawText('')
-      setForm(getManualDraft(mode, file.name, context))
-      setShowDetails(false)
-      setParsedMeta(null)
-      setStatus('done')
-      setNotice({
-        text: !cloudOcrAvailable
-          ? (isGrocery
-              ? 'Auto-fill is unavailable right now, so enter the item and price manually.'
-              : mode === 'wallet'
-                ? 'Screenshot auto-fill is unavailable right now. Review and fill in the transaction details manually.'
-                : 'Receipt auto-fill is unavailable right now. Enter the details manually.')
-          : (isGrocery
-              ? 'Image cleanup stayed on this device. Cloud OCR is off, so enter the item and price manually.'
-              : mode === 'wallet'
-                ? 'Image cleanup stayed on this device. Cloud OCR is off, so fill in the transaction details manually.'
-                : 'Receipt cleanup stayed on this device. Cloud OCR is off, so enter the receipt details manually.'),
-        tone: cloudOcrAvailable ? 'info' : 'warning',
-      })
-      return
-    }
-
-    try {
-      const formData = new FormData()
-      formData.append('file', prepared?.cleanedBlob || file, file.name || 'receipt.jpg')
-      formData.append('apikey', OCR_KEY)
-      formData.append('language', 'eng')
-      formData.append('isOverlayRequired', 'false')
-      formData.append('OCREngine', '2')
-      formData.append('scale', 'true')
-
-      const response = await fetch(OCR_API, { method: 'POST', body: formData })
-      if (!response.ok) {
-        throw new Error(`OCR request failed with status ${response.status}`)
-      }
-      const json = await response.json()
-
-      if (json.IsErroredOnProcessing || !json.ParsedResults?.length) {
-        throw new Error(json.ErrorMessage?.[0] || 'OCR failed')
-      }
-
-      const text = json.ParsedResults[0].ParsedText || ''
-      const parsed = mode === 'wallet' ? parseWalletText(text) : parseReceiptText(text)
-
-      setRawText(text)
-      setScanCurrency(parsed.currency || detectReceiptCurrency(text, ''))
-      setParsedMeta(parsed)
-      setSourceLabel(
-        isGrocery
-          ? (parsed.desc || 'Imported grocery item')
-          : parsed.wallet || (mode === 'wallet' ? 'Imported wallet screenshot' : 'Imported receipt image'),
-      )
-      applyParsed(parsed)
-
-      if (isGrocery) {
-        setNotice({
-          text: parsed.amount
-            ? 'We found a price. Confirm the item name and amount before adding it.'
-            : 'We could not find the price clearly. Enter it manually before adding the item.',
-          tone: parsed.amount ? 'info' : 'warning',
-        })
-      } else if (mode === 'receipt') {
-        if (parsed.amount) {
-          setNotice({
-            text: parsed.amountConfidence === 'low'
-              ? 'We found a possible total. Please verify the amount before saving.'
-              : 'We found the total. Please confirm the rest before saving.',
-            tone: parsed.amountConfidence === 'low' ? 'warning' : 'info',
-          })
-        } else {
-          setNotice({
-            text: 'We read some text, but could not find the total clearly. Enter it manually.',
-            tone: 'warning',
-          })
-        }
-      } else if (!parsed.amount) {
-        setNotice({
-          text: 'We could not detect the amount clearly. Please confirm it manually.',
-          tone: 'warning',
-        })
-      }
-      setStatus('done')
-    } catch {
-      setRawText('')
-      setForm(getManualDraft(mode, file.name, context))
-      setShowDetails(false)
-      setParsedMeta(null)
-      setStatus('done')
-      setNotice({
-        text: isGrocery
-          ? 'Could not read the price tag clearly. Enter the item and price manually.'
-          : mode === 'wallet'
-            ? 'Could not read the screenshot clearly. Review and fill in the transaction details manually.'
-            : 'Could not read the receipt clearly. Enter the total manually and confirm the rest.',
-        tone: 'warning',
-      })
-    }
+    setRawText('')
+    setForm(getManualDraft(mode, file.name, context))
+    setShowDetails(false)
+    setParsedMeta(null)
+    setScanCurrency('')
+    setStatus('done')
+    setNotice({
+      text: isGrocery
+        ? 'Image cleanup stayed on this device. Enter the item name and price manually before adding it.'
+        : mode === 'wallet'
+          ? 'Image cleanup stayed on this device. Review the screenshot and fill in the transaction details manually.'
+          : 'Receipt cleanup stayed on this device. Enter the merchant, total, and date manually before saving.',
+      tone: 'info',
+    })
   }
 
   function handleFile(event) {
@@ -562,20 +454,20 @@ export default function ReceiptScanner({
       ? 'Import a GCash or Maya screenshot'
       : 'Import a receipt photo or image'
   const uploadSub = isGrocery
-    ? 'We clean the image locally first. Turn on cloud OCR below if you want Buhay to prefill the item and price.'
+    ? 'We clean the image on this device first, then you confirm the item and price yourself before adding it.'
     : receiptOnly
-      ? 'We clean the image locally first. Turn on cloud OCR below if you want merchant, date, total, and category auto-fill.'
+      ? 'We clean the image on this device first, then you review and enter the merchant, date, and total before saving.'
       : mode === 'wallet'
-      ? 'We clean the image locally first. Turn on cloud OCR below if you want amount, date, recipient, and type auto-fill.'
-      : 'We clean the image locally first. Turn on cloud OCR below if you want total, date, merchant, and category auto-fill.'
+      ? 'We clean the image on this device first, then you review the screenshot and enter the transaction details manually.'
+      : 'We clean the image on this device first, then you review and enter the receipt details manually.'
   const resultTitle = isGrocery ? 'Grocery item review' : receiptOnly ? 'Receipt review' : sourceLabel || 'Imported transaction'
   const resultNote = isGrocery
-    ? 'Price-tag OCR is assistive only, so confirm the name and price before adding the item.'
+    ? 'This stays local until you save it, so confirm the name and price before adding the item.'
     : receiptOnly
-      ? 'We cleaned the image locally before OCR. Confirm the total, date, and merchant before saving.'
+      ? 'We cleaned the image on this device. Confirm the total, date, and merchant before saving.'
       : mode === 'wallet'
-      ? 'We classified this from the screenshot. Confirm the type before saving.'
-      : 'Receipt OCR is assistive only, so review the details before saving.'
+      ? 'We cleaned the screenshot on this device. Confirm the type and amount before saving.'
+      : 'We cleaned the receipt on this device. Review the details before saving.'
   const actionLabel = submitLabel || (isGrocery ? 'Add item →' : receiptOnly ? 'Use receipt details →' : 'Continue with these details →')
   const confidenceLabel = parsedMeta?.overallConfidence
     ? `${parsedMeta.overallConfidence.charAt(0).toUpperCase()}${parsedMeta.overallConfidence.slice(1)} confidence`
@@ -585,7 +477,7 @@ export default function ReceiptScanner({
     ? 'Keep the full label visible, avoid reflections, and hold steady before capture.'
     : 'Keep all four edges visible, fill most of the frame, and avoid glare for the cleanest scan.'
   const cameraLiveLabel = cameraFacing === 'environment' ? 'Rear camera preferred' : 'Front camera active'
-  const loadingVerb = useCloudOcr ? 'Reading' : 'Preparing'
+  const loadingVerb = 'Preparing'
 
   return (
     <div className={`${rStyles.wrap} ${embedded ? rStyles.embedded : ''}`}>
@@ -644,23 +536,11 @@ export default function ReceiptScanner({
                 <div className={rStyles.uploadSub}>{uploadSub}</div>
                 <div className={rStyles.privacyCard}>
                   <div>
-                    <div className={rStyles.privacyTitle}>Cloud OCR {useCloudOcr ? 'on' : 'off'}</div>
+                    <div className={rStyles.privacyTitle}>Local-only scan</div>
                     <div className={rStyles.privacyText}>
-                      {cloudOcrAvailable
-                        ? 'Off keeps scan cleanup local. On uploads the cleaned image to OCR.Space for auto-fill.'
-                        : 'Cloud OCR is not configured, so scans stay manual after local image cleanup.'}
+                      Buhay cleans the image on this device and keeps the scan manual until you review and save it.
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className={`${rStyles.switchBtn} ${useCloudOcr ? rStyles.switchBtnOn : ''}`}
-                    role="switch"
-                    aria-checked={useCloudOcr}
-                    disabled={!cloudOcrAvailable}
-                    onClick={() => setCloudOcrEnabled(current => !current)}
-                  >
-                    <span />
-                  </button>
                 </div>
                 {notice.text && (
                   <div className={`${rStyles.noticeMsg} ${notice.tone === 'warning' ? rStyles.noticeWarn : rStyles.noticeInfo}`}>

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import ReceiptScanner from '../components/ReceiptScanner'
 import { fsAddTransaction, fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
+import { loadStorageObjectUrl } from '../lib/storageMedia'
 import { confirmDeleteApp } from '../lib/appFeedback'
 import { getTransactionCategories, getTransactionSubcategories } from '../lib/transactionOptions'
 import {
@@ -89,6 +90,20 @@ function getReceiptDateTimestamp(receipt) {
   return Number.isFinite(createdAt) ? createdAt : 0
 }
 
+function revokeObjectUrl(value = '') {
+  if (typeof value === 'string' && value.startsWith('blob:')) {
+    URL.revokeObjectURL(value)
+  }
+}
+
+function getReceiptPreviewPath(receipt) {
+  return receipt?.cleanedImagePath || receipt?.imagePath || ''
+}
+
+function getReceiptFallbackImageUrl(receipt) {
+  return receipt?.thumbnailUrl || receipt?.cleanedImageUrl || receipt?.imageUrl || ''
+}
+
 function matchesReceiptSearch(receipt, query) {
   const normalizedQuery = String(query || '').trim().toLowerCase()
   if (!normalizedQuery) return true
@@ -159,6 +174,8 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [draftSaveMode, setDraftSaveMode] = useState('receipt')
   const [draftAccountId, setDraftAccountId] = useState('')
+  const [receiptImageUrls, setReceiptImageUrls] = useState({})
+  const receiptImageUrlsRef = useRef({})
 
   const receipts = useMemo(() => (
     [...(Array.isArray(data.receipts) ? data.receipts : [])].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
@@ -214,7 +231,66 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     }
   }, [filteredReceipts, selectedId])
 
+  useEffect(() => {
+    receiptImageUrlsRef.current = receiptImageUrls
+  }, [receiptImageUrls])
+
+  useEffect(() => {
+    return () => {
+      Object.values(receiptImageUrlsRef.current).forEach(revokeObjectUrl)
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    const visibleIds = new Set(filteredReceipts.map(receipt => receipt._id))
+
+    setReceiptImageUrls(current => {
+      let changed = false
+      const next = {}
+      Object.entries(current).forEach(([id, value]) => {
+        if (visibleIds.has(id)) {
+          next[id] = value
+        } else {
+          changed = true
+          revokeObjectUrl(value)
+        }
+      })
+      return changed ? next : current
+    })
+
+    filteredReceipts.forEach(receipt => {
+      const path = getReceiptPreviewPath(receipt)
+      if (!path || receiptImageUrlsRef.current[receipt._id]) return
+
+      loadStorageObjectUrl(path)
+        .then(url => {
+          if (cancelled) {
+            revokeObjectUrl(url)
+            return
+          }
+
+          setReceiptImageUrls(current => {
+            if (current[receipt._id]) {
+              revokeObjectUrl(url)
+              return current
+            }
+            return { ...current, [receipt._id]: url }
+          })
+        })
+        .catch(() => {})
+    })
+
+    return () => {
+      cancelled = true
+    }
+  }, [filteredReceipts])
+
   const selectedReceipt = filteredReceipts.find(receipt => receipt._id === selectedId) || filteredReceipts[0] || null
+  const selectedReceiptImageUrl = selectedReceipt
+    ? (receiptImageUrls[selectedReceipt._id] || getReceiptFallbackImageUrl(selectedReceipt))
+    : ''
+  const selectedReceiptHasImage = Boolean(selectedReceiptImageUrl || getReceiptPreviewPath(selectedReceipt))
   const selectedConfidence = selectedReceipt?.confidence || selectedReceipt?.extractedData?.confidence || null
   const selectedLineItems = getReceiptLineItems(selectedReceipt)
 
@@ -597,7 +673,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
           <div className={receiptStyles.sectionEyebrow}>Scan flow</div>
           <div className={receiptStyles.sectionTitle}>Capture the next receipt</div>
           <div className={receiptStyles.sectionCopy}>
-            Buhay cleans the image locally first, then runs OCR when enabled. You review merchant, total, date, and save mode before anything changes balances.
+            Buhay cleans the image on this device first. You review the merchant, total, date, and save mode yourself before anything changes balances.
           </div>
           <div className={receiptStyles.captureActions}>
             <button className={receiptStyles.primaryButton} onClick={() => {
@@ -616,7 +692,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
             </button>
           </div>
           <div className={receiptStyles.captureHint}>
-            For the best scan, place the receipt on a darker surface and fill most of the frame. OCR can be wrong, so review totals before saving.
+            For the best scan, place the receipt on a darker surface and fill most of the frame. Review totals before saving because image cleanup is only the first step.
           </div>
         </div>
 
@@ -689,7 +765,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               type="search"
               value={searchQuery}
               onChange={event => setSearchQuery(event.target.value)}
-              placeholder="Merchant, note, category, line item, or OCR text"
+              placeholder="Merchant, note, category, line item, or imported text"
             />
           </label>
           <label className={receiptStyles.formField}>
@@ -846,7 +922,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 />
               )}
               <div className={receiptStyles.mediaMeta}>
-                <span>{draft.cleanupSummary || 'Prepared for OCR'}</span>
+                <span>{draft.cleanupSummary || 'Prepared for review'}</span>
                 {draft.currency && <span>{draft.currency}</span>}
                 {draft.confidence?.overall && (
                   <span className={`${receiptStyles.confidencePill} ${receiptStyles[getConfidenceClassName(draft.confidence.overall)]}`}>
@@ -953,7 +1029,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               </div>
               {draft.rawText && (
                 <div className={receiptStyles.rawTextBox}>
-                  <div className={receiptStyles.rawTextLabel}>OCR text preview</div>
+                  <div className={receiptStyles.rawTextLabel}>Imported text preview</div>
                   <div className={receiptStyles.rawTextValue}>{draft.rawText.slice(0, 900)}</div>
                 </div>
               )}
@@ -1002,42 +1078,45 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
           {filteredReceipts.length ? (
             <div className={receiptStyles.receiptList}>
-              {filteredReceipts.map(receipt => (
-                <button
-                  key={receipt._id}
-                  type="button"
-                  className={`${receiptStyles.receiptCard} ${selectedReceipt?._id === receipt._id ? receiptStyles.receiptCardActive : ''}`}
-                  onClick={() => setSelectedId(receipt._id)}
-                >
-                  <div className={receiptStyles.receiptThumbWrap}>
-                    {privacyMode ? (
-                      <div className={receiptStyles.receiptThumbFallback}>Hidden</div>
-                    ) : receipt.thumbnailUrl || receipt.cleanedImageUrl || receipt.imageUrl ? (
-                      <img src={receipt.thumbnailUrl || receipt.cleanedImageUrl || receipt.imageUrl} alt={receipt.merchant || 'Saved receipt'} className={receiptStyles.receiptThumb} />
-                    ) : (
-                      <div className={receiptStyles.receiptThumbFallback}>🧾</div>
-                    )}
-                  </div>
-                  <div className={receiptStyles.receiptCopy}>
-                    <div className={receiptStyles.receiptTopRow}>
-                      <span className={receiptStyles.receiptMerchant}>{receipt.merchant || 'Receipt'}</span>
-                      <span className={receiptStyles.receiptAmount}>{money(receipt.total, receipt.currency)}</span>
+              {filteredReceipts.map(receipt => {
+                const previewUrl = receiptImageUrls[receipt._id] || getReceiptFallbackImageUrl(receipt)
+                return (
+                  <button
+                    key={receipt._id}
+                    type="button"
+                    className={`${receiptStyles.receiptCard} ${selectedReceipt?._id === receipt._id ? receiptStyles.receiptCardActive : ''}`}
+                    onClick={() => setSelectedId(receipt._id)}
+                  >
+                    <div className={receiptStyles.receiptThumbWrap}>
+                      {privacyMode ? (
+                        <div className={receiptStyles.receiptThumbFallback}>Hidden</div>
+                      ) : previewUrl ? (
+                        <img src={previewUrl} alt={receipt.merchant || 'Saved receipt'} className={receiptStyles.receiptThumb} />
+                      ) : (
+                        <div className={receiptStyles.receiptThumbFallback}>🧾</div>
+                      )}
                     </div>
-                    <div className={receiptStyles.receiptMetaRow}>
-                      <span>{formatDisplayDate(receipt.date)}</span>
-                      <span>{receipt.currency || 'PHP'}</span>
+                    <div className={receiptStyles.receiptCopy}>
+                      <div className={receiptStyles.receiptTopRow}>
+                        <span className={receiptStyles.receiptMerchant}>{receipt.merchant || 'Receipt'}</span>
+                        <span className={receiptStyles.receiptAmount}>{money(receipt.total, receipt.currency)}</span>
+                      </div>
+                      <div className={receiptStyles.receiptMetaRow}>
+                        <span>{formatDisplayDate(receipt.date)}</span>
+                        <span>{receipt.currency || 'PHP'}</span>
+                      </div>
+                      <div className={receiptStyles.receiptMetaRow}>
+                        <span>{receipt.category || 'Other'}</span>
+                        <span>Saved {formatSavedAt(receipt.createdAt)}</span>
+                      </div>
+                      <div className={receiptStyles.receiptMetaRow}>
+                        <span>{receipt.expenseLinked ? 'History expense created' : 'Receipt only'}</span>
+                        <span>{receipt.expenseAccountId ? 'Account linked' : 'No account movement'}</span>
+                      </div>
                     </div>
-                    <div className={receiptStyles.receiptMetaRow}>
-                      <span>{receipt.category || 'Other'}</span>
-                      <span>Saved {formatSavedAt(receipt.createdAt)}</span>
-                    </div>
-                    <div className={receiptStyles.receiptMetaRow}>
-                      <span>{receipt.expenseLinked ? 'History expense created' : 'Receipt only'}</span>
-                      <span>{receipt.expenseAccountId ? 'Account linked' : 'No account movement'}</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                )
+              })}
             </div>
           ) : (
             <div className={receiptStyles.emptyState}>
@@ -1045,7 +1124,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               <div className={receiptStyles.emptyCopy}>
                 {receipts.length
                   ? 'Try a different search, widen the time range, or clear the filters to bring receipts back into view.'
-                  : 'Scan your first receipt above and it will land here with a thumbnail, OCR snapshot, and saved metadata.'}
+                  : 'Scan your first receipt above and it will land here with a thumbnail, cleaned image, and saved metadata.'}
               </div>
             </div>
           )}
@@ -1070,11 +1149,11 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
           {selectedReceipt ? (
             <div className={receiptStyles.detailContent}>
-              {privacyMode && (selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl) ? (
+              {privacyMode && selectedReceiptHasImage ? (
                 <div className={receiptStyles.privacyImagePlaceholder}>Receipt image hidden while privacy mode is on</div>
-              ) : (selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl) && (
+              ) : selectedReceiptImageUrl && (
                 <img
-                  src={selectedReceipt.cleanedImageUrl || selectedReceipt.imageUrl}
+                  src={selectedReceiptImageUrl}
                   alt={selectedReceipt.merchant || 'Saved receipt'}
                   className={receiptStyles.detailImage}
                 />
@@ -1180,7 +1259,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
               {selectedReceipt.rawTextPreview && (
                 <div className={receiptStyles.textBlock}>
-                  <div className={receiptStyles.textBlockLabel}>OCR snapshot</div>
+                  <div className={receiptStyles.textBlockLabel}>Imported text snapshot</div>
                   <div className={receiptStyles.textBlockValue}>{selectedReceipt.rawTextPreview}</div>
                 </div>
               )}
@@ -1190,7 +1269,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               <div className={receiptStyles.emptyTitle}>{filteredReceipts.length ? 'No receipt selected' : 'Nothing matches the current view'}</div>
               <div className={receiptStyles.emptyCopy}>
                 {filteredReceipts.length
-                  ? 'Choose a saved receipt to inspect the cleaned image, extracted values, and OCR text snapshot.'
+                  ? 'Choose a saved receipt to inspect the cleaned image, extracted values, and imported text snapshot.'
                   : 'Adjust your filters or clear the search to bring receipt details back into view.'}
               </div>
             </div>

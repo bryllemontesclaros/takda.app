@@ -700,7 +700,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
     const confirmed = await confirmApp({
       title: 'Delete Buhay account?',
-      message: 'This removes your financial records, profile, feedback, and login. This cannot be undone.',
+      message: 'This removes your Takda, Lakas, and Tala data, saved receipts and progress photos, profile, feedback, and login. This cannot be undone.',
       confirmLabel: 'Delete account',
       cancelLabel: 'Keep account',
       tone: 'danger',

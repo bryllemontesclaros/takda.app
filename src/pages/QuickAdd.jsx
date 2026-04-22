@@ -544,7 +544,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           <div className={styles.receiptSaveCopy}>
             <div className={styles.receiptSaveTitle}>Save scanned receipt to Receipts</div>
             <div className={styles.receiptSaveHint}>
-              Keep the image and OCR details in your receipt box after this {isIncome ? 'income' : 'expense'} is added. Review totals first because OCR can be wrong.
+              Keep the image and imported details in your receipt box after this {isIncome ? 'income' : 'expense'} is added. Review totals first because image imports can still be wrong.
             </div>
             <div className={styles.receiptSaveMeta}>
               <span>{importedReceipt?.currency || profile.currency || 'PHP'}</span>
