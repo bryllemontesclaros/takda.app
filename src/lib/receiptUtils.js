@@ -41,6 +41,15 @@ function blobToDataUrl(blob) {
   })
 }
 
+function replaceFileExtension(fileName = '', nextExtension = 'jpg') {
+  const cleanedName = String(fileName || '').trim()
+  if (!cleanedName) return `upload.${nextExtension}`
+  if (cleanedName.includes('.')) {
+    return cleanedName.replace(/\.[a-z0-9]+$/i, `.${nextExtension}`)
+  }
+  return `${cleanedName}.${nextExtension}`
+}
+
 function getPixelLuminance(data, index) {
   return (0.299 * data[index]) + (0.587 * data[index + 1]) + (0.114 * data[index + 2])
 }
@@ -140,6 +149,68 @@ export function detectReceiptCurrency(text = '', fallback = 'PHP') {
   const source = String(text || '')
   const match = RECEIPT_CURRENCY_PATTERNS.find(entry => entry.patterns.some(pattern => pattern.test(source)))
   return normalizeReceiptCurrency(match?.code || fallback, fallback)
+}
+
+export async function prepareImageUpload(file, options = {}) {
+  if (typeof document === 'undefined' || !file) {
+    throw new Error('Image preparation is unavailable.')
+  }
+
+  const {
+    maxEdge = 1800,
+    maxBytes = 4 * 1024 * 1024,
+    quality = 0.88,
+    minimumQuality = 0.64,
+    minimumEdge = 960,
+  } = options
+
+  const objectUrl = URL.createObjectURL(file)
+
+  try {
+    const image = await loadImage(objectUrl)
+    let scale = Math.min(1, maxEdge / Math.max(image.width || 1, image.height || 1))
+    let width = Math.max(1, Math.round((image.width || 1) * scale))
+    let height = Math.max(1, Math.round((image.height || 1) * scale))
+    let currentQuality = quality
+
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d', { willReadFrequently: true })
+    if (!context) throw new Error('Image preparation is unavailable.')
+
+    async function render(nextWidth, nextHeight, nextQuality) {
+      canvas.width = nextWidth
+      canvas.height = nextHeight
+      context.clearRect(0, 0, nextWidth, nextHeight)
+      context.drawImage(image, 0, 0, nextWidth, nextHeight)
+      return canvasToBlob(canvas, 'image/jpeg', nextQuality)
+    }
+
+    let blob = await render(width, height, currentQuality)
+
+    for (let attempt = 0; blob.size > maxBytes && attempt < 6; attempt += 1) {
+      if (currentQuality > minimumQuality) {
+        currentQuality = Math.max(minimumQuality, currentQuality - 0.08)
+      } else {
+        const longestEdge = Math.max(width, height)
+        if (longestEdge <= minimumEdge) break
+        const nextScale = Math.max(minimumEdge / longestEdge, 0.82)
+        width = Math.max(1, Math.round(width * nextScale))
+        height = Math.max(1, Math.round(height * nextScale))
+      }
+
+      blob = await render(width, height, currentQuality)
+    }
+
+    return {
+      blob,
+      fileName: replaceFileExtension(file.name, 'jpg'),
+      width,
+      height,
+      cleanupSummary: blob.size < file.size ? 'Resized for upload' : 'Prepared for upload',
+    }
+  } finally {
+    URL.revokeObjectURL(objectUrl)
+  }
 }
 
 export async function preprocessReceiptImage(file) {

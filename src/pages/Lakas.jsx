@@ -10,6 +10,7 @@ import {
   fsUpdate,
 } from '../lib/firestore'
 import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
+import { prepareImageUpload } from '../lib/receiptUtils'
 import { loadStorageObjectUrl } from '../lib/storageMedia'
 import { formatDisplayDate, today } from '../lib/utils'
 import styles from './Page.module.css'
@@ -498,6 +499,24 @@ function createMealForm() {
     fat: '',
     notes: '',
   }
+}
+
+function getMediaSaveErrorMessage(error, kind = 'photo') {
+  const code = String(error?.code || '')
+
+  if (code === 'storage/unauthorized') {
+    return `${kind === 'photo' ? 'Photo upload' : 'Image upload'} was blocked. If you just changed Vercel or App Check settings, redeploy first, then try again.`
+  }
+
+  if (code === 'storage/canceled') {
+    return `${kind === 'photo' ? 'Photo upload' : 'Image upload'} was canceled before it finished.`
+  }
+
+  if (code === 'storage/retry-limit-exceeded' || code === 'storage/unknown') {
+    return `Upload failed before saving. Try a smaller image or retry on a stable connection.`
+  }
+
+  return `Check your connection and try again.`
 }
 
 function createBodyForm() {
@@ -1618,6 +1637,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
     setSavingMeal(true)
     try {
+      const preparedMealPhoto = mealPhoto
+        ? await prepareImageUpload(mealPhoto, { maxEdge: 1800, maxBytes: 4 * 1024 * 1024, quality: 0.88 })
+        : null
       await fsSaveLakasMeal(user.uid, {
         ...mealForm,
         name: mealForm.name.trim(),
@@ -1626,14 +1648,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         carbs: numberOrZero(mealForm.carbs),
         fat: numberOrZero(mealForm.fat),
         notes: mealForm.notes.trim(),
-        photoBlob: mealPhoto,
-        fileName: mealPhoto?.name || '',
+        photoBlob: preparedMealPhoto?.blob || mealPhoto,
+        fileName: preparedMealPhoto?.fileName || mealPhoto?.name || '',
       })
       setMealForm(createMealForm())
       setMealPhoto(null)
       notifyApp({ title: 'Meal logged', message: 'Photo Meal Log saved with your nutrition estimate.', tone: 'success' })
-    } catch {
-      notifyApp({ title: 'Meal not saved', message: 'Check your connection and Firebase Storage rules, then try again.', tone: 'error' })
+    } catch (error) {
+      notifyApp({ title: 'Meal not saved', message: getMediaSaveErrorMessage(error, 'photo'), tone: 'error' })
     } finally {
       setSavingMeal(false)
     }
@@ -1648,6 +1670,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
     setSavingBody(true)
     try {
+      const preparedBodyPhoto = bodyPhoto
+        ? await prepareImageUpload(bodyPhoto, { maxEdge: 2000, maxBytes: 4 * 1024 * 1024, quality: 0.9 })
+        : null
       await fsSaveLakasBodyLog(user.uid, {
         ...bodyForm,
         weight: numberOrZero(bodyForm.weight),
@@ -1659,14 +1684,14 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         thigh: numberOrZero(bodyForm.thigh),
         bmi: calculateBmi(bodyForm.weight, bodyForm.height, savedLakasSettings.units.weight, savedLakasSettings.units.body),
         notes: bodyForm.notes.trim(),
-        photoBlob: bodyPhoto,
-        fileName: bodyPhoto?.name || '',
+        photoBlob: preparedBodyPhoto?.blob || bodyPhoto,
+        fileName: preparedBodyPhoto?.fileName || bodyPhoto?.name || '',
       })
       setBodyForm(createBodyForm())
       setBodyPhoto(null)
       notifyApp({ title: 'Body progress saved', message: 'Your body log was added.', tone: 'success' })
-    } catch {
-      notifyApp({ title: 'Body log not saved', message: 'Check your connection and Firebase Storage rules, then try again.', tone: 'error' })
+    } catch (error) {
+      notifyApp({ title: 'Body log not saved', message: getMediaSaveErrorMessage(error, 'image'), tone: 'error' })
     } finally {
       setSavingBody(false)
     }
