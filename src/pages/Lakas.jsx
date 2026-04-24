@@ -513,10 +513,15 @@ function getMediaSaveErrorMessage(error, kind = 'photo') {
   }
 
   if (code === 'storage/retry-limit-exceeded' || code === 'storage/unknown') {
-    return `Upload failed before saving. Try a smaller image or retry on a stable connection.`
+    return `Upload failed before saving. Try a smaller image. If you are testing the deployed app, redeploy first so the latest Storage fix is live.`
   }
 
   return `Check your connection and try again.`
+}
+
+function isRetryableMediaSaveError(error) {
+  const code = String(error?.code || '')
+  return code === 'storage/retry-limit-exceeded' || code === 'storage/unknown'
 }
 
 function createBodyForm() {
@@ -1640,7 +1645,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       const preparedMealPhoto = mealPhoto
         ? await prepareImageUpload(mealPhoto, { maxEdge: 1800, maxBytes: 4 * 1024 * 1024, quality: 0.88 })
         : null
-      await fsSaveLakasMeal(user.uid, {
+      const mealPayload = {
         ...mealForm,
         name: mealForm.name.trim(),
         calories: numberOrZero(mealForm.calories),
@@ -1648,9 +1653,31 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         carbs: numberOrZero(mealForm.carbs),
         fat: numberOrZero(mealForm.fat),
         notes: mealForm.notes.trim(),
-        photoBlob: preparedMealPhoto?.blob || mealPhoto,
-        fileName: preparedMealPhoto?.fileName || mealPhoto?.name || '',
-      })
+      }
+
+      try {
+        await fsSaveLakasMeal(user.uid, {
+          ...mealPayload,
+          photoBlob: preparedMealPhoto?.blob || mealPhoto,
+          fileName: preparedMealPhoto?.fileName || mealPhoto?.name || '',
+        })
+      } catch (error) {
+        if (!mealPhoto || !isRetryableMediaSaveError(error)) throw error
+
+        const retryMealPhoto = await prepareImageUpload(mealPhoto, {
+          maxEdge: 1280,
+          maxBytes: 1200 * 1024,
+          quality: 0.76,
+          minimumQuality: 0.58,
+          minimumEdge: 720,
+        })
+
+        await fsSaveLakasMeal(user.uid, {
+          ...mealPayload,
+          photoBlob: retryMealPhoto.blob,
+          fileName: retryMealPhoto.fileName,
+        })
+      }
       setMealForm(createMealForm())
       setMealPhoto(null)
       notifyApp({ title: 'Meal logged', message: 'Photo Meal Log saved with your nutrition estimate.', tone: 'success' })
@@ -1673,7 +1700,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       const preparedBodyPhoto = bodyPhoto
         ? await prepareImageUpload(bodyPhoto, { maxEdge: 2000, maxBytes: 4 * 1024 * 1024, quality: 0.9 })
         : null
-      await fsSaveLakasBodyLog(user.uid, {
+      const bodyPayload = {
         ...bodyForm,
         weight: numberOrZero(bodyForm.weight),
         height: numberOrZero(bodyForm.height),
@@ -1684,9 +1711,31 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         thigh: numberOrZero(bodyForm.thigh),
         bmi: calculateBmi(bodyForm.weight, bodyForm.height, savedLakasSettings.units.weight, savedLakasSettings.units.body),
         notes: bodyForm.notes.trim(),
-        photoBlob: preparedBodyPhoto?.blob || bodyPhoto,
-        fileName: preparedBodyPhoto?.fileName || bodyPhoto?.name || '',
-      })
+      }
+
+      try {
+        await fsSaveLakasBodyLog(user.uid, {
+          ...bodyPayload,
+          photoBlob: preparedBodyPhoto?.blob || bodyPhoto,
+          fileName: preparedBodyPhoto?.fileName || bodyPhoto?.name || '',
+        })
+      } catch (error) {
+        if (!bodyPhoto || !isRetryableMediaSaveError(error)) throw error
+
+        const retryBodyPhoto = await prepareImageUpload(bodyPhoto, {
+          maxEdge: 1440,
+          maxBytes: 1400 * 1024,
+          quality: 0.78,
+          minimumQuality: 0.6,
+          minimumEdge: 800,
+        })
+
+        await fsSaveLakasBodyLog(user.uid, {
+          ...bodyPayload,
+          photoBlob: retryBodyPhoto.blob,
+          fileName: retryBodyPhoto.fileName,
+        })
+      }
       setBodyForm(createBodyForm())
       setBodyPhoto(null)
       notifyApp({ title: 'Body progress saved', message: 'Your body log was added.', tone: 'success' })
