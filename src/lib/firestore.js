@@ -635,6 +635,23 @@ function chunkList(items = [], size = 400) {
   return chunks
 }
 
+function collectRestoreAssetPaths(rows = [], keys = []) {
+  const paths = new Set()
+  rows.forEach(row => {
+    keys.forEach(key => {
+      const value = typeof row?.[key] === 'string' ? row[key].trim() : ''
+      if (value) paths.add(value)
+    })
+  })
+  return paths
+}
+
+function getDeletableRestorePaths(value = '', preservedPaths = new Set()) {
+  const path = typeof value === 'string' ? value.trim() : ''
+  if (!path || preservedPaths.has(path)) return []
+  return [path]
+}
+
 async function fsWriteCollection(uid, col, rows = [], clearExisting = false) {
   const targetCollection = userCol(uid, col)
 
@@ -695,6 +712,9 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
   ]
 
   if (clearExisting) {
+    const incomingReceiptPaths = collectRestoreAssetPaths(Array.isArray(backup.receipts) ? backup.receipts : [], ['imagePath', 'cleanedImagePath'])
+    const incomingMealPaths = collectRestoreAssetPaths(Array.isArray(backup.lakasMeals) ? backup.lakasMeals : [], ['photoPath'])
+    const incomingBodyPaths = collectRestoreAssetPaths(Array.isArray(backup.lakasBodyLogs) ? backup.lakasBodyLogs : [], ['photoPath'])
     const receiptsSnapshot = await getDocs(userCol(uid, 'receipts'))
     const mealsSnapshot = await getDocs(userCol(uid, 'lakasMeals'))
     const bodySnapshot = await getDocs(userCol(uid, 'lakasBodyLogs'))
@@ -702,12 +722,12 @@ export async function fsRestoreBackup(uid, backup = {}, mode = 'merge') {
       ...receiptsSnapshot.docs.flatMap(snapshot => {
         const data = snapshot.data() || {}
         return [
-          deleteReceiptAsset(data.imagePath),
-          deleteReceiptAsset(data.cleanedImagePath),
+          ...getDeletableRestorePaths(data.imagePath, incomingReceiptPaths).map(deleteReceiptAsset),
+          ...getDeletableRestorePaths(data.cleanedImagePath, incomingReceiptPaths).map(deleteReceiptAsset),
         ]
       }),
-      ...mealsSnapshot.docs.map(snapshot => deleteLakasMealPhoto((snapshot.data() || {}).photoPath)),
-      ...bodySnapshot.docs.map(snapshot => deleteLakasBodyPhoto((snapshot.data() || {}).photoPath)),
+      ...mealsSnapshot.docs.flatMap(snapshot => getDeletableRestorePaths((snapshot.data() || {}).photoPath, incomingMealPaths).map(deleteLakasMealPhoto)),
+      ...bodySnapshot.docs.flatMap(snapshot => getDeletableRestorePaths((snapshot.data() || {}).photoPath, incomingBodyPaths).map(deleteLakasBodyPhoto)),
     ])
   }
 

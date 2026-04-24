@@ -517,6 +517,7 @@ export default function AppShell({ user }) {
     budgets: [],
     receipts: [],
     transfers: [],
+    calendarEvents: [],
     lakasRoutines: [],
     lakasWorkouts: [],
     lakasBodyLogs: [],
@@ -562,6 +563,7 @@ export default function AppShell({ user }) {
     budgets: false,
     receipts: false,
     transfers: false,
+    calendarEvents: false,
     profile: false,
   })
 
@@ -639,6 +641,7 @@ export default function AppShell({ user }) {
       budgets: false,
       receipts: false,
       transfers: false,
+      calendarEvents: false,
       profile: false,
     }
     const uid = user.uid
@@ -675,6 +678,10 @@ export default function AppShell({ user }) {
         setData(d => ({ ...d, transfers: rows }))
         markLoaded('transfers')
       }, error => handleRealtimeError('transfers', error)),
+      listenCol(uid, 'calendarEvents', rows => {
+        setData(d => ({ ...d, calendarEvents: rows }))
+        markLoaded('calendarEvents')
+      }, error => handleRealtimeError('calendarEvents', error)),
       listenProfile(uid, p => {
         setProfile(p)
         markLoaded('profile')
@@ -694,7 +701,7 @@ export default function AppShell({ user }) {
   }, [profile?.preferredSpace])
 
   useEffect(() => {
-    if (!user || (activeSpace !== 'lakas' && page !== 'settings')) return undefined
+    if (!user || activeSpace !== 'lakas') return undefined
 
     const uid = user.uid
     const unsubs = LAKAS_COLLECTIONS.map(collectionName => (
@@ -704,10 +711,10 @@ export default function AppShell({ user }) {
     ))
 
     return () => unsubs.forEach(unsub => unsub())
-  }, [activeSpace, page, user])
+  }, [activeSpace, user])
 
   useEffect(() => {
-    if (!user || (activeSpace !== 'tala' && page !== 'settings')) return undefined
+    if (!user || activeSpace !== 'tala') return undefined
 
     const uid = user.uid
     const unsubs = TALA_COLLECTIONS.map(collectionName => (
@@ -717,7 +724,7 @@ export default function AppShell({ user }) {
     ))
 
     return () => unsubs.forEach(unsub => unsub())
-  }, [activeSpace, page, user])
+  }, [activeSpace, user])
 
   useEffect(() => {
     if (!user?.uid || !data.accounts.length) return

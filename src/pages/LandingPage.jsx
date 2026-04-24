@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+import { onAuthStateChanged } from 'firebase/auth'
 import { Link, useNavigate } from 'react-router-dom'
 import RouteMeta from '../components/RouteMeta'
 import { auth } from '../lib/firebase'
@@ -99,8 +101,20 @@ const PRIVACY_POINTS = [
 
 export default function LandingPage() {
   const navigate = useNavigate()
-  const isSignedIn = Boolean(auth.currentUser)
-  const primaryLabel = isSignedIn ? 'Open the app' : 'Create your account'
+  const [authReady, setAuthReady] = useState(() => Boolean(auth.currentUser))
+  const [isSignedIn, setIsSignedIn] = useState(() => Boolean(auth.currentUser))
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, currentUser => {
+      setIsSignedIn(Boolean(currentUser))
+      setAuthReady(true)
+    })
+    return () => unsub()
+  }, [])
+
+  const primaryLabel = authReady
+    ? (isSignedIn ? 'Open the app' : 'Create your account')
+    : 'Open Buhay'
   const navPrimaryLabel = primaryLabel
   const ctaPrimaryLabel = primaryLabel
   const openPrimary = () => navigate(isSignedIn ? '/app' : '/login')
@@ -138,7 +152,7 @@ export default function LandingPage() {
             Buhay gives you three focused spaces: Takda for money, Lakas for fitness, and Tala for reflection and life admin. Start with one space, then add real logs only when they fit your day.
           </p>
           <div className={styles.heroBtns}>
-            <button className={styles.btnPrimary} onClick={openPrimary}>{primaryLabel}</button>
+            <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
           <div className={styles.heroNote}>Only currency is required at setup. Everything else can grow later.</div>

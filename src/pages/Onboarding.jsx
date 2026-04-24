@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { getBillPeriodKey } from '../lib/bills'
 import { getCurrentBalance } from '../lib/finance'
 import { fsCompleteOnboarding } from '../lib/firestore'
 import { notifyApp } from '../lib/appFeedback'
@@ -265,6 +266,25 @@ function getLatestDueAnchorDate(dueDay) {
   return formatDate(new Date(now.getFullYear(), now.getMonth() - 1, previousMonthDay))
 }
 
+function getSeededBillPaidPeriods({ dueDay, frequency = 'monthly', amount = 0, accountId = '' }) {
+  const anchorDate = getLatestDueAnchorDate(dueDay)
+  if (!anchorDate) return {}
+
+  const periodKey = getBillPeriodKey({ due: Number(dueDay), freq: frequency || 'monthly' }, anchorDate)
+  const paidAt = new Date(`${anchorDate}T12:00:00`).getTime()
+
+  return {
+    [periodKey]: {
+      paidAt,
+      amount: roundMoney(amount),
+      date: anchorDate,
+      dueDate: anchorDate,
+      accountId: accountId || '',
+      source: 'onboarding-seed',
+    },
+  }
+}
+
 export default function Onboarding({ user, onDone, notice = '' }) {
   const [step, setStep] = useState(0)
   const [form, setForm] = useState({
@@ -411,18 +431,26 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   const preparedBills = useMemo(() => form.bills
     .filter(hasBillContent)
-    .map(row => ({
-      name: row.name.trim(),
-      amount: roundMoney(row.amount),
-      due: Number(row.due),
-      cat: 'Bills',
-      subcat: row.subcat || getTransactionSubcategories('expense', 'Bills')[0],
-      presetKey: row.presetKey || '',
-      freq: row.freq || 'monthly',
-      paid: false,
-      type: 'bill',
-      accountId: row.accountId || '',
-    })), [form.bills])
+    .map(row => {
+      const amount = roundMoney(row.amount)
+      const due = Number(row.due)
+      const freq = row.freq || 'monthly'
+      const accountId = row.accountId || ''
+
+      return {
+        name: row.name.trim(),
+        amount,
+        due,
+        cat: 'Bills',
+        subcat: row.subcat || getTransactionSubcategories('expense', 'Bills')[0],
+        presetKey: row.presetKey || '',
+        freq,
+        paid: false,
+        paidPeriods: getSeededBillPaidPeriods({ dueDay: due, frequency: freq, amount, accountId }),
+        type: 'bill',
+        accountId,
+      }
+    }), [form.bills])
 
   const seededExpenses = useMemo(() => preparedBills.map(bill => ({
     desc: bill.name,

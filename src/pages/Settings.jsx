@@ -74,6 +74,7 @@ const BACKUP_COLLECTIONS = [
   { key: 'budgets', label: 'Budgets' },
   { key: 'receipts', label: 'Receipts' },
   { key: 'transfers', label: 'Transfers' },
+  { key: 'calendarEvents', label: 'Calendar reminders' },
   { key: 'lakasRoutines', label: 'Lakas routines' },
   { key: 'lakasWorkouts', label: 'Lakas workouts' },
   { key: 'lakasBodyLogs', label: 'Lakas body logs' },
@@ -156,6 +157,7 @@ function parseBackupPayload(raw) {
     budgets: normalizeBackupArray(raw.budgets),
     receipts: normalizeBackupArray(raw.receipts),
     transfers: normalizeBackupArray(raw.transfers),
+    calendarEvents: normalizeBackupArray(raw.calendarEvents),
     lakasRoutines: normalizeBackupArray(raw.lakasRoutines),
     lakasWorkouts: normalizeBackupArray(raw.lakasWorkouts),
     lakasBodyLogs: normalizeBackupArray(raw.lakasBodyLogs),
@@ -583,6 +585,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       budgets: data.budgets,
       receipts: data.receipts,
       transfers: data.transfers || [],
+      calendarEvents: data.calendarEvents || [],
       lakasRoutines: data.lakasRoutines || [],
       lakasWorkouts: data.lakasWorkouts || [],
       lakasBodyLogs: data.lakasBodyLogs || [],
@@ -638,8 +641,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, Lakas data, Tala data, and profile data with this backup. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.'
-        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, and Tala if present. Matching document ids will be updated. Receipt, meal, and body progress image files are links only and are not re-uploaded from JSON backups.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, calendar reminders, Lakas data, Tala data, and profile data with this backup. Receipt, meal, and body progress image files are references only and are not recreated from JSON backups.'
+        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, Tala, and calendar reminders if present. Matching document ids will be updated. Receipt, meal, and body progress image files are references only and are not recreated from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -1111,7 +1114,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, Lakas records, Tala records, receipt and meal metadata links, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, calendar reminders, Lakas records, Tala records, receipt and photo metadata links, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
