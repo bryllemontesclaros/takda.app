@@ -422,31 +422,31 @@ const LAKAS_TAB_COPY = {
   },
   train: {
     eyebrow: 'Train',
-    title: 'Start the safest useful session.',
-    sub: 'Gym Session, beginner progression, routines, form cues, rest timing, and vetted exercise videos keep form ahead of load.',
+    title: 'Start the right session for today.',
+    sub: 'Gym Session, beginner progression, routines, form cues, rest timing, and trusted exercise videos keep technique ahead of load.',
     guide: ['Choose session', 'Check form', 'Track sets'],
   },
   log: {
     eyebrow: 'Workout log',
-    title: 'Record what actually happened.',
+    title: 'Log what you really did.',
     sub: 'Manual workout logs, routines, sets, reps, weight, duration, rest, and notes stay focused on real sessions only.',
     guide: ['Load routine', 'Adjust actuals', 'Save workout'],
   },
   nutrition: {
     eyebrow: 'Nutrition',
-    title: 'Simple meal tracking.',
+    title: 'Keep meal logging simple.',
     sub: 'Save meal details, calorie estimates, protein, carbs, fat, and meal history without pretending nutrition logs are perfectly precise.',
     guide: ['Log meal', 'Estimate macros', 'Review trend'],
   },
   progress: {
     eyebrow: 'Progress',
-    title: 'Track the trend, not the panic.',
+    title: 'Read the trend, not the panic.',
     sub: 'Body logs, steps, activity, habits, goals, charts, and calendar signals show trends, not a diagnosis.',
     guide: ['Log movement', 'Update gently', 'Review trends'],
   },
   settings: {
     eyebrow: 'Lakas settings',
-    title: 'Keep Lakas realistic, safe, and easy to return to.',
+    title: 'Keep Lakas practical, safe, and easy to return to.',
     sub: 'Core settings stay up front, while training profile and advanced defaults stay tucked away until you actually need them.',
     guide: ['Set basics', 'Adjust goals', 'Protect your data'],
   },
@@ -1303,7 +1303,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       exercises: hydrateExerciseRows(routine.exercises),
       notes: routine.notes || current.notes,
     }))
-    notifyApp({ title: 'Routine loaded', message: `${routine.name || 'Routine'} is ready to log.`, tone: 'success' })
+    notifyApp({ title: 'Routine ready', message: `${routine.name || 'Routine'} is ready to log.`, tone: 'success' })
   }
 
   function openGymSessionMode(template = selectedGymTemplate, session = selectedGymSession) {
@@ -1331,7 +1331,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       startedAt: Date.now(),
       warmupDone: false,
     })
-    notifyApp({ title: 'Gym session started', message: `${template.name || session.label} is open in session mode.`, tone: 'success' })
+    notifyApp({ title: 'Session ready', message: `${template.name || session.label} is open in session mode.`, tone: 'success' })
   }
 
   function editGymSessionAsRoutine(template = selectedGymTemplate) {
@@ -1434,7 +1434,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       exercises: hydrateExerciseRows(template.exercises),
       notes: buildTemplateNotes(template),
     })
-    notifyApp({ title: 'Template loaded', message: `${template.name} is ready to save or edit.`, tone: 'success' })
+    notifyApp({ title: 'Template ready', message: `${template.name} is ready to save or edit.`, tone: 'success' })
   }
 
   function handleRoutineSelect(routineId) {
@@ -1591,7 +1591,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       source: 'lakas',
     })
     setWorkoutForm(createWorkoutForm(savedLakasSettings))
-    notifyApp({ title: 'Workout logged', message: 'Your Lakas workout was saved.', tone: 'success' })
+    notifyApp({ title: 'Workout saved', message: 'Your workout is now in Lakas.', tone: 'success' })
     return true
   }
 
@@ -1626,7 +1626,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       }
       await fsSaveLakasMeal(user.uid, mealPayload)
       setMealForm(createMealForm())
-      notifyApp({ title: 'Meal logged', message: 'Meal log saved with your nutrition estimate.', tone: 'success' })
+      notifyApp({ title: 'Meal saved', message: 'Your meal log is saved with the nutrition estimate.', tone: 'success' })
     } catch {
       notifyApp({ title: 'Meal not saved', message: 'Could not save this meal right now. Try again.', tone: 'error' })
     } finally {
@@ -1657,7 +1657,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       }
       await fsSaveLakasBodyLog(user.uid, bodyPayload)
       setBodyForm(createBodyForm())
-      notifyApp({ title: 'Body progress saved', message: 'Your body log was added.', tone: 'success' })
+      notifyApp({ title: 'Body log saved', message: 'Your body log is now part of the trend view.', tone: 'success' })
     } catch {
       notifyApp({ title: 'Body log not saved', message: 'Could not save this body log right now. Try again.', tone: 'error' })
     } finally {
@@ -1683,7 +1683,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       source: 'lakas',
     })
     setActivityForm(createActivityForm())
-    notifyApp({ title: 'Activity saved', message: 'Steps and cardio activity were added.', tone: 'success' })
+    notifyApp({ title: 'Activity saved', message: 'Steps and activity have been added.', tone: 'success' })
   }
 
   async function handleAddHabit() {
@@ -1701,7 +1701,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       source: 'lakas',
     })
     setHabitForm(createHabitForm())
-    notifyApp({ title: 'Check-in saved', message: 'Habit check-in added for the day.', tone: 'success' })
+    notifyApp({ title: 'Check-in saved', message: 'Habit check-in added for today.', tone: 'success' })
   }
 
   async function handleAddGoal() {
@@ -1726,7 +1726,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       source: 'lakas',
     })
     setGoalForm(createGoalForm())
-    notifyApp({ title: 'Lakas goal saved', message: 'Your fitness goal is now tracked.', tone: 'success' })
+    notifyApp({ title: 'Goal saved', message: 'Your fitness goal is now tracked.', tone: 'success' })
   }
 
   async function handleAddReminder() {
@@ -1746,7 +1746,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       source: 'lakas',
     })
     setReminderForm(createReminderForm(savedLakasSettings))
-    notifyApp({ title: 'Reminder saved', message: 'Lakas reminder was added.', tone: 'success' })
+    notifyApp({ title: 'Reminder saved', message: 'Your Lakas reminder has been added.', tone: 'success' })
   }
 
   async function handleGoalProgress(goal) {
@@ -1778,7 +1778,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       const nextSettings = sanitizeLakasSettings(settingsForm)
       await fsSetProfile(user.uid, { lakasSettings: nextSettings })
       setSettingsForm(nextSettings)
-      notifyApp({ title: 'Lakas settings saved', message: 'Your fitness defaults were updated.', tone: 'success' })
+      notifyApp({ title: 'Settings saved', message: 'Your Lakas defaults were updated.', tone: 'success' })
     } catch {
       notifyApp({ title: 'Settings not saved', message: 'Check your connection and try again.', tone: 'error' })
     } finally {
@@ -1811,7 +1811,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     link.click()
     link.remove()
     URL.revokeObjectURL(url)
-    notifyApp({ title: 'Lakas export ready', message: 'Your fitness backup was downloaded.', tone: 'success' })
+    notifyApp({ title: 'Export ready', message: 'Your Lakas backup has been downloaded.', tone: 'success' })
   }
 
   async function handleLogout() {
@@ -2154,7 +2154,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Records</div>
               <h3>Personal records</h3>
-              <p className={lStyles.sectionHint}>Best lifts, reps, volume, cardio, and streaks update from saved logs.</p>
+              <p className={lStyles.sectionHint}>Personal records update from saved workouts, volume, cardio, and streaks.</p>
             </div>
           </div>
           <div className={lStyles.recordGrid}>
@@ -2189,7 +2189,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Charts</div>
               <h3>Progress charts</h3>
-              <p className={lStyles.sectionHint}>A compact 7-day view for workout frequency, volume, steps, and body trend.</p>
+              <p className={lStyles.sectionHint}>A compact 7-day view of workout frequency, volume, steps, and body trend.</p>
             </div>
           </div>
           <div className={lStyles.chartGrid}>
@@ -2248,7 +2248,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Reminders</div>
               <h3>Workout reminders</h3>
-              <p className={lStyles.sectionHint}>Create cues for workouts, weigh-ins, steps, rest days, and habit routines.</p>
+              <p className={lStyles.sectionHint}>Create reminders for workouts, weigh-ins, steps, rest days, and habits.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2313,7 +2313,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Gym session</div>
               <h3>Are you doing gym today?</h3>
-              <p className={lStyles.sectionHint}>Choose the day type and Lakas will load a ready session with estimated timing, rest, form cues, load guidance, and YouTube form help.</p>
+              <p className={lStyles.sectionHint}>Choose a session type and Lakas loads a ready workout with timing, rest, form cues, load guidance, and embedded video help.</p>
             </div>
           </div>
 
@@ -2388,7 +2388,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Beginner path</div>
               <h3>Start light, progress safely</h3>
-              <p className={lStyles.sectionHint}>For users with no workout history, Lakas recommends the next safe foundation session instead of pushing random hard workouts.</p>
+              <p className={lStyles.sectionHint}>If you are just starting, Lakas recommends the next foundation session instead of a random hard workout.</p>
             </div>
           </div>
           <div className={lStyles.beginnerCoachCard}>
@@ -2443,7 +2443,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Good form guide</div>
               <h3>Reduce injury risk before adding load</h3>
-              <p className={lStyles.sectionHint}>Form cues appear automatically in the exercise editor when Lakas recognizes the movement name.</p>
+              <p className={lStyles.sectionHint}>Form cues appear automatically when Lakas recognizes the exercise name.</p>
             </div>
           </div>
           <div className={lStyles.formGuideGrid}>
@@ -2526,7 +2526,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Workout log</div>
               <h3>Log a workout</h3>
-              <p className={lStyles.sectionHint}>Load a saved routine or enter exercises manually, then adjust the actual work done.</p>
+              <p className={lStyles.sectionHint}>Load a saved routine or enter exercises manually, then record the actual work done.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2573,7 +2573,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Steps & activity</div>
               <h3>Log movement</h3>
-              <p className={lStyles.sectionHint}>For walks, runs, cardio, errands, commute, and active minutes outside the gym.</p>
+              <p className={lStyles.sectionHint}>For walks, runs, cardio, errands, commuting, and active minutes outside the gym.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2630,7 +2630,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Habit check-ins</div>
               <h3>Daily recovery</h3>
-              <p className={lStyles.sectionHint}>Tick the basics quickly so recovery becomes visible without becoming a chore.</p>
+              <p className={lStyles.sectionHint}>Tick the basics quickly so recovery becomes visible without turning into a chore.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2720,7 +2720,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Goals</div>
               <h3>Lakas goals</h3>
-              <p className={lStyles.sectionHint}>Use measurable targets like workouts, steps, kg, protein, days, or your own unit. Keep targets realistic and pain-free.</p>
+              <p className={lStyles.sectionHint}>Use measurable targets like workouts, steps, kg, protein, days, or your own unit. Keep them realistic and sustainable.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -2828,7 +2828,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Units & display</div>
               <h3>Core preferences</h3>
-              <p className={lStyles.sectionHint}>Start with units and privacy behavior. These are the things most people actually revisit.</p>
+              <p className={lStyles.sectionHint}>Start with units and privacy behavior. These are the settings most people actually revisit.</p>
             </div>
           </div>
           <div className={lStyles.formGrid}>
@@ -3127,7 +3127,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Meals</div>
               <h3>Recent meals</h3>
-              <p className={lStyles.sectionHint}>Saved meals and macro estimates live here for easy review. Older photos still appear if they were already saved.</p>
+              <p className={lStyles.sectionHint}>Saved meals and macro estimates live here for easy review. Any older saved photos still appear if they already existed.</p>
             </div>
           </div>
           {!meals.length ? <div className={lStyles.empty}>No meals logged yet.</div> : visibleMeals.map(meal => {
@@ -3153,7 +3153,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Progress</div>
               <h3>Body logs</h3>
-              <p className={lStyles.sectionHint}>Measurements stay easy to review, and any older photos still stay hidden in privacy mode.</p>
+              <p className={lStyles.sectionHint}>Measurements stay easy to review, and any older saved photos still stay hidden in privacy mode.</p>
             </div>
           </div>
           {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : visibleBodyLogs.map(log => {

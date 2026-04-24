@@ -835,7 +835,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           <div className={settStyles.pageEyebrow}>Settings</div>
           <div className={settStyles.pageTitle}>Account, privacy, backup, and recovery in one place.</div>
           <div className={settStyles.pageSub}>
-            The essentials stay upfront here: identity, notifications, privacy, backup, and recovery. Lower-priority product extras stay tucked away so this page feels calmer to use.
+            The essentials stay upfront here: identity, notifications, privacy, backup, and recovery. Lower-priority product extras stay tucked away so this page stays easy to use.
           </div>
         </div>
 
@@ -1297,7 +1297,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         className={settingsWideCardClass}
         eyebrow="Help & app"
         title="Feedback, about, and support"
-        description="These product extras are still available, but they stay collapsed so the main Settings flow stays focused on account, privacy, and recovery."
+        description="These product extras stay available here, while the main Settings flow stays focused on account, privacy, and recovery."
       >
         {feedbackSaved && <div className={settStyles.feedbackSaved}>{feedbackSaved}</div>}
 
@@ -1328,10 +1328,10 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
           <div className={settStyles.subsectionTitle}>About Buhay</div>
           <div className={settStyles.aboutBlock}>
             <div className={settStyles.aboutLogo}>Buhay</div>
-            <div className={settStyles.aboutTagline}>Bawat piso, sinusubaybayan.</div>
+            <div className={settStyles.aboutTagline}>Bawat araw, mas malinaw.</div>
             <div className={settStyles.aboutMeta}>Version {VERSION}</div>
             <div className={settStyles.aboutDesc}>
-              A personal finance tracker for Filipinos. Track income, expenses, bills, and goals with a month view that stays in sync across devices.
+              A life tracker built with Filipino clarity and warmth for everyday use anywhere. Track money, fitness, and reflection in one account that stays in sync across devices.
             </div>
             <div className={settStyles.aboutUser}>Logged in as <strong>{currentDisplayName || user.email}</strong></div>
           </div>

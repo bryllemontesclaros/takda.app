@@ -187,9 +187,9 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
       <div className={hStyles.heroSection}>
         <div className={hStyles.heroCopy}>
           <div className={hStyles.pageEyebrow}>History</div>
-          <div className={hStyles.pageTitle}>Keep the ledger clean and explainable.</div>
+          <div className={hStyles.pageTitle}>Keep the ledger easy to review.</div>
           <div className={hStyles.pageSub}>
-            Search, filter, edit, and delete from one place so reports, forecasts, and balances stay easier to audit.
+            Search, filter, edit, and clean up entries from one place so reports, forecasts, and balances stay understandable.
           </div>
         </div>
 
@@ -201,7 +201,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           </div>
           <div className={hStyles.heroAsideMeta}>
             {hasActiveFilters || search
-              ? 'Filters are shaping this ledger view.'
+              ? 'Filters are shaping this view.'
               : 'Showing all recorded transaction activity.'}
           </div>
         </div>
@@ -218,21 +218,21 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           <div className={`${hStyles.summaryValue} ${hStyles.summaryValueAccent}`}>
             {displayValue(privacyMode, `+${fmt(totalIncome, s)}`, `+${maskMoney(s)}`)}
           </div>
-          <div className={hStyles.summaryMeta}>Filtered income entries in this view</div>
+          <div className={hStyles.summaryMeta}>Income entries in this view</div>
         </div>
         <div className={hStyles.summaryCard}>
           <div className={hStyles.summaryLabel}>Expenses</div>
           <div className={`${hStyles.summaryValue} ${hStyles.summaryValueRed}`}>
             {displayValue(privacyMode, `−${fmt(totalExpense, s)}`, `−${maskMoney(s)}`)}
           </div>
-          <div className={hStyles.summaryMeta}>Filtered outflows and spending</div>
+          <div className={hStyles.summaryMeta}>Spending in this view</div>
         </div>
         <div className={hStyles.summaryCard}>
           <div className={hStyles.summaryLabel}>Net</div>
           <div className={`${hStyles.summaryValue} ${net >= 0 ? hStyles.summaryValueBlue : hStyles.summaryValueRed}`}>
             {displayValue(privacyMode, `${net >= 0 ? '+' : ''}${fmt(net, s)}`, `${net >= 0 ? '+' : ''}${maskMoney(s)}`)}
           </div>
-          <div className={hStyles.summaryMeta}>{net >= 0 ? 'Net positive in this view' : 'Net negative in this view'}</div>
+          <div className={hStyles.summaryMeta}>{net >= 0 ? 'Net result is positive in this view' : 'Net result is negative in this view'}</div>
         </div>
       </div>
 
@@ -248,7 +248,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
 
       <div className={hStyles.searchShell}>
         <div className={hStyles.searchRow}>
-          <input className={hStyles.searchInput} placeholder="Search description, category, or subcategory" value={search} onChange={event => setSearch(event.target.value)} />
+          <input className={hStyles.searchInput} placeholder="Search note, category, or subcategory" value={search} onChange={event => setSearch(event.target.value)} />
           {search && <button type="button" className={hStyles.clearSearch} onClick={() => setSearch('')}>✕</button>}
           <button type="button" className={`${hStyles.filterBtn} ${hasActiveFilters ? hStyles.filterBtnActive : ''}`} onClick={() => setShowFilters(value => !value)}>
             {hasActiveFilters ? 'Filters on' : 'Filters'}
@@ -298,8 +298,8 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
           </div>
           <div className={hStyles.emptyBody}>
             {hasActiveFilters || search
-              ? 'Try clearing your filters or search terms to widen the ledger view.'
-              : 'Add your first income or expense and this page will turn into your running ledger.'}
+              ? 'Clear the filters or widen the search to bring more entries back into view.'
+              : 'Add your first income or expense and this page becomes your running ledger.'}
           </div>
           {(hasActiveFilters || search) && (
             <button
@@ -365,7 +365,7 @@ export default function History({ user, data, symbol, privacyMode = false, gamif
             </div>
             <div className={styles.formGroup} style={{ marginBottom: 12 }}>
               <label>Description</label>
-              <input value={editForm.desc} onChange={event => setEditForm(current => ({ ...current, desc: event.target.value }))} placeholder="Description" />
+              <input value={editForm.desc} onChange={event => setEditForm(current => ({ ...current, desc: event.target.value }))} placeholder="Merchant, payer, or note" />
             </div>
             <div className={styles.formGroup} style={{ marginBottom: 12 }}>
               <label>Preset</label>

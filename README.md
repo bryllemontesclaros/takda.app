@@ -2,7 +2,7 @@
 
 > Bawat araw, mas malinaw. Every day, clearer.
 
-Buhay is an all-in-one life tracker built for Filipinos. It brings three focused spaces into one installable React + Firebase app:
+Buhay is an all-in-one life tracker built with Filipino clarity and warmth for everyday use anywhere. It brings three focused spaces into one installable React + Firebase app:
 
 - Takda: finance, daily balances, bills, receipts, budgets, savings, reports, and cashflow.
 - Lakas: fitness, workouts, routines, meals, activity, body progress, habits, and goals.
@@ -45,7 +45,7 @@ Lakas fitness:
 - Overview
 - Settings
 
-Tala mind and life admin:
+Tala mind and everyday life:
 
 - Journal
 - Mood

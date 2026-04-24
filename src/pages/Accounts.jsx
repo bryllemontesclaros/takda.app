@@ -93,7 +93,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
         })
       }
     } catch {
-      notifyApp({ title: 'Account not deleted', message: 'Please check your connection and try again.', tone: 'error' })
+      notifyApp({ title: 'Account not deleted', message: 'Could not delete this account right now. Check your connection and try again.', tone: 'error' })
     }
   }
 
@@ -125,7 +125,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
     : 0
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
   const balanceFieldLabel = form.type === 'Credit Card' ? `Current amount owed (${s})` : `Balance now (${s})`
-  const privacyHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
+  const privacyHint = privacyMode ? 'Privacy mode on. Tap to reveal values.' : 'Tap to hide values on this page.'
   const accountCountLabel = `${accounts.length} account${accounts.length !== 1 ? 's' : ''} right now`
 
   useEffect(() => {
@@ -139,9 +139,9 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
       <div className={accStyles.heroSection}>
         <div className={accStyles.heroCopy}>
           <div className={accStyles.pageEyebrow}>Accounts</div>
-          <div className={accStyles.pageTitle}>Make accounts the source of truth.</div>
+          <div className={accStyles.pageTitle}>Keep each account clear and current.</div>
           <div className={accStyles.pageSub}>
-            Cash, bank, e-wallet, and credit accounts stay trustworthy when each balance has a clear role and updates only from real activity.
+            Cash, bank, wallet, and credit balances work best when each account has a clear role and only reflects real activity.
           </div>
         </div>
 
@@ -181,7 +181,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
         <div className={accStyles.summaryCard}>
           <div className={accStyles.summaryLabel}>Liquid funds</div>
           <div className={`${accStyles.summaryValue} ${accStyles.summaryValueAccent}`}>{money(liquidTotal)}</div>
-          <div className={accStyles.summaryMeta}>Cash, bank, and e-wallet balances</div>
+          <div className={accStyles.summaryMeta}>Cash, bank, and wallet balances</div>
         </div>
         <div className={accStyles.summaryCard}>
           <div className={accStyles.summaryLabel}>Debt to cover</div>
@@ -204,8 +204,8 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
           <div className={accStyles.toolbarTitle}>Account list</div>
           <div className={accStyles.toolbarMeta}>
             {accounts.length
-              ? 'Edit balances carefully; account changes affect the money baseline used across Takda.'
-              : 'Start with your main wallet, bank, or e-wallet so Takda has a real balance base.'}
+              ? 'Edit balances carefully. Account changes affect the baseline Takda uses across balances, history, and forecasts.'
+              : 'Start with the account you use most so Takda begins from a real balance, not a guess.'}
           </div>
         </div>
         <button type="button" className={accStyles.primaryButton} onClick={openAdd}>Add account</button>
@@ -311,7 +311,7 @@ export default function Accounts({ user, data, profile = {}, symbol, privacyMode
       {!accounts.length ? (
         <div className={accStyles.emptyCard}>
           <div className={accStyles.emptyTitle}>No accounts yet</div>
-          <div className={accStyles.emptyBody}>Add one above to give Buhay a real starting balance and make the rest of the app more trustworthy.</div>
+          <div className={accStyles.emptyBody}>Add one above so Buhay starts from a real balance and the rest of Takda stays easier to trust.</div>
         </div>
       ) : (
         <div className={accStyles.accountsGrid}>

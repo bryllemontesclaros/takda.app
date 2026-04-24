@@ -104,9 +104,9 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       <div className={bStyles.heroSection}>
         <div className={bStyles.heroCopy}>
           <div className={bStyles.pageEyebrow}>Budget</div>
-          <div className={bStyles.pageTitle}>Use budgets as guardrails, not guilt.</div>
+          <div className={bStyles.pageTitle}>Use budgets as guide rails, not punishment.</div>
           <div className={bStyles.pageSub}>
-            Keep category limits, overall usage, and unbudgeted spending in one monthly view so pressure is visible before it becomes a surprise.
+            Keep category limits, actual spending, and unplanned pressure in one monthly view so nothing sneaks up on you.
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
           <div className={bStyles.heroAsideMeta}>
             {topBudget
               ? `${displayValue(privacyMode, `${topBudget.pct}% used`, 'Usage hidden')} · ${topBudget.remaining >= 0 ? `${money(topBudget.remaining)} left` : `Over by ${money(Math.abs(topBudget.remaining))}`}`
-              : 'Add a budget to start tracking pressure by category.'}
+              : 'Add a budget to start tracking category pressure.'}
           </div>
         </div>
       </div>
@@ -131,17 +131,17 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Total budget</div>
           <div className={`${bStyles.summaryValue} ${bStyles.summaryValueBlue}`}>{money(totalBudget)}</div>
-          <div className={bStyles.summaryMeta}>Budgeted this month</div>
+          <div className={bStyles.summaryMeta}>Budgeted for this month</div>
         </div>
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Spent</div>
           <div className={`${bStyles.summaryValue} ${bStyles.summaryValueRed}`}>{money(totalExpenses)}</div>
-          <div className={bStyles.summaryMeta}>Tracked monthly spending</div>
+          <div className={bStyles.summaryMeta}>Tracked this month</div>
         </div>
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Remaining</div>
           <div className={`${bStyles.summaryValue} ${totalRemaining >= 0 ? bStyles.summaryValueAccent : bStyles.summaryValueRed}`}>{money(totalRemaining)}</div>
-          <div className={bStyles.summaryMeta}>{totalRemaining >= 0 ? 'Available before limits hit' : 'Over plan; adjust the category or next spend'}</div>
+          <div className={bStyles.summaryMeta}>{totalRemaining >= 0 ? 'Still available this month' : 'Over plan; trim the category or adjust the limit'}</div>
         </div>
       </div>
 
@@ -164,7 +164,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       {totalBudget > 0 && (
         <div className={bStyles.surfaceCard}>
           <div className={bStyles.sectionHeader}>
-            <div className={bStyles.sectionTitle}>Overall budget usage</div>
+            <div className={bStyles.sectionTitle}>Total budget usage</div>
             <div className={bStyles.sectionMeta}>{displayValue(privacyMode, `${usagePct}% used`, 'Usage hidden')}</div>
           </div>
           <div className={bStyles.usageMetaRow}>
@@ -181,7 +181,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
             />
           </div>
           <div className={bStyles.usageNote}>
-            {totalExpenses > totalBudget ? 'Spending has crossed the total budget.' : 'This is your current monthly budget burn.'}
+            {totalExpenses > totalBudget ? 'Spending is past the total budget.' : 'This shows how far the month has moved through the budget.'}
           </div>
         </div>
       )}
@@ -190,7 +190,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
         <div className={bStyles.sectionHeader}>
           <div>
             <div className={bStyles.sectionTitle}>Set category limit</div>
-            <div className={bStyles.sectionCopy}>Create or update a monthly cap without leaving the page.</div>
+            <div className={bStyles.sectionCopy}>Create or update a monthly limit without leaving the page.</div>
           </div>
         </div>
         <div className={bStyles.composerGrid}>
@@ -213,7 +213,7 @@ export default function Budget({ user, data, profile = {}, symbol, privacyMode =
       {!budgetItems.length ? (
         <div className={bStyles.emptyCard}>
           <div className={bStyles.emptyTitle}>No budgets yet</div>
-          <div className={bStyles.emptyBody}>Add one above to start tracking monthly pressure by category.</div>
+          <div className={bStyles.emptyBody}>Add one above to start reading monthly pressure by category.</div>
         </div>
       ) : budgetItems.map(item => (
         <div key={item._id} className={bStyles.budgetCard} style={{ borderColor: item.status === 'over' ? 'rgba(255,83,112,0.4)' : item.status === 'warning' ? 'rgba(255,179,71,0.3)' : 'var(--border)' }}>

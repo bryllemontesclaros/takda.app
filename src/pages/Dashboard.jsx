@@ -224,7 +224,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
   }, [data.income, data.expenses])
 
   const money = value => displayValue(privacyMode, fmt(value, s), maskMoney(s))
-  const privacyHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
+  const privacyHint = privacyMode ? 'Privacy mode on. Tap to reveal values.' : 'Tap to hide values on this page.'
   const accountCountLabel = `${data.accounts.length} account${data.accounts.length !== 1 ? 's' : ''} right now`
   const weeklyRemaining = Math.max(0, (gamification?.weeklyTarget || 0) - (gamification?.weeklyCheckins || 0))
   const checkedInToday = Boolean(gamification?.checkedInToday)
@@ -241,7 +241,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
     tone: 'var(--accent)',
     eyebrow: 'Next best move',
     title: 'Keep the month visible',
-    body: 'One real check-in keeps the forecast useful. Takda shows tracking signals, not financial advice.',
+    body: 'One real check-in keeps the forecast useful. Takda shows signals to review, not financial advice.',
   }
 
   if (!checkedInToday) {
@@ -256,21 +256,21 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
           tone: 'var(--blue)',
           eyebrow: 'Start strong',
           title: 'Make today your first check-in',
-          body: 'Log one real finance, fitness, or journal check-in so Buhay starts working like a habit, not just a dashboard.',
+          body: 'Log one real money, fitness, or reflection check-in so Buhay becomes part of your day, not just another screen.',
         }
   } else if (biggestBudgetGap) {
     focusState = {
       tone: 'var(--red)',
       eyebrow: 'Budget rescue',
       title: `Tighten ${biggestBudgetGap.cat}`,
-      body: `You are over by ${money(biggestBudgetGap.over)}. Fixing that category protects month-end fastest.`,
+      body: `You are over by ${money(biggestBudgetGap.over)}. Closing that gap gives the rest of the month more room.`,
     }
   } else if (eomBalance < 0) {
     focusState = {
       tone: 'var(--amber)',
       eyebrow: 'Forecast risk',
       title: 'Protect month-end before it slips',
-      body: `Takda estimates a ${money(Math.abs(eomBalance))} shortfall. Treat it as an early planning signal, not a guaranteed bank result.`,
+      body: `Takda estimates a ${money(Math.abs(eomBalance))} gap by month-end. Treat it as a planning signal, not a final bank balance.`,
     }
   } else if (goalHighlight && goalHighlight.remaining > 0 && goalHighlight.pct >= 70) {
     focusState = {
@@ -291,7 +291,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       tone: 'var(--accent)',
       eyebrow: 'Momentum is healthy',
       title: 'This month is holding steady',
-      body: 'Net, forecast, and routine are all in good shape. Keep logging real activity so the view stays trustworthy.',
+      body: 'Net, forecast, and routine all look steady. Keep logging real activity so the view stays reliable.',
     }
   }
 
@@ -361,7 +361,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
 
       <div className={dStyles.twoCol}>
         <div className={dStyles.miniCard}>
-          <div className={dStyles.miniLabel}>Projected month-end</div>
+            <div className={dStyles.miniLabel}>Month-end estimate</div>
           <div className={dStyles.miniVal} style={{ color: eomBalance >= 0 ? 'var(--accent)' : 'var(--red)' }}>
             {money(eomBalance)}
           </div>
@@ -372,8 +372,8 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
 
         <div className={dStyles.miniCard}>
           <div className={dStyles.miniLabel}>Budget health</div>
-          {budgetHealth.total === 0 ? (
-            <div className={dStyles.miniSub} style={{ marginTop: 8 }}>Set your first budget</div>
+            {budgetHealth.total === 0 ? (
+            <div className={dStyles.miniSub} style={{ marginTop: 8 }}>Set your first budget to start tracking category pressure.</div>
           ) : (
             <>
               <div className={dStyles.budgetDots}>
@@ -396,7 +396,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
       {data.goals.length > 0 && (
         <div className={dStyles.sectionCard}>
           <div className={dStyles.sectionHeader}>
-            <span className={dStyles.sectionTitle}>Savings goals</span>
+            <span className={dStyles.sectionTitle}>Savings</span>
             <span className={dStyles.sectionMeta}>
               {displayValue(privacyMode, `${savingsPct}% funded`, 'Progress hidden')}
             </span>
@@ -434,7 +434,7 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
           <span className={dStyles.sectionTitle}>Recent transactions</span>
         </div>
         {!recent.length ? (
-          <div className={dStyles.sectionEmpty}>No transactions yet. Add your first one to start the month view.</div>
+          <div className={dStyles.sectionEmpty}>No entries yet. Add your first one to bring this month into view.</div>
         ) : recent.map((tx, index) => (
           <div
             key={tx._id + index}

@@ -280,7 +280,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
     } catch {
       setSaving(false)
       setDone(false)
-      setError('Failed to save this entry. Check your Firebase setup and try again.')
+      setError('Could not save this entry right now. Check your connection and try again.')
     }
   }
 
@@ -324,7 +324,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           <div>
             <div className={styles.sectionLabel}>Import screenshot</div>
             <div className={styles.importStepCopy}>
-              Import from a wallet screenshot, then review details before Takda changes History or balances.
+              Import from a wallet screenshot, then review the details before Takda changes History or balances.
             </div>
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           ? `${selectedPreset.label} auto-fills ${selectedPreset.cat} → ${selectedPreset.subcat}.`
           : isIncome
             ? 'Choose a familiar income source, or keep it custom.'
-            : 'Choose a familiar biller or merchant, or keep it custom.'}
+            : 'Choose a familiar merchant or biller, or keep it custom.'}
       </div>
 
       <div className={styles.sectionLabel}>Details</div>

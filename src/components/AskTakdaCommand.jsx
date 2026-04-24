@@ -12,7 +12,7 @@ const ACTION_LABELS = {
   add_savings_contribution: 'Savings contribution',
   set_budget: 'Set budget',
   add_calendar_event: 'Calendar reminder',
-  open_receipt_scanner: 'Receipt scanner',
+  open_receipt_scanner: 'Open receipts',
   add_receipt_expense: 'Receipt expense',
   query: 'Quick answer',
   clarify: 'Needs detail',
@@ -239,7 +239,7 @@ function AskTakdaCommandInner({
           <div>
             <div className={styles.eyebrow}>Smart command</div>
             <h2 className={styles.title} id="ask-takda-title">Ask Takda</h2>
-            <p className={styles.subtitle}>Type the money action. Takda will preview it before saving.</p>
+            <p className={styles.subtitle}>Type a money command. Takda will preview it before anything changes.</p>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close Ask Takda">x</button>
         </div>
@@ -254,7 +254,7 @@ function AskTakdaCommandInner({
               className={styles.input}
               value={input}
               onChange={event => resetForNewInput(event.target.value)}
-              placeholder="e.g. paid Meralco from GCash"
+              placeholder="e.g. paid electricity from Cash"
               autoComplete="off"
             />
             <button type="submit" className={styles.parseBtn} disabled={!input.trim() || executing}>
@@ -346,7 +346,7 @@ function AskTakdaCommandInner({
         </div>
 
         <div className={styles.footerNote}>
-          Works offline for common commands. No AI API needed for this first version.
+          Works offline for common commands. No AI service is required in this version.
         </div>
       </section>
     </div>

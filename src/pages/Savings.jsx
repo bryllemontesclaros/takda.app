@@ -80,9 +80,9 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
       <div className={sStyles.heroSection}>
         <div className={sStyles.heroCopy}>
           <div className={sStyles.pageEyebrow}>Savings</div>
-          <div className={sStyles.pageTitle}>Turn goals into visible next steps.</div>
+          <div className={sStyles.pageTitle}>Make goals concrete.</div>
           <div className={sStyles.pageSub}>
-            Keep the target, remaining gap, and next contribution visible without pretending a goal is guaranteed.
+            Keep the target, remaining gap, and next contribution visible without pretending every goal will move on schedule.
           </div>
         </div>
 
@@ -101,7 +101,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
             {nextGoal
               ? `${displayValue(privacyMode, `${nextGoal.pct}% funded`, 'Progress hidden')} · ${displayValue(privacyMode, `${fmt(nextGoal.remaining, s)} left`, `${maskMoney(s)} left`)}`
               : goals.length
-                ? `${completedGoals} completed · ${goals.length} active`
+                ? `${completedGoals} completed · ${goals.length} total`
                 : 'Create your first goal below'}
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
         <div className={sStyles.sectionHeader}>
           <div>
             <div className={sStyles.sectionTitle}>New goal</div>
-            <div className={sStyles.sectionSub}>Start simple. You can add the amount first and fine-tune later.</div>
+            <div className={sStyles.sectionSub}>Start with the name and amount. You can adjust the rest later.</div>
           </div>
         </div>
 
@@ -208,7 +208,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
 
         <div className={sStyles.composerFooter}>
           <div className={sStyles.composerHint}>
-            Set a target date only when it helps pacing. The goal still works fine without one.
+            Add a target date only if it helps pacing. The goal still works well without one.
           </div>
           <button type="button" className={sStyles.primaryButton} onClick={handleAdd}>Add goal</button>
         </div>
@@ -227,7 +227,7 @@ export default function Savings({ user, data, profile = {}, symbol, privacyMode 
       {!goals.length ? (
         <div className={sStyles.emptyCard}>
           <div className={sStyles.emptyTitle}>No savings goals yet</div>
-          <div className={sStyles.emptyBody}>Add one above to create a clear target and make progress easier to judge at a glance.</div>
+          <div className={sStyles.emptyBody}>Add one above to turn a plan into something you can actually measure.</div>
         </div>
       ) : (
         <div className={sStyles.goalList}>

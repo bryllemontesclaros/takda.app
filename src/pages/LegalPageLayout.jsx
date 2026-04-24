@@ -26,7 +26,7 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
         <div className={styles.navInner}>
           <Link to="/" className={styles.navBrand}>
             <div className={styles.navLogo}>Buhay</div>
-            <div className={styles.navTag}>Finance, fitness, mind, and daily life for Filipinos</div>
+            <div className={styles.navTag}>Money, fitness, reflection, and everyday clarity</div>
           </Link>
           <div className={styles.navActions}>
             <Link className={styles.navLink} to="/">Home</Link>
@@ -93,7 +93,7 @@ export default function LegalPageLayout({ eyebrow, title, intro, summaryPoints, 
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>Buhay</div>
             <div className={styles.footerTagline}>Bawat araw, mas malinaw.</div>
-            <div className={styles.footerCopy}>Support and privacy: <a className={styles.contactLink} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a></div>
+            <div className={styles.footerCopy}>Privacy and support: <a className={styles.contactLink} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a></div>
           </div>
           <div className={styles.footerLinks}>
             <Link className={styles.footerLink} to="/privacy">Privacy Policy</Link>

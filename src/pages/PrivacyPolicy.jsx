@@ -1,17 +1,17 @@
 import LegalPageLayout from './LegalPageLayout'
 
 const SUMMARY_POINTS = [
-  'Covers account, finance, fitness, journal, mood, task, goal, settings, and legacy image metadata.',
-  'Explains manual receipt records, wallet screenshot review, and older saved images.',
-  'Describes export, deletion, contact, and privacy-rights paths.',
+  'Covers account, money, fitness, reflection, settings, and any older saved media linked to your records.',
+  'Explains manual receipt records, wallet screenshot review, exports, deletion, and privacy requests.',
+  'Shows which providers help run Buhay and how your data is protected, handled, and removed.',
 ]
 
 const SECTIONS = [
   {
     title: 'What this policy covers',
     paragraphs: [
-      'This Privacy Policy explains how Buhay handles information when you use the landing page, create an account, and use the app to track finance, fitness, journal, mood, tasks, goals, manual receipts, and wallet screenshot review.',
-      'It is written to match the product as it exists today: an all-in-one life tracker for Filipinos with finance, fitness, and reflection spaces inside one account.',
+      'This Privacy Policy explains how Buhay handles information when you visit the website, create an account, and use the app for money, fitness, reflection, planning, manual receipts, and wallet screenshot review.',
+      'It is written to match the product as it exists today: a life tracker built with Filipino clarity and warmth, designed for everyday use anywhere.',
     ],
   },
   {
@@ -21,7 +21,7 @@ const SECTIONS = [
       'Account and profile information such as your name, email address, password-based authentication details, and email-verification status.',
       'Financial workspace data such as accounts, balances, transactions, recurring settings, bills, budgets, savings goals, and manual calendar balance overrides.',
       'Fitness and activity data such as workouts, routines, exercises, sets, reps, weight, duration, meals, body logs, habits, activity, reminders, and fitness goals.',
-      'Mind and life-admin data such as daily check-ins, journal entries, mood logs, tasks, life goals, tags, triggers, notes, and calendar dates.',
+      'Reflection and everyday-life data such as daily check-ins, journal entries, mood logs, tasks, life goals, tags, triggers, notes, and calendar dates.',
       'App configuration such as your currency, notification preferences, privacy-mode preference, and other product settings tied to your account.',
       'Support or feedback information if you contact Buhay directly.',
     ],
@@ -30,7 +30,7 @@ const SECTIONS = [
     title: 'Manual receipts, screenshots, and older saved images',
     paragraphs: [
       'Buhay no longer requires receipt, grocery, meal, or body-photo uploads for its active product flows. The current finance import flow is limited to wallet screenshots that you review before saving.',
-      'If you already saved receipt or fitness images in older versions of the app, those files and their metadata may still remain linked to the related records until you delete them.',
+      'If you saved receipt or fitness images in older versions of the app, those files and their metadata may still remain linked to the related records until you delete them.',
     ],
     bullets: [
       'Wallet screenshots you choose to import are reviewed inside the app before they become saved data.',
@@ -41,11 +41,11 @@ const SECTIONS = [
   {
     title: 'How Buhay uses information',
     bullets: [
-      'To create and secure your account, keep you signed in, and support password reset or email verification flows.',
-      'To render the app itself, including finance, fitness, journal, mood, task, goal, calendar, history, and settings views.',
-      'To sync your data across supported devices linked to your account.',
-      'To send product notifications that you explicitly enable, such as browser notifications.',
-      'To troubleshoot product issues, maintain service reliability, and respond to support requests.',
+      'To create and secure your account, keep you signed in, and support password reset or email-verification flows.',
+      'To run the app itself, including money, fitness, reflection, calendar, history, and settings views.',
+      'To sync your data across supported devices connected to your account.',
+      'To send product notifications that you explicitly enable.',
+      'To troubleshoot issues, maintain service reliability, and respond to support requests.',
     ],
   },
   {
@@ -62,15 +62,15 @@ const SECTIONS = [
     bullets: [
       'Buhay keeps account data while your account remains active or as long as needed to provide the product and handle support, security, or legal obligations.',
       'The app includes export and backup features so you can keep your own copy of your data.',
-      'If you delete data in the app or request account deletion, Buhay will delete or de-identify the corresponding information unless retention is required for legitimate security, fraud-prevention, backup, or legal reasons.',
-      'Backups or exports that you save on your own device remain under your control after export.',
+      'If you delete data in the app or request account deletion, Buhay will delete or de-identify the corresponding information unless retention is required for security, fraud prevention, backup, or legal reasons.',
+      'Backups or exports you save on your own device remain under your control after export.',
     ],
   },
   {
     title: 'Your choices and privacy rights',
     paragraphs: [
-      'You can review, correct, export, and delete much of your information directly in the app.',
-      'If you are in the Philippines, your rights may include the right to be informed, access, object, correct, erase or block, complain, and request data portability, subject to applicable law.',
+      'You can review, correct, export, and delete much of your information directly inside the app.',
+      'Depending on where you live, privacy laws may give you rights such as access, correction, deletion, objection, restriction, complaint, and data portability, including rights available under Philippine law where applicable.',
     ],
     bullets: [
       'Update profile and account settings in the app.',
@@ -81,8 +81,8 @@ const SECTIONS = [
   {
     title: 'Security and international processing',
     paragraphs: [
-      'Buhay uses reasonable technical and organizational measures to protect account, finance, fitness, and personal journal data, but no online service can promise absolute security.',
-      'Because Buhay relies on third-party infrastructure, your information may be processed or stored outside the Philippines. When that happens, Buhay expects service providers to apply appropriate safeguards for the service they provide.',
+      'Buhay uses reasonable technical and organizational measures to protect account, money, fitness, and personal reflection data, but no online service can promise absolute security.',
+      'Because Buhay relies on third-party infrastructure, your information may be processed or stored outside your home country, including the Philippines or other regions where providers operate. When that happens, Buhay expects those providers to apply appropriate safeguards for the service they provide.',
     ],
   },
   {
@@ -104,10 +104,10 @@ export default function PrivacyPolicy() {
   return (
     <LegalPageLayout
       eyebrow="Privacy Policy"
-      title="How Buhay handles your account and life-tracking data."
+      title="How Buhay handles your account and personal tracking data."
       intro="This page explains what Buhay collects, why it is used, which providers help run the product, and how you can access, export, or delete information tied to your account."
       metaTitle="Privacy Policy — Buhay"
-      metaDescription="Read how Buhay handles account, finance, fitness, journal, mood, task, goal, manual receipt, wallet screenshot, and legacy image data, and how you can access, export, or delete it."
+      metaDescription="Read how Buhay handles account, money, fitness, reflection, manual receipt, wallet screenshot, and legacy image data, and how you can access, export, or delete it."
       metaPath="/privacy"
       summaryPoints={SUMMARY_POINTS}
       sections={SECTIONS}

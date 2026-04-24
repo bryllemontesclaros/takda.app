@@ -59,8 +59,8 @@ const TALA_TAB_COPY = {
   },
   tasks: {
     eyebrow: 'Tasks',
-    title: 'Keep life admin small enough to finish.',
-    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without turning life into a project manager.',
+    title: 'Keep everyday tasks small enough to finish.',
+    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without turning everyday life into project management.',
     guide: ['Add one task', 'Set a date', 'Clear one loop'],
   },
   goals: {
@@ -1086,7 +1086,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             <div>
               <div className={tStyles.sectionKicker}>Tasks</div>
               <h3>Add personal task</h3>
-              <p className={tStyles.sectionHint}>For errands, life admin, reminders, and small commitments.</p>
+              <p className={tStyles.sectionHint}>For errands, reminders, and small commitments.</p>
             </div>
           </div>
           <div className={tStyles.formGrid}>

@@ -537,7 +537,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
       resetDraft()
       resetFilters()
       setSelectedId(saved._id)
-      setMessage({ text: 'Receipt record saved.', ok: true })
+      setMessage({ text: 'Receipt saved.', ok: true })
     } catch {
       setMessage({ text: 'Could not save this receipt right now.', ok: false })
     } finally {
@@ -568,15 +568,15 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
       <div className={receiptStyles.heroSection}>
         <div className={receiptStyles.heroCopy}>
           <div className={receiptStyles.pageEyebrow}>Receipts</div>
-          <div className={receiptStyles.pageTitle}>Log and review manual receipt records.</div>
+          <div className={receiptStyles.pageTitle}>Keep receipts easy to review.</div>
           <div className={receiptStyles.pageSub}>
-            Receipt photo capture is off. Add manual receipt records here, then use the receipt box to search older imports and any linked expense metadata you already saved.
+            Receipt capture is off. Add manual records here, then search older imports and any linked expense details you already saved.
           </div>
         </div>
 
         <div className={receiptStyles.heroAside}>
           <div className={receiptStyles.heroAsideLabel}>Receipt box</div>
-          <div className={receiptStyles.heroAsideValue}>{allStats.total ? `${allStats.total} saved` : 'Read only'}</div>
+          <div className={receiptStyles.heroAsideValue}>{allStats.total ? `${allStats.total} saved` : 'Manual only'}</div>
           <div className={receiptStyles.heroAsideTrack}>
             <div className={receiptStyles.heroAsideFill} style={{ width: `${viewCoverage}%` }} />
           </div>
@@ -606,7 +606,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
         <div className={receiptStyles.topSummaryCard}>
           <div className={receiptStyles.topSummaryLabel}>This month</div>
           <div className={`${receiptStyles.topSummaryValue} ${receiptStyles.topSummaryValueBlue}`}>{viewStats.monthCount}</div>
-          <div className={receiptStyles.topSummaryMeta}>Filtered receipts captured this month</div>
+          <div className={receiptStyles.topSummaryMeta}>Receipts in this view from this month</div>
         </div>
         <div className={receiptStyles.topSummaryCard}>
           <div className={receiptStyles.topSummaryLabel}>Merchants in view</div>
@@ -629,7 +629,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 type="text"
                 value={draft.merchant}
                 onChange={event => updateDraft('merchant', event.target.value)}
-                placeholder="Mercury Drug, SM, Grab, Starbucks"
+                placeholder="Uber, Tesco, 7-Eleven, Uniqlo"
               />
             </label>
             <label className={receiptStyles.formField}>
@@ -678,7 +678,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 type="text"
                 value={draft.reference}
                 onChange={event => updateDraft('reference', event.target.value)}
-                placeholder="OR number, branch, payment note"
+                placeholder="Receipt number, branch, payment note"
               />
             </label>
             <label className={`${receiptStyles.formField} ${receiptStyles.fullWidth}`}>
@@ -699,13 +699,13 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
             </button>
           </div>
           <div className={receiptStyles.captureHint}>
-            Use Quick Add screenshot import for wallet screenshots. This page is for manual receipt records and older saved receipt review.
+            Use Quick Add for wallet screenshots. This page is for manual receipt records and earlier saved receipt review.
           </div>
         </div>
 
         <div className={receiptStyles.summaryCard}>
           <div className={receiptStyles.sectionEyebrow}>Insight focus</div>
-          <div className={receiptStyles.sectionTitle}>Receipt intelligence snapshot</div>
+          <div className={receiptStyles.sectionTitle}>Receipt snapshot</div>
           <div className={receiptStyles.summaryBlock}>
             <div className={receiptStyles.summaryLabel}>Analytics scope</div>
             <div className={receiptStyles.summaryInlinePills}>
@@ -747,7 +747,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 </div>
               </>
             ) : (
-              <div className={receiptStyles.summaryEmpty}>Save a few receipts and Buhay will start surfacing your merchant and category patterns here.</div>
+              <div className={receiptStyles.summaryEmpty}>Save a few receipts and Buhay will start showing merchant and category patterns here.</div>
             )}
           </div>
         </div>
@@ -757,7 +757,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
         <div className={receiptStyles.listHeader}>
           <div>
             <div className={receiptStyles.sectionEyebrow}>Filters</div>
-            <div className={receiptStyles.sectionTitle}>Search your receipt box</div>
+            <div className={receiptStyles.sectionTitle}>Search receipts</div>
           </div>
           {hasActiveFilters && (
             <button className={receiptStyles.secondaryButton} onClick={resetFilters}>
@@ -843,7 +843,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
             </>
           ) : (
             <div className={receiptStyles.emptyState}>
-              <div className={receiptStyles.emptyTitle}>No spend trend yet</div>
+              <div className={receiptStyles.emptyTitle}>No trend yet</div>
               <div className={receiptStyles.emptyCopy}>Change your filters or save more receipts to build a trend view for this currency.</div>
             </div>
           )}
@@ -947,7 +947,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                         <span>Saved {formatSavedAt(receipt.createdAt)}</span>
                       </div>
                       <div className={receiptStyles.receiptMetaRow}>
-                        <span>{receipt.source === 'manual-receipt' ? 'Manual receipt' : 'Imported receipt'}</span>
+                        <span>{receipt.source === 'manual-receipt' ? 'Manual receipt' : 'Earlier import'}</span>
                         <span>{receipt.transactionId ? 'History linked' : 'Standalone'}</span>
                       </div>
                     </div>
@@ -1023,7 +1023,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                 </div>
                 <div className={receiptStyles.detailMetaItem}>
                   <span>Record type</span>
-                  <strong>{selectedReceipt.source === 'manual-receipt' ? 'Manual receipt' : 'Imported receipt'}</strong>
+                  <strong>{selectedReceipt.source === 'manual-receipt' ? 'Manual receipt' : 'Earlier import'}</strong>
                 </div>
                 <div className={receiptStyles.detailMetaItem}>
                   <span>Linked transaction</span>

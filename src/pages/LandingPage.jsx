@@ -123,7 +123,7 @@ export default function LandingPage() {
     <div className={styles.page}>
       <RouteMeta
         title="Buhay — All-in-One Life Tracker for Finance, Fitness, Mind, and Goals"
-        description="Check in with money, body, and mind using Takda finance, Lakas fitness, and Tala reflection spaces in one calm app."
+        description="Track money, fitness, and reflection in three focused spaces inside one account."
         path="/"
       />
       <a href="#landing-main" className="skipLink">Skip to main content</a>
@@ -149,7 +149,7 @@ export default function LandingPage() {
             <span className={styles.heroAccent}> without mixing them together.</span>
           </h1>
           <p className={styles.heroSub}>
-            Buhay gives you three focused spaces: Takda for money, Lakas for fitness, and Tala for reflection and life admin. Start with one space, then add real logs only when they fit your day.
+            Buhay brings together three focused spaces: Takda for money, Lakas for fitness, and Tala for reflection and everyday life. Start with one space, then add real records only when they become useful.
           </p>
           <div className={styles.heroBtns}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
@@ -179,7 +179,7 @@ export default function LandingPage() {
             <div>
               <div className={styles.heroPanelEyebrow}>One day, three clear spaces</div>
               <div className={styles.heroPanelTitle}>Your life, not one messy feed</div>
-              <div className={styles.heroPanelMeta}>Finance stays in Takda. Fitness stays in Lakas. Reflection and life admin stay in Tala.</div>
+              <div className={styles.heroPanelMeta}>Money stays in Takda. Fitness stays in Lakas. Reflection and everyday life stay in Tala.</div>
             </div>
             <div className={styles.heroPill}>Privacy-ready</div>
           </div>
@@ -218,7 +218,7 @@ export default function LandingPage() {
           <div className={styles.heroInsight}>
             <div className={styles.heroInsightKicker}>Why one life app matters</div>
             <div className={styles.heroInsightText}>
-              Buhay keeps the product calm: separate spaces, shared privacy, real logs, and no fake progress.
+              Buhay keeps things clear: separate spaces, shared privacy, real records, and honest progress.
             </div>
           </div>
         </div>
@@ -366,7 +366,7 @@ export default function LandingPage() {
             <h2 className={styles.sectionTitle}>Clear enough to trust with real behavior.</h2>
           </div>
           <p className={styles.sectionLead}>
-            Life apps need calm UX, review steps, scoped data, exports, deletion controls, privacy masking, and honest boundaries.
+            Life apps need clear UX, review steps, scoped data, exports, deletion controls, privacy masking, and honest boundaries.
           </p>
         </div>
         <div className={styles.privacyGrid}>
@@ -396,7 +396,7 @@ export default function LandingPage() {
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <div className={styles.footerLogo}>Buhay</div>
-            <div className={styles.footerTagline}>Finance, fitness, mind, and life admin in one calm app.</div>
+            <div className={styles.footerTagline}>Money, fitness, reflection, and everyday clarity in one app.</div>
             <div className={styles.footerMeta}>
               Operated by {LEGAL_OPERATOR_NAME}. Support and privacy:{' '}
               <a className={styles.footerAnchor} href={LEGAL_CONTACT_HREF}>{LEGAL_CONTACT_EMAIL}</a>

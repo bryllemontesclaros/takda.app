@@ -205,7 +205,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
       })
       closePayment()
     } catch {
-      notifyApp({ title: 'Payment not saved', message: 'Please check your connection and try again.', tone: 'error' })
+      notifyApp({ title: 'Payment not saved', message: 'Could not save this payment right now. Check your connection and try again.', tone: 'error' })
     } finally {
       setPaymentSaving(false)
     }
@@ -247,19 +247,19 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
     <div className={styles.page}>
       <div className={styles.header}>
         <div className={styles.title}>Bills</div>
-        <div className={styles.sub}>Plan recurring bills here, then mark a period paid only when real money leaves an account.</div>
+        <div className={styles.sub}>Plan recurring bills here, then mark a period paid only when money actually leaves an account.</div>
       </div>
 
       <div className={styles.trustGrid}>
         <div className={styles.trustCard}>
           <span>Monthly commitment</span>
           <strong>{fmt(billTrustStats.monthlyCommitment, s)}</strong>
-          <small>Monthly equivalent of all active recurring bills.</small>
+          <small>Monthly equivalent across all active recurring bills.</small>
         </div>
         <div className={styles.trustCard}>
           <span>Needs attention</span>
           <strong>{billTrustStats.overdue ? `${billTrustStats.overdue} overdue` : `${billTrustStats.dueSoon} due soon`}</strong>
-          <small>{billTrustStats.overdue ? 'Overdue bills can still be marked paid.' : 'Due and soon bills are ready to review.'}</small>
+          <small>{billTrustStats.overdue ? 'Overdue bills can still be marked paid.' : 'Due and upcoming bills are ready to review.'}</small>
         </div>
         <div className={styles.trustCard}>
           <span>Account defaults</span>
@@ -268,15 +268,15 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
         </div>
         <div className={styles.trustCard}>
           <span>Payment rule</span>
-          <strong>Paid = expense</strong>
-          <small>Marking paid creates one History expense; account movement happens only if an account is selected.</small>
+          <strong>Paid creates expense</strong>
+          <small>Marking paid creates one History expense. Account movement happens only if an account is selected.</small>
         </div>
       </div>
 
       <div className={styles.formCard}>
         <div className={styles.cardTitle}>Add bill</div>
         <p style={{ color: 'var(--text3)', marginTop: 0 }}>
-          The pay-from account is optional. Takda will not subtract anything until you mark a bill period paid.
+          The pay-from account is optional. Takda will not subtract anything until you mark a bill period as paid.
         </p>
 
         <div className={styles.formGroup}>
@@ -297,7 +297,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
           <div className={styles.helper}>
             {selectedPreset && !selectedPreset.isCustom
               ? `${selectedPreset.label} auto-fills Bills -> ${selectedPreset.subcat}.`
-              : 'Choose a familiar biller like Meralco or Netflix, or keep it custom.'}
+              : 'Choose a familiar biller, or keep it custom.'}
           </div>
         </div>
 
@@ -369,7 +369,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
                 ))}
               </select>
               <div className={styles.helper}>
-                {accounts.length ? 'This is only the default. You can change the account each time you pay.' : 'Add accounts first if you want payments to update balances automatically.'}
+                {accounts.length ? 'This is only the default. You can change the account every time you pay.' : 'Add accounts first if you want bill payments to update balances automatically.'}
               </div>
             </div>
           </div>
@@ -398,7 +398,7 @@ export default function Bills({ user, data, symbol, billPaymentTarget = null }) 
             </thead>
             <tbody>
               {!billsWithStatus.length
-                ? <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above.</td></tr>
+                ? <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text3)', padding: '2rem' }}>No bills yet. Add one above to start your bill plan.</td></tr>
                 : billsWithStatus.map(row => (
                   <tr key={row._id}>
                     <td style={{ color: 'var(--text)' }}>{row.name}</td>

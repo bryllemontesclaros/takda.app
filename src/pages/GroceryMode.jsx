@@ -109,7 +109,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
         onClose?.()
       }, 650)
     } catch {
-      notifyApp({ title: 'Grocery trip not saved', message: 'Could not import this grocery trip right now. Please try again.', tone: 'error' })
+      notifyApp({ title: 'Grocery trip not saved', message: 'Could not save this grocery trip right now. Try again.', tone: 'error' })
     } finally {
       setSaving(false)
     }
@@ -120,9 +120,9 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
       <div className={styles.header}>
         <div>
           <div className={styles.eyebrow}>Grocery mode</div>
-          <div className={styles.title}>Build one grocery trip before checkout.</div>
+          <div className={styles.title}>Build one grocery list before checkout.</div>
           <div className={styles.sub}>
-            Add items manually, review the total, and save the final list as one grocery expense.
+            Add items manually, review the total, and save the trip as one grocery expense.
           </div>
         </div>
         <button className={styles.close} onClick={onClose}>✕</button>
@@ -140,14 +140,14 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         </div>
         <div className={styles.summaryHint}>
-          Add items as you shop. When you’re done, Buhay saves one grocery expense with the item breakdown attached.
+          Add items as you shop. When you are done, Takda saves one grocery expense with the item list attached.
         </div>
       </div>
 
       <div className={styles.tripGrid}>
         <label className={styles.field}>
           <span>Trip name</span>
-          <input value={tripName} onChange={event => setTripName(event.target.value)} placeholder="Grocery trip" />
+          <input value={tripName} onChange={event => setTripName(event.target.value)} placeholder="Weekly grocery run" />
         </label>
         <label className={styles.field}>
           <span>Date</span>
@@ -191,12 +191,12 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
       {error && <div className={styles.formError} role="alert">{error}</div>}
 
       <div className={styles.actionRow}>
-        <button className={styles.secondaryBtn} onClick={openManualDraft}>+ Add item manually</button>
+        <button className={styles.secondaryBtn} onClick={openManualDraft}>+ Add item</button>
       </div>
 
       {draft && (
         <div className={styles.draftCard}>
-          <div className={styles.draftTitle}>{draft.id ? 'Edit grocery item' : 'Review grocery item'}</div>
+          <div className={styles.draftTitle}>{draft.id ? 'Edit item' : 'New item'}</div>
           <div className={styles.tripGrid}>
             <label className={`${styles.field} ${styles.fieldWide}`}>
               <span>Item name</span>
@@ -239,14 +239,14 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         ) : (
           <div className={styles.emptyState}>
-            Import a price tag photo or add an item manually to start this trip.
+            Add an item to start this trip.
           </div>
         )}
       </div>
 
       <div className={styles.footerDock}>
         <button className={styles.importBtn} onClick={handleImport} disabled={saving || done || !items.length || total <= 0}>
-          {done ? '✓ Imported to calendar' : saving ? 'Importing...' : `Import grocery total to calendar · ${fmt(total, s)}`}
+          {done ? '✓ Saved to calendar' : saving ? 'Saving...' : `Save grocery trip · ${fmt(total, s)}`}
         </button>
       </div>
     </div>

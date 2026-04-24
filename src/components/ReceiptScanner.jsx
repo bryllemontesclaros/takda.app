@@ -471,7 +471,7 @@ export default function ReceiptScanner({
       ? 'We cleaned the image on this device. Confirm the total, date, and merchant before saving.'
       : isWalletImport
       ? 'We cleaned the screenshot on this device. Confirm the type and amount before saving.'
-      : 'We cleaned the receipt on this device. Review the details before saving.'
+    : 'We cleaned the receipt on this device. Review the details before saving.'
   const actionLabel = submitLabel || (isGrocery ? 'Add item →' : receiptOnly ? 'Use receipt details →' : 'Continue with these details →')
   const confidenceLabel = parsedMeta?.overallConfidence
     ? `${parsedMeta.overallConfidence.charAt(0).toUpperCase()}${parsedMeta.overallConfidence.slice(1)} confidence`
@@ -511,7 +511,7 @@ export default function ReceiptScanner({
             className={`${rStyles.modeBtn} ${mode === 'receipt' ? rStyles.modeBtnActive : ''}`}
             onClick={() => resetState('receipt')}
           >
-            Receipt photo / image
+            Receipt image
           </button>
         </div>
       )}

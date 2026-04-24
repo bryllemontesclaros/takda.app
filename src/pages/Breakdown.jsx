@@ -199,9 +199,9 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
       <div className={bStyles.heroSection}>
         <div className={bStyles.heroCopy}>
           <div className={bStyles.pageEyebrow}>Breakdown</div>
-          <div className={bStyles.pageTitle}>Read patterns without treating them as advice.</div>
+          <div className={bStyles.pageTitle}>Read the pattern, then decide.</div>
           <div className={bStyles.pageSub}>
-            Compare category mix, month flow, and recent trends as tracking signals, not automatic financial recommendations.
+            Compare category mix, monthly flow, and recent trends as signals to review, not automatic advice.
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
             <div className={bStyles.heroAsideFill} style={{ width: `${expenseShare}%` }} />
           </div>
           <div className={bStyles.heroAsideMeta}>
-            {tab === 'expenses' ? 'Reading expense categories as logged.' : 'Reading income sources as logged.'}
+            {tab === 'expenses' ? 'Viewing expense categories as logged.' : 'Viewing income sources as logged.'}
           </div>
         </div>
       </div>
@@ -221,17 +221,17 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Income</div>
           <div className={`${bStyles.summaryValue} ${bStyles.summaryValueAccent}`}>{money(incomeTotal)}</div>
-          <div className={bStyles.summaryMeta}>This month across all sources</div>
+          <div className={bStyles.summaryMeta}>This month across all income sources</div>
         </div>
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Expenses</div>
           <div className={`${bStyles.summaryValue} ${bStyles.summaryValueRed}`}>{money(expenseTotal)}</div>
-          <div className={bStyles.summaryMeta}>This month across all categories</div>
+          <div className={bStyles.summaryMeta}>This month across all expense categories</div>
         </div>
         <div className={bStyles.summaryCard}>
           <div className={bStyles.summaryLabel}>Net</div>
           <div className={`${bStyles.summaryValue} ${monthNet >= 0 ? bStyles.summaryValueBlue : bStyles.summaryValueRed}`}>{money(monthNet)}</div>
-          <div className={bStyles.summaryMeta}>{monthNet >= 0 ? 'Positive month so far' : 'Negative month so far'}</div>
+          <div className={bStyles.summaryMeta}>{monthNet >= 0 ? 'Net positive so far' : 'Net negative so far'}</div>
         </div>
       </div>
 
@@ -250,7 +250,7 @@ export default function Breakdown({ data, profile = {}, symbol, privacyMode = fa
 
       <div className={bStyles.surfaceCard}>
         <div className={bStyles.sectionHeader}>
-          <div className={bStyles.sectionTitle}>{tab === 'expenses' ? 'Expense breakdown' : 'Income sources'}</div>
+          <div className={bStyles.sectionTitle}>{tab === 'expenses' ? 'Spending mix' : 'Income mix'}</div>
           <span className={bStyles.sectionMeta} style={{ color: tab === 'expenses' ? 'var(--red)' : 'var(--accent)' }}>
             {displayValue(privacyMode, `${tab === 'expenses' ? '−' : '+'}${fmt(total, s)}`, `${tab === 'expenses' ? '−' : '+'}${maskMoney(s)}`)}
           </span>

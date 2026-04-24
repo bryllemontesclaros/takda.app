@@ -342,7 +342,7 @@ const STREAK_MILESTONES = [3, 7, 14]
 const APP_SPACES = [
   { id: 'takda', label: 'Takda', meta: 'Finance', iconKey: 'finance' },
   { id: 'lakas', label: 'Lakas', meta: 'Fitness', iconKey: 'lakas' },
-  { id: 'tala', label: 'Tala', meta: 'Mind', iconKey: 'tala' },
+  { id: 'tala', label: 'Tala', meta: 'Reflection', iconKey: 'tala' },
 ]
 
 const DEFAULT_SPACE_PAGES = {
@@ -364,7 +364,7 @@ const MONEY_TOOLS = [
   {
     id: 'accounts',
     label: 'Accounts',
-    meta: 'Balances and account trust',
+    meta: 'Balances and account setup',
     Component: Accounts,
   },
   {
@@ -397,7 +397,7 @@ const PLAN_TOOLS = [
   {
     id: 'budget',
     label: 'Budget',
-    meta: 'Monthly guardrails',
+    meta: 'Monthly limits',
     Component: Budget,
   },
 ]
@@ -772,7 +772,7 @@ export default function AppShell({ user }) {
       nextToasts.push({
         eyebrow: 'Level up',
         title: `Buhay Level ${gamification.level} reached`,
-        meta: 'Your trusted life habits just moved up another step.',
+        meta: 'Your everyday rhythm just moved up another step.',
       })
     }
 
@@ -1228,7 +1228,7 @@ export default function AppShell({ user }) {
       ]
     : activeSpace === 'tala'
       ? [
-          { key: 'journal', label: 'Add Journal', meta: 'Write a private entry and land on the editor.', icon: 'JR', className: styles.fabActionJournal, onClick: () => openTalaFabAction('journal') },
+          { key: 'journal', label: 'Add Journal', meta: 'Write a private entry and jump straight into the editor.', icon: 'JR', className: styles.fabActionJournal, onClick: () => openTalaFabAction('journal') },
           { key: 'mood', label: 'What is your mood?', meta: 'Log mood, energy, stress, and triggers.', icon: 'MO', className: styles.fabActionMood, onClick: () => openTalaFabAction('mood') },
         ]
       : [
@@ -1246,7 +1246,7 @@ export default function AppShell({ user }) {
         <div className={styles.sidebarTop}>
           <div>
             <div className={styles.logo}>Buhay</div>
-            <div className={styles.logoMeta}>All-in-one tracker</div>
+            <div className={styles.logoMeta}>Three spaces, one account</div>
           </div>
         </div>
         <div className={styles.spaceSwitcher} role="group" aria-label="Switch app space">

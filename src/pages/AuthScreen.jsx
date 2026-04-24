@@ -156,13 +156,13 @@ export default function AuthScreen() {
     ? 'Enter your email and we will send a reset link so you can get back into your Buhay account.'
     : tab === 'register'
       ? 'Create your account, choose a starting space, and keep setup light. Only currency is required to begin.'
-      : 'Open Takda for money, Lakas for fitness, or Tala for reflection without mixing everything together.'
+      : 'Open Takda for money, Lakas for fitness, or Tala for reflection without turning life into one noisy feed.'
 
   return (
     <div className={styles.screen}>
       <RouteMeta
         title="Log in or create your account — Buhay"
-        description="Access Buhay to track finance, fitness, journal entries, tasks, goals, and daily life patterns in one app."
+        description="Access Buhay to track money, fitness, reflection, tasks, goals, and everyday patterns in one account."
         path="/login"
         robots="noindex, nofollow"
       />
@@ -171,9 +171,9 @@ export default function AuthScreen() {
           <div>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.storyKicker}>Bawat araw, mas malinaw.</div>
-            <h1 className={styles.storyTitle}>One sign-in. Three calm spaces.</h1>
+            <h1 className={styles.storyTitle}>One sign-in. Three focused spaces.</h1>
             <p className={styles.storyText}>
-              Start with the space you need today: Takda for money, Lakas for fitness, or Tala for reflection and life admin.
+              Start with the space you need today: Takda for money, Lakas for fitness, or Tala for reflection and everyday life.
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function AuthScreen() {
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceLakas}`}>
                 <span>Lakas</span>
-                <strong>Safe training</strong>
+                <strong>Steady training</strong>
                 <em>Workouts, meals, progress</em>
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceTala}`}>
@@ -231,7 +231,7 @@ export default function AuthScreen() {
 
             {tab === 'login' ? (
               <form onSubmit={handleLogin}>
-                <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
+                <div className={styles.field}><label>Email</label><input type="email" placeholder="you@example.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
                 <div className={styles.field}>
                   <label>Password</label>
                   <div className={styles.passwordInputWrap}>
@@ -266,7 +266,7 @@ export default function AuthScreen() {
             ) : (
               <form onSubmit={handleRegister}>
                 <div className={styles.field}><label>Full name</label><input type="text" placeholder="Juan dela Cruz" value={form.name} onChange={e => set('name', e.target.value)} autoComplete="name" /></div>
-                <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
+                <div className={styles.field}><label>Email</label><input type="email" placeholder="you@example.com" value={form.email} onChange={e => set('email', e.target.value)} autoComplete="email" /></div>
                 <div className={styles.field}>
                   <label>Password</label>
                   <div className={styles.passwordInputWrap}>
@@ -320,7 +320,7 @@ export default function AuthScreen() {
           <>
             {error && <div className={styles.error} role="alert">{error}</div>}
             <form onSubmit={handleReset}>
-              <div className={styles.field}><label>Email</label><input type="email" placeholder="juan@email.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} autoFocus /></div>
+              <div className={styles.field}><label>Email</label><input type="email" placeholder="you@example.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} autoFocus /></div>
               <button className={styles.btnPrimary} type="submit" disabled={resetLoading}>{resetLoading ? 'Sending...' : 'Send reset link'}</button>
             </form>
             <button type="button" className={styles.backLink} onClick={() => { setShowForgot(false); setError('') }}>← Back to login</button>
@@ -329,7 +329,7 @@ export default function AuthScreen() {
           <div className={styles.trustStrip}>
             <span>Per-user data</span>
             <span>Privacy controls</span>
-            <span>No fake progress</span>
+            <span>Real logs only</span>
           </div>
         </div>
       </div>

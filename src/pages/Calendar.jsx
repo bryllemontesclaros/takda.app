@@ -391,12 +391,12 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (!selected) return
     const rawValue = dayBalanceDraft.trim()
     if (!rawValue) {
-      notifyApp({ title: 'Balance needed', message: 'Enter a valid total balance before saving.', tone: 'warning' })
+      notifyApp({ title: 'Balance needed', message: 'Enter a valid closing balance before saving.', tone: 'warning' })
       return
     }
     const value = Number(rawValue)
     if (!Number.isFinite(value)) {
-      notifyApp({ title: 'Check balance', message: 'Enter a valid total balance before saving.', tone: 'warning' })
+      notifyApp({ title: 'Check balance', message: 'Enter a valid closing balance before saving.', tone: 'warning' })
       return
     }
 
@@ -414,7 +414,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       })
       closeDayBalanceEditor()
     } catch {
-      notifyApp({ title: 'Balance not saved', message: 'Could not save the day balance. Try again.', tone: 'error' })
+      notifyApp({ title: 'Balance not saved', message: 'Could not save the day balance right now. Try again.', tone: 'error' })
     } finally {
       setDayBalanceSaving(false)
     }
@@ -443,7 +443,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       })
       closeDayBalanceEditor()
     } catch {
-      notifyApp({ title: 'Balance not reset', message: 'Could not reset the day balance. Try again.', tone: 'error' })
+      notifyApp({ title: 'Balance not reset', message: 'Could not reset the day balance right now. Try again.', tone: 'error' })
     } finally {
       setDayBalanceSaving(false)
     }
@@ -503,7 +503,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     if (tx._projected) {
       notifyApp({
         title: 'Projection only',
-        message: 'This entry is only a projection. Delete the original recurring transaction to remove it.',
+        message: 'This entry is only a projection. Edit or remove the original recurring transaction instead.',
         tone: 'warning',
       })
       return
@@ -557,7 +557,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     : isCurrentMonthView
       ? 'Today closing balance'
       : 'Month-end closing balance'
-  const balanceRailHint = privacyMode ? 'Screen privacy on. Tap to show values.' : 'Tap to hide values on this screen.'
+  const balanceRailHint = privacyMode ? 'Privacy mode on. Tap to reveal values.' : 'Tap to hide values on this page.'
   const selectedDateLocked = false
   const legacyMonthStartKeyForSelectedDay = selected ? getLegacyMonthStartKeyForDate(selected, monthStartBalances) : ''
   const hasManualBalanceOnSelectedDay = Boolean(
@@ -597,7 +597,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
     const selectedAccount = accountLookup[form.accountId]
 
     if (!data.accounts.length) {
-      return 'Add an account first if you want calendar transactions to move your current balances automatically.'
+      return 'Add an account first if you want calendar entries to update current balances automatically.'
     }
     if (!form.accountId) {
       return 'No account selected. This entry will stay in the ledger only and will not change current account balances.'
@@ -606,7 +606,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
       return `${selectedAccount?.name || 'Selected account'} will become linked when you save, so balances can stay in sync from here.`
     }
     if (targetDate && targetDate <= todayStr) {
-      return `${selectedAccount?.name || 'Selected account'} will update right away because this date is today or earlier.`
+      return `${selectedAccount?.name || 'Selected account'} updates right away because this date is today or earlier.`
     }
     return `${selectedAccount?.name || 'Selected account'} is linked, but current balances will wait until this date arrives.`
   }, [accountLookup, data.accounts.length, editTx, form.accountId, selected, todayStr])
@@ -839,7 +839,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                     <div className={calStyles.dayBalanceMeta}>
                       {hasManualBalanceOnSelectedDay
                         ? 'Pinned from this day forward.'
-                        : 'Calculated from balances and entries.'}
+                        : 'Calculated from your balances and recorded entries.'}
                     </div>
                     <div className={calStyles.dayPanelActions}>
                       <button type="button" className={`${calStyles.dayPanelAction} ${calStyles.dayPanelActionIncome}`} onClick={() => openComposer('income')} disabled={selectedDateLocked}>
@@ -871,7 +871,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                       </div>
                     </label>
                     <div className={calStyles.dayBalanceMeta}>
-                      This becomes the total balance at the end of this day and recalculates all later days from here.
+                      This becomes the closing balance for this day and recalculates the later days from here.
                     </div>
                     <div className={calStyles.dayBalanceActions}>
                       <button type="button" className={calStyles.dayBalanceGhostBtn} onClick={closeDayBalanceEditor} disabled={dayBalanceSaving}>
@@ -933,7 +933,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               )}
 
               {selectedIncome.length === 0 && selectedExpenses.length === 0 && (
-                <div className={calStyles.dayPanelEmpty}>No transactions on this day yet.</div>
+                <div className={calStyles.dayPanelEmpty}>No entries on this day yet.</div>
               )}
 
               {(selectedIncome.length > 0 || selectedExpenses.length > 0) && (
@@ -998,7 +998,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
                                 min="0"
                                 value={goalInput}
                                 onChange={event => setGoalInput(event.target.value)}
-                                placeholder="New total saved"
+                                placeholder="Updated saved total"
                                 style={{ flex: 1, padding: '6px 10px', background: 'var(--surface2)', border: '1px solid var(--accent)', borderRadius: 'var(--radius-sm)', color: 'var(--text)', fontSize: 16, outline: 'none', fontFamily: 'var(--font-body)' }}
                               />
                               <button type="button" onClick={() => handleGoalUpdate(goal)} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#0a0a0f', border: 'none', borderRadius: 'var(--radius-sm)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Save</button>
@@ -1113,7 +1113,7 @@ export default function Calendar({ user, data, profile = {}, symbol, privacyMode
               )}
               <div className={styles.formGroup}>
                 <label>{selectedPreset ? 'Description' : (isIncome ? 'Payer or note' : 'Merchant, biller, or note')}</label>
-                <input placeholder="What was this for? (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
+                <input placeholder="Merchant, payer, or note (optional)" value={form.desc} onChange={event => set('desc', event.target.value)} disabled={formSaving} />
               </div>
               <div className={styles.formGroup}>
                 <label>Account</label>
