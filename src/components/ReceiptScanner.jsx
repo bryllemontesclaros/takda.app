@@ -107,10 +107,11 @@ export default function ReceiptScanner({
   context = 'transaction',
   embedded = false,
   receiptOnly = false,
+  walletOnly = false,
   submitLabel = '',
 }) {
   const isGrocery = context === 'grocery'
-  const [mode, setMode] = useState(isGrocery || receiptOnly ? 'receipt' : defaultMode)
+  const [mode, setMode] = useState(isGrocery || receiptOnly ? 'receipt' : walletOnly ? 'wallet' : defaultMode)
   const [status, setStatus] = useState('idle')
   const [preview, setPreview] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -130,7 +131,7 @@ export default function ReceiptScanner({
   const videoRef = useRef(null)
   const streamRef = useRef(null)
   const liveCameraSupported = typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia)
-  const canCapturePhoto = mode !== 'wallet' || receiptOnly || isGrocery
+  const canCapturePhoto = !walletOnly && (mode !== 'wallet' || receiptOnly || isGrocery)
 
   useEffect(() => {
     return () => {
@@ -234,7 +235,7 @@ export default function ReceiptScanner({
     setCaptureArtifacts(null)
     setForm(getBlankDraft(context))
     setShowDetails(false)
-    setMode(isGrocery || receiptOnly ? 'receipt' : nextMode)
+    setMode(isGrocery || receiptOnly ? 'receipt' : walletOnly ? 'wallet' : nextMode)
     if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview)
     setPreview(null)
   }
@@ -440,32 +441,35 @@ export default function ReceiptScanner({
   }
 
   const categoryOptions = getCategoryOptions((receiptOnly ? 'expense' : form.type) === 'income' ? 'income' : 'expense')
-  const headerTitle = isGrocery ? 'Import grocery item' : receiptOnly ? 'Scan receipt' : 'Import transaction'
+  const isWalletImport = walletOnly || mode === 'wallet'
+  const headerTitle = isGrocery ? 'Import grocery item' : receiptOnly ? 'Scan receipt' : isWalletImport ? 'Import screenshot' : 'Import transaction'
   const headerSub = isGrocery
     ? 'Import a photo of a price tag or shelf label, then confirm the item before adding it to this trip.'
     : receiptOnly
       ? 'Capture or upload a receipt, review the details, then save it to your receipt box.'
-      : 'Import from a screenshot or receipt photo, then review before saving.'
+      : isWalletImport
+        ? 'Import a wallet screenshot, then review before saving.'
+        : 'Import from a screenshot or receipt photo, then review before saving.'
   const uploadTitle = isGrocery
     ? 'Import a grocery price tag photo'
     : receiptOnly
       ? 'Capture a receipt'
-      : mode === 'wallet'
+      : isWalletImport
       ? 'Import a GCash or Maya screenshot'
       : 'Import a receipt photo or image'
   const uploadSub = isGrocery
     ? 'We clean the image on this device first, then you confirm the item and price yourself before adding it.'
     : receiptOnly
       ? 'We clean the image on this device first, then you review and enter the merchant, date, and total before saving.'
-      : mode === 'wallet'
+      : isWalletImport
       ? 'We clean the image on this device first, then you review the screenshot and enter the transaction details manually.'
       : 'We clean the image on this device first, then you review and enter the receipt details manually.'
-  const resultTitle = isGrocery ? 'Grocery item review' : receiptOnly ? 'Receipt review' : sourceLabel || 'Imported transaction'
+  const resultTitle = isGrocery ? 'Grocery item review' : receiptOnly ? 'Receipt review' : sourceLabel || (isWalletImport ? 'Imported wallet screenshot' : 'Imported transaction')
   const resultNote = isGrocery
     ? 'This stays local until you save it, so confirm the name and price before adding the item.'
     : receiptOnly
       ? 'We cleaned the image on this device. Confirm the total, date, and merchant before saving.'
-      : mode === 'wallet'
+      : isWalletImport
       ? 'We cleaned the screenshot on this device. Confirm the type and amount before saving.'
       : 'We cleaned the receipt on this device. Review the details before saving.'
   const actionLabel = submitLabel || (isGrocery ? 'Add item →' : receiptOnly ? 'Use receipt details →' : 'Continue with these details →')
@@ -493,7 +497,7 @@ export default function ReceiptScanner({
         </div>
       )}
 
-      {!isGrocery && !receiptOnly && (
+      {!isGrocery && !receiptOnly && !walletOnly && (
         <div className={rStyles.modeRow}>
           <button
             type="button"
@@ -555,8 +559,8 @@ export default function ReceiptScanner({
                 )}
                 <div className={rStyles.tipRow}>
                   {canCapturePhoto && <span className={rStyles.tipPill}>Rear camera preferred</span>}
-                  <span className={rStyles.tipPill}>{isGrocery ? 'Keep the whole label visible' : 'Fill the frame with the receipt'}</span>
-                  <span className={rStyles.tipPill}>Darker background helps auto-trim</span>
+                  <span className={rStyles.tipPill}>{isGrocery ? 'Keep the whole label visible' : isWalletImport ? 'Keep the full screenshot visible' : 'Fill the frame with the receipt'}</span>
+                  <span className={rStyles.tipPill}>{isWalletImport ? 'Crop extra UI before upload if possible' : 'Darker background helps auto-trim'}</span>
                 </div>
                 <div className={rStyles.btnRow}>
                   {canCapturePhoto && liveCameraSupported && (

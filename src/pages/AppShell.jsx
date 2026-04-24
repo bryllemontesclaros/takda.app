@@ -1061,7 +1061,7 @@ export default function AppShell({ user }) {
   }
 
   function openLakasFabAction(type) {
-    const targetPage = type === 'meal-photo' ? 'nutrition' : 'train'
+    const targetPage = type === 'meal-log' ? 'nutrition' : 'train'
     openSpace('lakas')
     setLakasPage(targetPage)
     setSpaceActionRequest({ space: 'lakas', type, token: Date.now() })
@@ -1129,7 +1129,7 @@ export default function AppShell({ user }) {
         cat: nextCat,
         subcat: nextSubcat,
         presetKey: nextPreset?.key || '',
-        source: parsed.source || 'receipt',
+        source: parsed.source || 'wallet',
         receiptDraft,
       },
     })
@@ -1204,7 +1204,7 @@ export default function AppShell({ user }) {
   }
 
   const quickAddDialogLabel = quickAddSheet.mode === 'import'
-    ? 'Import transaction'
+    ? 'Import screenshot'
     : quickAddSheet.mode === 'grocery'
       ? 'Grocery mode'
       : quickAddSheet.type === 'income'
@@ -1223,7 +1223,7 @@ export default function AppShell({ user }) {
   const isContextualFabMenu = activeSpace === 'lakas' || activeSpace === 'tala'
   const fabActions = activeSpace === 'lakas'
     ? [
-        { key: 'meal-photo', label: 'Photo Meal Log', meta: 'Save a meal photo and nutrition estimate.', icon: 'ML', className: styles.fabActionMeal, onClick: () => openLakasFabAction('meal-photo') },
+        { key: 'meal-log', label: 'Meal Log', meta: 'Log calories, protein, carbs, fat, and notes.', icon: 'ML', className: styles.fabActionMeal, onClick: () => openLakasFabAction('meal-log') },
         { key: 'gym-session', label: 'Start Gym Session', meta: 'Open guided workout mode right away.', icon: 'GS', className: styles.fabActionSession, onClick: () => openLakasFabAction('gym-session') },
       ]
     : activeSpace === 'tala'
@@ -1235,7 +1235,7 @@ export default function AppShell({ user }) {
           { key: 'ask', label: 'Ask Takda', icon: 'AI', className: styles.fabActionAsk, onClick: openAskTakda },
           { key: 'expense', label: 'Expense', icon: '-', className: styles.fabActionExpense, onClick: () => openQuickAdd('expense') },
           { key: 'income', label: 'Income', icon: '+', className: styles.fabActionIncome, onClick: () => openQuickAdd('income') },
-          { key: 'import', label: 'Import', icon: 'RC', className: styles.fabActionImport, onClick: openQuickImport },
+          { key: 'import', label: 'Import screenshot', icon: 'RC', className: styles.fabActionImport, onClick: openQuickImport },
           { key: 'grocery', label: 'Grocery', icon: 'GR', className: styles.fabActionGrocery, onClick: openGroceryMode },
         ]
 
@@ -1503,7 +1503,7 @@ export default function AppShell({ user }) {
             aria-label={quickAddDialogLabel}
           >
             {quickAddSheet.mode === 'import' ? (
-              <ReceiptScanner defaultMode="receipt" onResult={handleQuickImportResult} onClose={closeQuickAdd} />
+              <ReceiptScanner defaultMode="wallet" walletOnly onResult={handleQuickImportResult} onClose={closeQuickAdd} />
             ) : quickAddSheet.mode === 'grocery' ? (
               <GroceryMode
                 user={user}

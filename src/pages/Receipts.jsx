@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import ReceiptScanner from '../components/ReceiptScanner'
-import { fsAddTransaction, fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
+import { fsDeleteReceipt, fsSaveReceipt } from '../lib/firestore'
 import { loadStorageObjectUrl } from '../lib/storageMedia'
 import { confirmDeleteApp } from '../lib/appFeedback'
-import { getTransactionCategories, getTransactionSubcategories } from '../lib/transactionOptions'
 import {
   CURRENCIES,
   displayValue,
@@ -13,17 +11,39 @@ import {
   getMonthKey,
   normalizeDate,
   maskMoney,
+  today,
 } from '../lib/utils'
 import styles from './Page.module.css'
 import receiptStyles from './Receipts.module.css'
 
-const EXPENSE_CATEGORIES = getTransactionCategories('expense')
 const RANGE_OPTIONS = [
   { value: '30d', label: '30D' },
   { value: '90d', label: '90D' },
   { value: 'year', label: 'This year' },
   { value: 'all', label: 'All time' },
 ]
+
+const MANUAL_RECEIPT_CATEGORIES = [
+  'Groceries',
+  'Food & Dining',
+  'Transport',
+  'Shopping',
+  'Bills',
+  'Health',
+  'Other',
+]
+
+function createManualReceiptDraft(currency = 'PHP') {
+  return {
+    merchant: '',
+    total: '',
+    date: today(),
+    currency: currency || 'PHP',
+    category: 'Other',
+    reference: '',
+    notes: '',
+  }
+}
 
 function formatSavedAt(value) {
   if (!value) return 'Just now'
@@ -162,25 +182,21 @@ function getPercent(value, max, minimum = 8) {
 }
 
 export default function Receipts({ user, data, profile = {}, privacyMode = false }) {
-  const [scannerOpen, setScannerOpen] = useState(false)
-  const [draft, setDraft] = useState(null)
-  const [saving, setSaving] = useState(false)
   const [deleteId, setDeleteId] = useState('')
   const [selectedId, setSelectedId] = useState('')
   const [message, setMessage] = useState({ text: '', ok: true })
+  const [draft, setDraft] = useState(() => createManualReceiptDraft(profile.currency || 'PHP'))
+  const [saving, setSaving] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [range, setRange] = useState('all')
   const [currencyFilter, setCurrencyFilter] = useState('all')
   const [categoryFilter, setCategoryFilter] = useState('all')
-  const [draftSaveMode, setDraftSaveMode] = useState('receipt')
-  const [draftAccountId, setDraftAccountId] = useState('')
   const [receiptImageUrls, setReceiptImageUrls] = useState({})
   const receiptImageUrlsRef = useRef({})
 
   const receipts = useMemo(() => (
     [...(Array.isArray(data.receipts) ? data.receipts : [])].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
   ), [data.receipts])
-  const accounts = Array.isArray(data.accounts) ? data.accounts : []
   const currentMonthKey = getMonthKey(new Date())
   const currentYear = new Date().getFullYear()
 
@@ -199,6 +215,12 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     })
     return [...available].filter(Boolean).sort((a, b) => a.localeCompare(b))
   }, [receipts])
+
+  const manualCategoryOptions = useMemo(() => {
+    const available = new Set(MANUAL_RECEIPT_CATEGORIES)
+    categoryOptions.forEach(option => available.add(option))
+    return [...available].filter(Boolean).sort((a, b) => a.localeCompare(b))
+  }, [categoryOptions])
 
   const filteredReceipts = useMemo(() => {
     const now = Date.now()
@@ -460,43 +482,6 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     return displayValue(privacyMode, fmt(value, symbol), maskMoney(symbol))
   }
 
-  function handleScannerResult(result) {
-    setDraft({
-      merchant: result.desc || '',
-      total: result.amount ? String(result.amount) : '',
-      date: result.date || '',
-      currency: result.currency || profile.currency || 'PHP',
-      category: result.cat || 'Other',
-      reference: result.reference || '',
-      notes: '',
-      rawText: result.rawText || '',
-      cleanupSummary: result.cleanupSummary || '',
-      originalBlob: result.originalBlob || null,
-      cleanedBlob: result.cleanedBlob || null,
-      cleanedImageDataUrl: result.cleanedImageDataUrl || '',
-      originalImageDataUrl: result.originalImageDataUrl || '',
-      imageWidth: result.imageWidth || 0,
-      imageHeight: result.imageHeight || 0,
-      cleanedWidth: result.cleanedWidth || 0,
-      cleanedHeight: result.cleanedHeight || 0,
-      confidence: result.confidence || '',
-      amountConfidence: result.amountConfidence || 'none',
-      merchantConfidence: result.merchantConfidence || 'none',
-      dateConfidence: result.dateConfidence || 'none',
-      lineItemsConfidence: result.lineItemsConfidence || 'none',
-      lineItems: Array.isArray(result.lineItems) ? result.lineItems : [],
-      fileName: 'receipt.jpg',
-    })
-    setScannerOpen(false)
-    setDraftSaveMode('receipt')
-    setDraftAccountId('')
-    setMessage({ text: 'Review the extracted receipt details, then save when everything looks right.', ok: true })
-  }
-
-  function updateDraft(key, value) {
-    setDraft(current => current ? { ...current, [key]: value } : current)
-  }
-
   function resetFilters() {
     setSearchQuery('')
     setRange('all')
@@ -504,90 +489,57 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     setCategoryFilter('all')
   }
 
+  function resetDraft() {
+    setDraft(createManualReceiptDraft(profile.currency || 'PHP'))
+  }
+
+  function updateDraft(field, value) {
+    setDraft(current => ({ ...current, [field]: value }))
+  }
+
   async function handleSaveDraft() {
-    if (!draft) return
-    if (!draft.total || !draft.date || !draft.merchant) {
-      setMessage({ text: 'Add merchant, date, and total before saving this receipt.', ok: false })
+    const merchant = String(draft.merchant || '').trim()
+    const normalizedDate = normalizeDate(draft.date)
+    const total = Number(draft.total)
+
+    if (!merchant) {
+      setMessage({ text: 'Enter a merchant or receipt name first.', ok: false })
       return
     }
-    const total = Number(draft.total)
+
+    if (!normalizedDate) {
+      setMessage({ text: 'Pick a valid receipt date.', ok: false })
+      return
+    }
+
     if (!Number.isFinite(total) || total <= 0) {
-      setMessage({ text: 'Receipt total must be greater than zero.', ok: false })
+      setMessage({ text: 'Enter a total greater than zero.', ok: false })
       return
     }
 
     setSaving(true)
     setMessage({ text: '', ok: true })
 
-    let saved = null
     try {
-      saved = await fsSaveReceipt(user.uid, {
-        merchant: draft.merchant,
+      const saved = await fsSaveReceipt(user.uid, {
+        merchant,
         total,
-        date: draft.date,
-        currency: draft.currency,
-        category: draft.category,
-        reference: draft.reference,
-        notes: draft.notes,
-        rawText: draft.rawText,
-        confidence: draft.confidence,
-        amountConfidence: draft.amountConfidence,
-        merchantConfidence: draft.merchantConfidence,
-        dateConfidence: draft.dateConfidence,
-        lineItemsConfidence: draft.lineItemsConfidence,
-        originalBlob: draft.originalBlob,
-        cleanedBlob: draft.cleanedBlob,
-        cleanupSummary: draft.cleanupSummary,
-        imageWidth: draft.imageWidth,
-        imageHeight: draft.imageHeight,
-        cleanedWidth: draft.cleanedWidth,
-        cleanedHeight: draft.cleanedHeight,
-        fileName: draft.fileName,
-        source: 'receipt',
-        saveMode: draftSaveMode,
-        expenseLinked: draftSaveMode === 'receipt-expense',
-        expenseAccountId: draftSaveMode === 'receipt-expense' ? draftAccountId : '',
-        lineItems: draft.lineItems,
+        date: normalizedDate,
+        currency: draft.currency || profile.currency || 'PHP',
+        category: draft.category || 'Other',
+        reference: String(draft.reference || '').trim(),
+        notes: String(draft.notes || '').trim(),
+        source: 'manual-receipt',
+        lineItems: [],
+        rawText: '',
+        confidence: { overall: '' },
       })
-
-      if (draftSaveMode === 'receipt-expense') {
-        const subcategories = getTransactionSubcategories('expense', draft.category || 'Other')
-        await fsAddTransaction(user.uid, 'expenses', {
-          amount: total,
-          date: draft.date,
-          desc: draft.merchant,
-          cat: draft.category || 'Other',
-          subcat: subcategories[0] || 'Receipt',
-          accountId: draftAccountId,
-          accountBalanceLinked: Boolean(draftAccountId),
-          source: 'receipt-expense',
-          receiptId: saved._id,
-          receiptMerchant: draft.merchant,
-          receiptCurrency: draft.currency,
-          notes: [draft.notes, draft.reference ? `Receipt ref: ${draft.reference}` : ''].filter(Boolean).join(' | '),
-        }, accounts)
-      }
-
-      setDraft(null)
+      resetDraft()
+      resetFilters()
       setSelectedId(saved._id)
-      setDraftSaveMode('receipt')
-      setDraftAccountId('')
-      setMessage({
-        text: draftSaveMode === 'receipt-expense'
-          ? `Receipt saved and expense added to History${draftAccountId ? ' with account balance movement.' : ' without account balance movement.'}`
-          : 'Receipt saved to your box.',
-        ok: true,
-      })
+      setMessage({ text: 'Receipt record saved.', ok: true })
     } catch {
-      if (saved?._id) {
-        setDraft(null)
-        setSelectedId(saved._id)
-        setDraftSaveMode('receipt')
-        setDraftAccountId('')
-        setMessage({ text: 'Receipt saved, but the expense could not be added. You can add it from History if needed.', ok: false })
-        return
-      }
-      setMessage({ text: 'Could not save this receipt. Check Firebase Storage and try again.', ok: false })
+      setMessage({ text: 'Could not save this receipt right now.', ok: false })
     } finally {
       setSaving(false)
     }
@@ -611,25 +563,20 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
     }
   }
 
-  const draftCurrencyOptions = CURRENCIES.map(currency => currency.code)
-  const draftAccountName = draftAccountId
-    ? accounts.find(account => account._id === draftAccountId)?.name || 'Selected account'
-    : ''
-
   return (
     <div className={`${styles.page} ${receiptStyles.receiptsPage}`}>
       <div className={receiptStyles.heroSection}>
         <div className={receiptStyles.heroCopy}>
           <div className={receiptStyles.pageEyebrow}>Receipts</div>
-          <div className={receiptStyles.pageTitle}>Keep proof separate until you choose otherwise.</div>
+          <div className={receiptStyles.pageTitle}>Log and review manual receipt records.</div>
           <div className={receiptStyles.pageSub}>
-            Capture receipts, review extracted details, and decide whether each receipt stays in the box or also becomes a History expense.
+            Receipt photo capture is off. Add manual receipt records here, then use the receipt box to search older imports and any linked expense metadata you already saved.
           </div>
         </div>
 
         <div className={receiptStyles.heroAside}>
           <div className={receiptStyles.heroAsideLabel}>Receipt box</div>
-          <div className={receiptStyles.heroAsideValue}>{allStats.total ? `${allStats.total} saved` : 'Start scanning'}</div>
+          <div className={receiptStyles.heroAsideValue}>{allStats.total ? `${allStats.total} saved` : 'Read only'}</div>
           <div className={receiptStyles.heroAsideTrack}>
             <div className={receiptStyles.heroAsideFill} style={{ width: `${viewCoverage}%` }} />
           </div>
@@ -638,7 +585,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               ? `${viewStats.total} receipts match the current filters.`
               : allStats.total
                 ? `${allStats.monthCount} saved this month across ${allStats.currencies || 0} currencies.`
-                : 'Scan a receipt to build a searchable box.'}
+                : 'Add a manual receipt here or review any older saved receipt records.'}
           </div>
         </div>
       </div>
@@ -670,29 +617,89 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
 
       <div className={receiptStyles.heroGrid}>
         <div className={receiptStyles.captureCard}>
-          <div className={receiptStyles.sectionEyebrow}>Scan flow</div>
-          <div className={receiptStyles.sectionTitle}>Capture the next receipt</div>
+          <div className={receiptStyles.sectionEyebrow}>Manual receipt</div>
+          <div className={receiptStyles.sectionTitle}>Add a receipt record</div>
           <div className={receiptStyles.sectionCopy}>
-            Buhay cleans the image on this device first. You review the merchant, total, date, and save mode yourself before anything changes balances.
+            Save a merchant, total, date, and notes without using camera or upload. Older imported receipts still stay visible in the receipt box below.
+          </div>
+          <div className={receiptStyles.formGrid}>
+            <label className={receiptStyles.formField}>
+              <span>Merchant</span>
+              <input
+                type="text"
+                value={draft.merchant}
+                onChange={event => updateDraft('merchant', event.target.value)}
+                placeholder="Mercury Drug, SM, Grab, Starbucks"
+              />
+            </label>
+            <label className={receiptStyles.formField}>
+              <span>Total</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                value={draft.total}
+                onChange={event => updateDraft('total', event.target.value)}
+                placeholder="0.00"
+              />
+            </label>
+            <label className={receiptStyles.formField}>
+              <span>Date</span>
+              <input
+                type="date"
+                value={draft.date}
+                onChange={event => updateDraft('date', event.target.value)}
+              />
+            </label>
+            <label className={receiptStyles.formField}>
+              <span>Currency</span>
+              <select value={draft.currency} onChange={event => updateDraft('currency', event.target.value)}>
+                {CURRENCIES.map(option => (
+                  <option key={option.code} value={option.code}>
+                    {option.code}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={receiptStyles.formField}>
+              <span>Category</span>
+              <select value={draft.category} onChange={event => updateDraft('category', event.target.value)}>
+                {manualCategoryOptions.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className={receiptStyles.formField}>
+              <span>Reference</span>
+              <input
+                type="text"
+                value={draft.reference}
+                onChange={event => updateDraft('reference', event.target.value)}
+                placeholder="OR number, branch, payment note"
+              />
+            </label>
+            <label className={`${receiptStyles.formField} ${receiptStyles.fullWidth}`}>
+              <span>Notes</span>
+              <textarea
+                value={draft.notes}
+                onChange={event => updateDraft('notes', event.target.value)}
+                placeholder="Optional context: who paid, what this covered, or why you kept the receipt."
+              />
+            </label>
           </div>
           <div className={receiptStyles.captureActions}>
-            <button className={receiptStyles.primaryButton} onClick={() => {
-              setDraft(null)
-              setScannerOpen(current => !current)
-              setMessage({ text: '', ok: true })
-            }}>
-              {scannerOpen ? 'Hide scanner' : 'Scan receipt'}
+            <button className={receiptStyles.primaryButton} onClick={handleSaveDraft} disabled={saving}>
+              {saving ? 'Saving...' : 'Save receipt'}
             </button>
-            <button className={receiptStyles.secondaryButton} onClick={() => {
-              setDraft(null)
-              setScannerOpen(true)
-              setMessage({ text: '', ok: true })
-            }}>
-              Use camera or gallery
+            <button className={receiptStyles.secondaryButton} onClick={resetDraft} disabled={saving}>
+              Reset form
             </button>
           </div>
           <div className={receiptStyles.captureHint}>
-            For the best scan, place the receipt on a darker surface and fill most of the frame. Review totals before saving because image cleanup is only the first step.
+            Use Quick Add screenshot import for wallet screenshots. This page is for manual receipt records and older saved receipt review.
           </div>
         </div>
 
@@ -896,176 +903,6 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
         </div>
       </div>
 
-      {scannerOpen && (
-        <div className={receiptStyles.panelCard}>
-          <ReceiptScanner
-            embedded
-            receiptOnly
-            defaultMode="receipt"
-            submitLabel="Use receipt details →"
-            onResult={handleScannerResult}
-          />
-        </div>
-      )}
-
-      {draft && (
-        <div className={receiptStyles.panelCard}>
-            <div className={receiptStyles.reviewGrid}>
-              <div className={receiptStyles.reviewMedia}>
-              {privacyMode ? (
-                <div className={receiptStyles.privacyImagePlaceholder}>Receipt image hidden</div>
-              ) : (
-                <img
-                  src={draft.cleanedImageDataUrl || draft.originalImageDataUrl}
-                  alt="Scanned receipt"
-                  className={receiptStyles.reviewImage}
-                />
-              )}
-              <div className={receiptStyles.mediaMeta}>
-                <span>{draft.cleanupSummary || 'Prepared for review'}</span>
-                {draft.currency && <span>{draft.currency}</span>}
-                {draft.confidence?.overall && (
-                  <span className={`${receiptStyles.confidencePill} ${receiptStyles[getConfidenceClassName(draft.confidence.overall)]}`}>
-                    {formatConfidenceLabel(draft.confidence.overall)}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className={receiptStyles.reviewForm}>
-              <div className={receiptStyles.sectionEyebrow}>Review</div>
-              <div className={receiptStyles.sectionTitle}>Save this receipt</div>
-              <div className={receiptStyles.formGrid}>
-                <label className={receiptStyles.formField}>
-                  <span>Merchant</span>
-                  <input value={draft.merchant} onChange={event => updateDraft('merchant', event.target.value)} placeholder="Store or merchant name" />
-                </label>
-                <label className={receiptStyles.formField}>
-                  <span>Total</span>
-                  <input type="number" min="0" step="0.01" value={draft.total} onChange={event => updateDraft('total', event.target.value)} />
-                </label>
-                <label className={receiptStyles.formField}>
-                  <span>Date</span>
-                  <input type="date" value={draft.date} onChange={event => updateDraft('date', event.target.value)} />
-                </label>
-                <label className={receiptStyles.formField}>
-                  <span>Currency</span>
-                  <select value={draft.currency} onChange={event => updateDraft('currency', event.target.value)}>
-                    {draftCurrencyOptions.map(option => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                </label>
-                <label className={receiptStyles.formField}>
-                  <span>Category</span>
-                  <select value={draft.category} onChange={event => updateDraft('category', event.target.value)}>
-                    {EXPENSE_CATEGORIES.map(option => <option key={option} value={option}>{option}</option>)}
-                  </select>
-                </label>
-                <label className={receiptStyles.formField}>
-                  <span>Reference</span>
-                  <input value={draft.reference} onChange={event => updateDraft('reference', event.target.value)} placeholder="Optional receipt or invoice number" />
-                </label>
-                <label className={`${receiptStyles.formField} ${receiptStyles.fullWidth}`}>
-                  <span>Notes</span>
-                  <textarea value={draft.notes} onChange={event => updateDraft('notes', event.target.value)} placeholder="Optional note about this receipt" />
-                </label>
-              </div>
-              <div className={receiptStyles.saveModeCard}>
-                <div>
-                  <div className={receiptStyles.saveModeTitle}>Save behavior</div>
-                  <p className={receiptStyles.saveModeHint}>
-                    Receipt only keeps this in the box. Receipt + expense also adds it to History and can update an account balance.
-                  </p>
-                </div>
-                <div className={receiptStyles.saveModeOptions} role="group" aria-label="Choose receipt save behavior">
-                  <button
-                    type="button"
-                    className={`${receiptStyles.saveModeButton} ${draftSaveMode === 'receipt' ? receiptStyles.saveModeButtonActive : ''}`}
-                    onClick={() => {
-                      setDraftSaveMode('receipt')
-                      setDraftAccountId('')
-                    }}
-                    aria-pressed={draftSaveMode === 'receipt'}
-                  >
-                    Receipt only
-                  </button>
-                  <button
-                    type="button"
-                    className={`${receiptStyles.saveModeButton} ${draftSaveMode === 'receipt-expense' ? receiptStyles.saveModeButtonActive : ''}`}
-                    onClick={() => setDraftSaveMode('receipt-expense')}
-                    aria-pressed={draftSaveMode === 'receipt-expense'}
-                  >
-                    Receipt + expense
-                  </button>
-                </div>
-                {draftSaveMode === 'receipt-expense' && (
-                  <label className={`${receiptStyles.formField} ${receiptStyles.saveModeAccount}`}>
-                    <span>Expense account</span>
-                    <select value={draftAccountId} onChange={event => setDraftAccountId(event.target.value)}>
-                      <option value="">No account movement</option>
-                      {accounts.map(account => (
-                        <option key={account._id} value={account._id}>
-                          {account.name || 'Account'}{account.type ? ` - ${account.type}` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                <div className={receiptStyles.saveModeOutcome} role="status">
-                  <div className={receiptStyles.saveModeOutcomeTitle}>
-                    {draftSaveMode === 'receipt-expense' ? 'Receipt + expense selected' : 'Receipt only selected'}
-                  </div>
-                  <div className={receiptStyles.saveModeOutcomeList}>
-                    <span>Receipt saved in the box</span>
-                    <span>{draftSaveMode === 'receipt-expense' ? 'Expense added to History' : 'No History expense created'}</span>
-                    <span>
-                      {draftSaveMode === 'receipt-expense'
-                        ? draftAccountName
-                          ? `Balance updates in ${draftAccountName}`
-                          : 'No account balance movement'
-                        : 'No account balance movement'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              {draft.rawText && (
-                <div className={receiptStyles.rawTextBox}>
-                  <div className={receiptStyles.rawTextLabel}>Imported text preview</div>
-                  <div className={receiptStyles.rawTextValue}>{draft.rawText.slice(0, 900)}</div>
-                </div>
-              )}
-              {!!draft.lineItems?.length && (
-                <div className={receiptStyles.textBlock}>
-                  <div className={receiptStyles.textBlockLabel}>Detected line items</div>
-                  <div className={receiptStyles.lineItemsList}>
-                    {draft.lineItems.map((item, index) => (
-                      <div key={`${item.name}-${index}`} className={receiptStyles.lineItemRow}>
-                        <span>{item.name}</span>
-                        <span>x{item.qty} · {money(item.lineTotal || item.price, draft.currency)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              <div className={receiptStyles.captureActions}>
-                <button className={receiptStyles.secondaryButton} onClick={() => {
-                  setDraft(null)
-                  setScannerOpen(true)
-                }}>
-                  Scan again
-                </button>
-                <button
-                  className={receiptStyles.primaryButton}
-                  onClick={handleSaveDraft}
-                  disabled={saving || !draft.merchant || !draft.total || !draft.date}
-                >
-                  {saving ? 'Saving...' : draftSaveMode === 'receipt-expense' ? 'Save receipt + expense' : 'Save receipt'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className={receiptStyles.galleryGrid}>
         <div className={receiptStyles.galleryCard}>
           <div className={receiptStyles.listHeader}>
@@ -1110,8 +947,8 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                         <span>Saved {formatSavedAt(receipt.createdAt)}</span>
                       </div>
                       <div className={receiptStyles.receiptMetaRow}>
-                        <span>{receipt.expenseLinked ? 'History expense created' : 'Receipt only'}</span>
-                        <span>{receipt.expenseAccountId ? 'Account linked' : 'No account movement'}</span>
+                        <span>{receipt.source === 'manual-receipt' ? 'Manual receipt' : 'Imported receipt'}</span>
+                        <span>{receipt.transactionId ? 'History linked' : 'Standalone'}</span>
                       </div>
                     </div>
                   </button>
@@ -1124,7 +961,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               <div className={receiptStyles.emptyCopy}>
                 {receipts.length
                   ? 'Try a different search, widen the time range, or clear the filters to bring receipts back into view.'
-                  : 'Scan your first receipt above and it will land here with a thumbnail, cleaned image, and saved metadata.'}
+                  : 'No receipt records are saved right now. Add your first manual receipt above or review older saved imports if you already have them.'}
               </div>
             </div>
           )}
@@ -1185,12 +1022,12 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
                   <strong>{selectedReceipt.reference || 'None'}</strong>
                 </div>
                 <div className={receiptStyles.detailMetaItem}>
-                  <span>Save behavior</span>
-                  <strong>{selectedReceipt.expenseLinked ? 'Receipt + expense' : 'Receipt only'}</strong>
+                  <span>Record type</span>
+                  <strong>{selectedReceipt.source === 'manual-receipt' ? 'Manual receipt' : 'Imported receipt'}</strong>
                 </div>
                 <div className={receiptStyles.detailMetaItem}>
-                  <span>Account movement</span>
-                  <strong>{selectedReceipt.expenseAccountId ? 'Linked' : 'None'}</strong>
+                  <span>Linked transaction</span>
+                  <strong>{selectedReceipt.transactionId ? 'Linked' : 'None'}</strong>
                 </div>
               </div>
 
@@ -1270,7 +1107,7 @@ export default function Receipts({ user, data, profile = {}, privacyMode = false
               <div className={receiptStyles.emptyCopy}>
                 {filteredReceipts.length
                   ? 'Choose a saved receipt to inspect the cleaned image, extracted values, and imported text snapshot.'
-                  : 'Adjust your filters or clear the search to bring receipt details back into view.'}
+                  : 'Adjust your filters or save a manual receipt record to bring receipt details into view.'}
               </div>
             </div>
           )}

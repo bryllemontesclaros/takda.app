@@ -322,15 +322,16 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
             ← Back to form
           </button>
           <div>
-            <div className={styles.sectionLabel}>Import transaction</div>
+            <div className={styles.sectionLabel}>Import screenshot</div>
             <div className={styles.importStepCopy}>
-              Import from a screenshot or receipt photo, then review details before Takda changes History or balances.
+              Import from a wallet screenshot, then review details before Takda changes History or balances.
             </div>
           </div>
         </div>
         <ReceiptScanner
           embedded
-          defaultMode="receipt"
+          defaultMode="wallet"
+          walletOnly
           onResult={handleReceiptResult}
           onClose={() => setShowScanner(false)}
         />
@@ -380,7 +381,7 @@ export default function QuickAdd({ user, profile = {}, accounts = [], symbol, on
           }}
         >
           <span className={styles.importBtnIcon}>🧾</span>
-          <span>Import screenshot or receipt</span>
+          <span>Import screenshot</span>
         </button>
         <button
           type="button"

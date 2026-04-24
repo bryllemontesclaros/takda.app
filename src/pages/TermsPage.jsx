@@ -2,7 +2,7 @@ import LegalPageLayout from './LegalPageLayout'
 
 const SUMMARY_POINTS = [
   'Buhay is a tracking and planning tool, not a bank, trainer, doctor, therapist, or financial adviser.',
-  'You stay responsible for the accuracy of what you log, import, and rely on.',
+  'You stay responsible for the accuracy of what you log, review from screenshot imports, and rely on.',
   'These terms explain availability, acceptable use, and account closure.',
 ]
 
@@ -11,7 +11,7 @@ const SECTIONS = [
     title: 'Using Buhay',
     paragraphs: [
       'These Terms of Use govern your access to the Buhay website, signup flow, and app. By using Buhay, you agree to these terms and to the Privacy Policy.',
-      'Buhay is designed to help you track money, fitness, meals, journal entries, mood, tasks, goals, and imports in one app.',
+      'Buhay is designed to help you track money, fitness, meals, journal entries, mood, tasks, goals, manual receipts, and screenshot-assisted finance review in one app.',
     ],
   },
   {
@@ -38,7 +38,7 @@ const SECTIONS = [
       'You keep ownership of the content and information you add to Buhay. You give Buhay the limited rights needed to host, process, back up, transmit, and display that information in order to operate the product.',
     ],
     bullets: [
-      'Review imported OCR results before saving them.',
+      'Review screenshot-assisted imports and manual entries before saving them.',
       'Do not upload unlawful, abusive, infringing, or harmful material.',
       'Do not interfere with the service, abuse automated flows, or attempt unauthorized access to Buhay or other users’ data.',
     ],
@@ -51,7 +51,6 @@ const SECTIONS = [
     bullets: [
       'Firebase may be used for authentication and app data storage.',
       'Vercel or similar infrastructure may be used to host the site or app.',
-      'OCR providers may process images when you choose to use import features.',
     ],
   },
   {
@@ -73,8 +72,8 @@ const SECTIONS = [
   {
     title: 'Disclaimers and limits',
     paragraphs: [
-      'Buhay is provided on an as-is and as-available basis to the extent allowed by applicable law. Buhay works to make the product useful and reliable, but cannot guarantee uninterrupted service, perfectly accurate imports, or error-free forecasts.',
-      'To the fullest extent allowed by law, Buhay is not liable for indirect, incidental, special, consequential, or punitive damages, or for losses caused by your reliance on inaccurate entries, imports, or forecasts that you did not review.',
+      'Buhay is provided on an as-is and as-available basis to the extent allowed by applicable law. Buhay works to make the product useful and reliable, but cannot guarantee uninterrupted service, perfectly accurate screenshot-assisted entries, or error-free forecasts.',
+      'To the fullest extent allowed by law, Buhay is not liable for indirect, incidental, special, consequential, or punitive damages, or for losses caused by your reliance on inaccurate entries, screenshot-assisted imports, or forecasts that you did not review.',
     ],
   },
   {
@@ -93,7 +92,7 @@ export default function TermsPage() {
       title="The product rules for using Buhay."
       intro="These terms explain what Buhay provides, what it does not provide, what you remain responsible for, and how account access, third-party providers, and service changes are handled."
       metaTitle="Terms of Use — Buhay"
-      metaDescription="Read the terms for using Buhay, including account responsibilities, third-party services, forecasts, imports, and service changes."
+      metaDescription="Read the terms for using Buhay, including account responsibilities, screenshot-assisted review, third-party services, forecasts, and service changes."
       metaPath="/terms"
       summaryPoints={SUMMARY_POINTS}
       sections={SECTIONS}

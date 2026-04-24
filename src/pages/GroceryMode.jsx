@@ -3,7 +3,6 @@ import { fsAddTransaction } from '../lib/firestore'
 import { notifyApp } from '../lib/appFeedback'
 import { sanitizeTransactionSubcategory } from '../lib/transactionOptions'
 import { fmt, formatDisplayDate, today } from '../lib/utils'
-import ReceiptScanner from '../components/ReceiptScanner'
 import styles from './GroceryMode.module.css'
 
 const GROCERY_CATEGORIES = ['Food & Dining', 'Shopping', 'Other']
@@ -29,7 +28,6 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
   const [accountId, setAccountId] = useState(defaultAccountId)
   const [items, setItems] = useState([])
   const [draft, setDraft] = useState(null)
-  const [scannerOpen, setScannerOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
@@ -41,7 +39,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
   const selectedAccount = accounts.find(account => account._id === accountId) || null
   const tripWillAffectCurrentBalance = Boolean(accountId && tripDate && tripDate <= today())
   const accountHint = !accounts.length
-    ? 'Add an account first if you want grocery imports to move your current balances automatically.'
+    ? 'Add an account first if you want grocery trips to move your current balances automatically.'
     : !accountId
       ? 'No account selected. This grocery total will stay in the ledger only and will not change current account balances.'
       : tripWillAffectCurrentBalance
@@ -83,12 +81,6 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
     if (draft?.id === id) setDraft(null)
   }
 
-  async function handleScanResult(parsed) {
-    setScannerOpen(false)
-    setError('')
-    setDraft(createDraft(parsed))
-  }
-
   async function handleImport() {
     if (!items.length || total <= 0) return
 
@@ -123,17 +115,6 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
     }
   }
 
-  if (scannerOpen) {
-    return (
-      <ReceiptScanner
-        context="grocery"
-        defaultMode="receipt"
-        onResult={handleScanResult}
-        onClose={() => setScannerOpen(false)}
-      />
-    )
-  }
-
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
@@ -141,7 +122,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           <div className={styles.eyebrow}>Grocery mode</div>
           <div className={styles.title}>Build one grocery trip before checkout.</div>
           <div className={styles.sub}>
-            Import price tag photos one by one, confirm each item, and save the final total as one reviewed expense.
+            Add items manually, review the total, and save the final list as one grocery expense.
           </div>
         </div>
         <button className={styles.close} onClick={onClose}>✕</button>
@@ -159,7 +140,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         </div>
         <div className={styles.summaryHint}>
-          Keep importing photos or add items manually. When you’re done, Buhay saves one grocery expense with the item breakdown attached.
+          Add items as you shop. When you’re done, Buhay saves one grocery expense with the item breakdown attached.
         </div>
       </div>
 
@@ -187,7 +168,7 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
           </div>
         </label>
         <label className={`${styles.field} ${styles.fieldWide}`}>
-          <span>Import category</span>
+          <span>Trip category</span>
           <select value={tripCategory} onChange={event => setTripCategory(event.target.value)}>
             {GROCERY_CATEGORIES.map(option => <option key={option}>{option}</option>)}
           </select>
@@ -210,15 +191,6 @@ export default function GroceryMode({ user, profile = {}, accounts = [], symbol,
       {error && <div className={styles.formError} role="alert">{error}</div>}
 
       <div className={styles.actionRow}>
-        <button
-          className={styles.secondaryBtn}
-          onClick={() => {
-            setError('')
-            setScannerOpen(true)
-          }}
-        >
-          🧾 Import price tag photo
-        </button>
         <button className={styles.secondaryBtn} onClick={openManualDraft}>+ Add item manually</button>
       </div>
 

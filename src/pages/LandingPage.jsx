@@ -11,7 +11,7 @@ const FEATURES = [
   { icon: '🏋️', title: 'Lakas starts safe', tone: 'lakas', desc: 'Beginner routines, form cues, rest timers, sets, reps, meals, body logs, and habits help fitness build from real sessions.' },
   { icon: '🌙', title: 'Tala keeps reflection private', tone: 'tala', desc: 'Check-ins, journals, moods, tasks, and life goals stay gentle, private, and separate from performance pressure.' },
   { icon: '📅', title: 'One daily review', tone: 'buhay', desc: 'Open today, choose the space that needs attention, and keep finance, fitness, and reflection from becoming one messy feed.' },
-  { icon: '📷', title: 'Photos stay review-first', tone: 'lakas', desc: 'Receipt scans and meal photos help capture details, but the user reviews before anything changes saved data.' },
+  { icon: '🧾', title: 'Review stays explicit', tone: 'takda', desc: 'Wallet screenshot imports, manual receipts, and command previews still require review before anything touches saved history.' },
   { icon: '🎯', title: 'Goals have context', tone: 'tala', desc: 'Track money targets, workout rhythm, habits, body progress, and personal milestones without hiding where each goal belongs.' },
   { icon: '🔒', title: 'Control stays visible', tone: 'takda', desc: 'Privacy mode, exports, restore, delete controls, notifications, and settings stay close to the data they protect.' },
   { icon: '☁️', title: 'Installable and synced', tone: 'buhay', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive screens, service worker caching, and app-like navigation.' },
@@ -37,7 +37,7 @@ const HERO_CELLS = [
   { day: 'Lakas', balance: 'Fitness', tone: 'lakas' },
   { day: 'Tala', balance: 'Mind', tone: 'tala' },
   { day: 'Bills', balance: 'Due', tone: 'takda' },
-  { day: 'Meals', balance: 'Photo', tone: 'lakas' },
+  { day: 'Meals', balance: 'Logged', tone: 'lakas' },
   { day: 'Mood', balance: 'Check-in', tone: 'tala' },
   { day: 'Goals', balance: 'Progress', tone: 'buhay' },
   { day: 'Today', balance: 'Review', tone: 'selected' },
@@ -85,16 +85,16 @@ const PRODUCT_TOUR = [
 ]
 
 const INCLUDED_TOOLS = [
-  'Takda: dashboard, calendar, accounts, history, bills, budget, savings, receipts, grocery trips, reports, and Ask Takda',
+  'Takda: dashboard, calendar, accounts, history, bills, budget, savings, manual receipts, grocery trips, reports, screenshot import, and Ask Takda',
   'Lakas: beginner sessions, routines, workout logs, exercise details, meals, activity, body progress, habits, reminders, and goals',
   'Tala: daily check-ins, private journal, mood, energy, stress, sleep, tasks, life goals, calendar patterns, tags, and insights',
-  'Photos: receipt scanning and meal photo logs with editable review before saving',
+  'Review flows: wallet screenshot imports, manual receipts, and Ask Takda previews before write actions',
   'Controls: privacy mode, settings, feedback, notifications, legal pages, backup, restore, export, and deletion',
   'Platform: email/password auth, onboarding, per-user Firebase data, responsive navigation, PWA install support, and service worker caching',
 ]
 
 const PRIVACY_POINTS = [
-  { title: 'Review before save', desc: 'Receipts, imports, commands, meal logs, workouts, tasks, and goals are user-reviewed instead of silently changing data.' },
+  { title: 'Review before save', desc: 'Screenshot imports, commands, workouts, tasks, goals, and manual receipt records are user-reviewed instead of silently changing data.' },
   { title: 'Per-user Firestore data', desc: 'Finance, fitness, and mind data are stored under each signed-in user and protected by user-scoped Firestore rules.' },
   { title: 'Clear product boundaries', desc: 'Takda tracks money, Lakas tracks fitness, and Tala tracks reflection. Buhay is a tracker, not financial, medical, or mental-health advice.' },
 ]
@@ -320,7 +320,7 @@ export default function LandingPage() {
             <div className={styles.stepNum}>2</div>
             <div className={styles.stepText}>
               <div className={styles.stepTitle}>Log real events only</div>
-              <div className={styles.stepDesc}>Capture expenses, receipts, workouts, meals, activity, habits, mood, journal entries, tasks, and goals when they actually happen.</div>
+              <div className={styles.stepDesc}>Log expenses, receipt records, workouts, meals, activity, habits, mood, journal entries, tasks, and goals when they actually happen.</div>
             </div>
           </div>
           <div className={styles.stepArrow}>→</div>

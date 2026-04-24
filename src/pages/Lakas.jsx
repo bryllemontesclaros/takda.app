@@ -10,7 +10,6 @@ import {
   fsUpdate,
 } from '../lib/firestore'
 import { confirmDeleteApp, notifyApp } from '../lib/appFeedback'
-import { prepareImageUpload } from '../lib/receiptUtils'
 import { loadStorageObjectUrl } from '../lib/storageMedia'
 import { formatDisplayDate, today } from '../lib/utils'
 import styles from './Page.module.css'
@@ -435,14 +434,14 @@ const LAKAS_TAB_COPY = {
   },
   nutrition: {
     eyebrow: 'Nutrition',
-    title: 'Photo-first meal tracking.',
-    sub: 'Save meal photos, calorie estimates, protein, carbs, fat, and meal history without pretending photo estimates are perfect.',
-    guide: ['Add photo', 'Estimate macros', 'Review meal'],
+    title: 'Simple meal tracking.',
+    sub: 'Save meal details, calorie estimates, protein, carbs, fat, and meal history without pretending nutrition logs are perfectly precise.',
+    guide: ['Log meal', 'Estimate macros', 'Review trend'],
   },
   progress: {
     eyebrow: 'Progress',
     title: 'Track the trend, not the panic.',
-    sub: 'Body logs, progress photos, steps, activity, habits, goals, charts, and calendar signals show trends, not a diagnosis.',
+    sub: 'Body logs, steps, activity, habits, goals, charts, and calendar signals show trends, not a diagnosis.',
     guide: ['Log movement', 'Update gently', 'Review trends'],
   },
   settings: {
@@ -1064,9 +1063,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [routineForm, setRoutineForm] = useState(() => createRoutineForm(initialSettings))
   const [workoutForm, setWorkoutForm] = useState(() => createWorkoutForm(initialSettings))
   const [mealForm, setMealForm] = useState(createMealForm)
-  const [mealPhoto, setMealPhoto] = useState(null)
-  const [bodyPhoto, setBodyPhoto] = useState(null)
-  const [bodyPhotoPreview, setBodyPhotoPreview] = useState('')
   const [bodyForm, setBodyForm] = useState(createBodyForm)
   const [activityForm, setActivityForm] = useState(createActivityForm)
   const [habitForm, setHabitForm] = useState(createHabitForm)
@@ -1078,7 +1074,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [savingBody, setSavingBody] = useState(false)
   const [savingSettings, setSavingSettings] = useState(false)
   const [deletingLakasData, setDeletingLakasData] = useState(false)
-  const [photoPreview, setPhotoPreview] = useState('')
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
   const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('beginner')
   const [gymSessionMode, setGymSessionMode] = useState({
@@ -1192,28 +1187,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [gymSessionMode.open])
-
-  useEffect(() => {
-    if (!mealPhoto) {
-      setPhotoPreview('')
-      return undefined
-    }
-
-    const nextPreview = URL.createObjectURL(mealPhoto)
-    setPhotoPreview(nextPreview)
-    return () => URL.revokeObjectURL(nextPreview)
-  }, [mealPhoto])
-
-  useEffect(() => {
-    if (!bodyPhoto) {
-      setBodyPhotoPreview('')
-      return undefined
-    }
-
-    const nextPreview = URL.createObjectURL(bodyPhoto)
-    setBodyPhotoPreview(nextPreview)
-    return () => URL.revokeObjectURL(nextPreview)
-  }, [bodyPhoto])
 
   const insights = useMemo(() => {
     const weekStart = dateDaysAgo(6)
@@ -1642,9 +1615,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
     setSavingMeal(true)
     try {
-      const preparedMealPhoto = mealPhoto
-        ? await prepareImageUpload(mealPhoto, { maxEdge: 1800, maxBytes: 4 * 1024 * 1024, quality: 0.88 })
-        : null
       const mealPayload = {
         ...mealForm,
         name: mealForm.name.trim(),
@@ -1654,35 +1624,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         fat: numberOrZero(mealForm.fat),
         notes: mealForm.notes.trim(),
       }
-
-      try {
-        await fsSaveLakasMeal(user.uid, {
-          ...mealPayload,
-          photoBlob: preparedMealPhoto?.blob || mealPhoto,
-          fileName: preparedMealPhoto?.fileName || mealPhoto?.name || '',
-        })
-      } catch (error) {
-        if (!mealPhoto || !isRetryableMediaSaveError(error)) throw error
-
-        const retryMealPhoto = await prepareImageUpload(mealPhoto, {
-          maxEdge: 1280,
-          maxBytes: 1200 * 1024,
-          quality: 0.76,
-          minimumQuality: 0.58,
-          minimumEdge: 720,
-        })
-
-        await fsSaveLakasMeal(user.uid, {
-          ...mealPayload,
-          photoBlob: retryMealPhoto.blob,
-          fileName: retryMealPhoto.fileName,
-        })
-      }
+      await fsSaveLakasMeal(user.uid, mealPayload)
       setMealForm(createMealForm())
-      setMealPhoto(null)
-      notifyApp({ title: 'Meal logged', message: 'Photo Meal Log saved with your nutrition estimate.', tone: 'success' })
-    } catch (error) {
-      notifyApp({ title: 'Meal not saved', message: getMediaSaveErrorMessage(error, 'photo'), tone: 'error' })
+      notifyApp({ title: 'Meal logged', message: 'Meal log saved with your nutrition estimate.', tone: 'success' })
+    } catch {
+      notifyApp({ title: 'Meal not saved', message: 'Could not save this meal right now. Try again.', tone: 'error' })
     } finally {
       setSavingMeal(false)
     }
@@ -1690,16 +1636,13 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
   async function handleAddBodyLog() {
     const hasMetric = Object.entries(bodyForm).some(([key, value]) => key !== 'date' && key !== 'notes' && String(value || '').trim())
-    if (!bodyForm.date || (!hasMetric && !bodyPhoto)) {
-      notifyApp({ title: 'Body log needs details', message: 'Add a metric or progress photo before saving.', tone: 'warning' })
+    if (!bodyForm.date || !hasMetric) {
+      notifyApp({ title: 'Body log needs details', message: 'Add at least one body metric before saving.', tone: 'warning' })
       return
     }
 
     setSavingBody(true)
     try {
-      const preparedBodyPhoto = bodyPhoto
-        ? await prepareImageUpload(bodyPhoto, { maxEdge: 2000, maxBytes: 4 * 1024 * 1024, quality: 0.9 })
-        : null
       const bodyPayload = {
         ...bodyForm,
         weight: numberOrZero(bodyForm.weight),
@@ -1712,35 +1655,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         bmi: calculateBmi(bodyForm.weight, bodyForm.height, savedLakasSettings.units.weight, savedLakasSettings.units.body),
         notes: bodyForm.notes.trim(),
       }
-
-      try {
-        await fsSaveLakasBodyLog(user.uid, {
-          ...bodyPayload,
-          photoBlob: preparedBodyPhoto?.blob || bodyPhoto,
-          fileName: preparedBodyPhoto?.fileName || bodyPhoto?.name || '',
-        })
-      } catch (error) {
-        if (!bodyPhoto || !isRetryableMediaSaveError(error)) throw error
-
-        const retryBodyPhoto = await prepareImageUpload(bodyPhoto, {
-          maxEdge: 1440,
-          maxBytes: 1400 * 1024,
-          quality: 0.78,
-          minimumQuality: 0.6,
-          minimumEdge: 800,
-        })
-
-        await fsSaveLakasBodyLog(user.uid, {
-          ...bodyPayload,
-          photoBlob: retryBodyPhoto.blob,
-          fileName: retryBodyPhoto.fileName,
-        })
-      }
+      await fsSaveLakasBodyLog(user.uid, bodyPayload)
       setBodyForm(createBodyForm())
-      setBodyPhoto(null)
       notifyApp({ title: 'Body progress saved', message: 'Your body log was added.', tone: 'success' })
-    } catch (error) {
-      notifyApp({ title: 'Body log not saved', message: getMediaSaveErrorMessage(error, 'image'), tone: 'error' })
+    } catch {
+      notifyApp({ title: 'Body log not saved', message: 'Could not save this body log right now. Try again.', tone: 'error' })
     } finally {
       setSavingBody(false)
     }
@@ -2045,7 +1964,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       { label: 'Calories', value: displayMetric(insights.caloriesToday, 'kcal', privacyMode, 0), meta: 'Today' },
       { label: 'Protein', value: displayMetric(insights.proteinToday, 'g', privacyMode, 0), meta: 'Today' },
       { label: 'Meals', value: displayMetric(mealsToday, '', privacyMode, 0), meta: 'Today' },
-      { label: 'Photos', value: displayMetric(meals.filter(row => row.photoPath || row.photoUrl).length, '', privacyMode, 0), meta: 'Saved meals' },
+      { label: 'Logged', value: displayMetric(meals.length, '', privacyMode, 0), meta: 'Saved meals' },
     ],
     progress: [
       { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
@@ -2177,7 +2096,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       return () => window.cancelAnimationFrame(frameId)
     }
 
-    if (actionRequest.type === 'meal-photo') {
+    if (actionRequest.type === 'meal-log') {
       if (currentTab !== 'nutrition') return undefined
       handledActionTokenRef.current = actionRequest.token
       const frameId = window.requestAnimationFrame(() => {
@@ -2748,19 +2667,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Body</div>
               <h3>Body progress</h3>
-              <p className={lStyles.sectionHint}>Save measurements and optional progress photos; privacy mode hides sensitive details. Trends are tracking signals, not a diagnosis.</p>
+              <p className={lStyles.sectionHint}>Save measurements and notes; privacy mode still hides sensitive details. Trends are tracking signals, not a diagnosis.</p>
             </div>
-          </div>
-          <div className={lStyles.progressPhotoBox}>
-            {bodyPhotoPreview ? (
-              <img src={bodyPhotoPreview} alt="Selected progress preview" />
-            ) : (
-              <div>
-                <strong>Add progress photo</strong>
-                <span>Optional. Saved privately with this body log.</span>
-              </div>
-            )}
-            <input type="file" accept="image/*" capture="environment" onChange={event => setBodyPhoto(event.target.files?.[0] || null)} aria-label="Progress photo" />
           </div>
           <div className={lStyles.formGrid}>
             <label>
@@ -2850,9 +2758,9 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
-              <div className={lStyles.sectionKicker}>Photo Meal Log</div>
-              <h3>Log meal with photo</h3>
-              <p className={lStyles.sectionHint}>Photo first, manual nutrition estimate second; ready for future calorie scanning.</p>
+              <div className={lStyles.sectionKicker}>Meal log</div>
+              <h3>Log meal details</h3>
+              <p className={lStyles.sectionHint}>Manual meal logging first. Add calories, macros, and notes without depending on photo capture.</p>
             </div>
           </div>
           <div className={lStyles.presetRow}>
@@ -2861,17 +2769,6 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
                 {food.name}
               </button>
             ))}
-          </div>
-          <div className={lStyles.mealPhotoBox}>
-            {photoPreview ? (
-              <img src={photoPreview} alt="Selected meal preview" />
-            ) : (
-              <div>
-                <strong>Add meal photo</strong>
-                <span>No AI scan yet. The photo is saved with your manual calorie estimate.</span>
-              </div>
-            )}
-            <input type="file" accept="image/*" capture="environment" onChange={event => setMealPhoto(event.target.files?.[0] || null)} aria-label="Meal photo" />
           </div>
           <div className={lStyles.formGrid}>
             <label>
@@ -2964,7 +2861,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               </select>
             </label>
             <label className={lStyles.full}>
-              <span>Progress photos in privacy mode</span>
+              <span>Older progress photos in privacy mode</span>
               <select value={settingsForm.display.hideProgressPhotosInPrivacy ? 'hide' : 'show'} onChange={event => updateSettingGroup('display', 'hideProgressPhotosInPrivacy', event.target.value === 'hide')}>
                 <option value="hide">Hide progress photos</option>
                 <option value="show">Show progress photos</option>
@@ -3154,7 +3051,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             </button>
           </div>
           <div className={lStyles.empty}>
-            Settings are kept when logs are deleted. Progress photos and meal photos are also removed from storage.
+            Settings are kept when logs are deleted. Any older saved photos are also removed from storage.
           </div>
         </section>
 
@@ -3230,7 +3127,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Meals</div>
               <h3>Recent meals</h3>
-              <p className={lStyles.sectionHint}>Saved meal photos and macro estimates live here for easy review.</p>
+              <p className={lStyles.sectionHint}>Saved meals and macro estimates live here for easy review. Older photos still appear if they were already saved.</p>
             </div>
           </div>
           {!meals.length ? <div className={lStyles.empty}>No meals logged yet.</div> : visibleMeals.map(meal => {
@@ -3256,7 +3153,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Progress</div>
               <h3>Body logs</h3>
-              <p className={lStyles.sectionHint}>Measurements and photos are summarized without exposing them in privacy mode.</p>
+              <p className={lStyles.sectionHint}>Measurements stay easy to review, and any older photos still stay hidden in privacy mode.</p>
             </div>
           </div>
           {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : visibleBodyLogs.map(log => {

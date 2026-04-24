@@ -641,8 +641,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, calendar reminders, Lakas data, Tala data, and profile data with this backup. Receipt, meal, and body progress image files are references only and are not recreated from JSON backups.'
-        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, Tala, and calendar reminders if present. Matching document ids will be updated. Receipt, meal, and body progress image files are references only and are not recreated from JSON backups.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, calendar reminders, Lakas data, Tala data, and profile data with this backup. Any older saved receipt, meal, and body image files are metadata references only and are not recreated from JSON backups.'
+        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, Tala, and calendar reminders if present. Matching document ids will be updated. Any older saved receipt, meal, and body image files are metadata references only and are not recreated from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -703,7 +703,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
     const confirmed = await confirmApp({
       title: 'Delete Buhay account?',
-      message: 'This removes your Takda, Lakas, and Tala data, saved receipts and progress photos, profile, feedback, and login. This cannot be undone.',
+      message: 'This removes your Takda, Lakas, and Tala data, saved receipt records, any older saved fitness photos, profile, feedback, and login. This cannot be undone.',
       confirmLabel: 'Delete account',
       cancelLabel: 'Keep account',
       tone: 'danger',
@@ -1114,7 +1114,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, calendar reminders, Lakas records, Tala records, receipt and photo metadata links, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, calendar reminders, Lakas records, Tala records, receipt records, any legacy image metadata links, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>

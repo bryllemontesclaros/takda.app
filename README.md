@@ -36,7 +36,7 @@ Lakas fitness:
   - Habits
   - Calendar signals
 - Nutrition
-  - Photo meal logs
+  - Manual meal logs
   - Calories and macros
 - Progress
   - Body
@@ -82,8 +82,8 @@ Tala mind and life admin:
 - Accounts for cash, bank, e-wallet, credit card, investment, and other balances.
 - Savings goals with target dates, progress tracking, contribution updates, and summaries.
 - Budgets with category limits, overspending warnings, unbudgeted spending visibility, and budget status.
-- Receipts with camera/upload flow, local image cleanup, editable receipt review, receipt box, thumbnails, merchant/category summaries, and expense saving.
-- Grocery mode for price-tag scanning/manual items and one-trip expense saving.
+- Receipts with manual receipt records, older saved receipt review, thumbnails for legacy image-backed entries, merchant/category summaries, and receipt box search.
+- Grocery mode for manual items and one-trip expense saving.
 - History with search, filters, sorting, and inline editing.
 - Breakdown charts with category views, trends, and month comparisons.
 - Ask Takda command sheet for finance commands with preview/confirmation before write actions.
@@ -94,8 +94,8 @@ Tala mind and life admin:
 - Overview dashboard for fitness stats, recent activity, goals, and quick actions.
 - Workout log for exercises, sets, reps, weight, duration, rest time, and notes.
 - Routines/plans such as Push/Pull/Legs, full body, home workout, cardio, and custom routines.
-- Meal tracking with photo meal logs and editable meal details.
-- Body progress with weight, measurements, BMI/body trend, notes, and progress photos.
+- Meal tracking with manual meal logs and editable meal details.
+- Body progress with weight, measurements, BMI/body trend, notes, and legacy photo support for older entries.
 - Steps and activity tracking for walking, cardio minutes, active days, distance, and activity notes.
 - Habit check-ins for water, protein, sleep, stretching, rest day, vitamins, and custom habits.
 - Fitness goals for weight, muscle, steps, workout frequency, habits, activity, and body progress.
@@ -119,10 +119,10 @@ Tala mind and life admin:
 
 - Per-user Firestore data under `users/{uid}`.
 - Firestore rules restrict user data to the authenticated owner.
-- Firebase Storage rules should restrict user images to the authenticated owner.
+- Firebase Storage rules should restrict any older saved user images to the authenticated owner.
 - Privacy mode masks sensitive money and personal values across app views.
-- Receipt, import, command, meal, workout, task, and goal flows use review-before-save behavior where relevant.
-- JSON backups include app data and image metadata links, but image files are not re-uploaded from backups.
+- Receipt records, screenshot imports, commands, workouts, tasks, and goals use review-before-save behavior where relevant.
+- JSON backups include app data and any legacy image metadata links, but image files are not re-uploaded from backups.
 - Account deletion and data reset tools are available in Settings.
 - Legal pages explain privacy, terms, third-party services, import behavior, and product limits.
 
@@ -131,10 +131,10 @@ Tala mind and life admin:
 - Frontend: React + Vite
 - Auth: Firebase Authentication, Email/Password
 - Database: Firestore, real-time per-user collections
-- Storage: Firebase Storage for receipt, meal, and body progress images
+- Storage: Firebase Storage for older saved receipt and fitness images
 - Hosting: Vercel
 - PWA: Installable web app with service worker caching
-- Import flow: local image cleanup plus manual review for receipts, screenshots, and grocery images
+- Import flow: local screenshot cleanup plus manual review for wallet screenshots
 
 ## Getting Started
 
@@ -166,7 +166,7 @@ VITE_FIREBASE_APPCHECK_SITE_KEY=your_recaptcha_v3_site_key
 ## Production Privacy Hardening
 
 - Firestore records are stored under `users/{uid}` and rules require `request.auth.uid == userId`, so signed-in users cannot read or write another user's app records.
-- Storage files for receipts, meal photos, and body progress photos are stored under `users/{uid}/...` and require the same authenticated owner.
+- Older saved receipt, meal, and body progress image files are stored under `users/{uid}/...` and require the same authenticated owner.
 - Privacy mode is screen privacy only: it masks sensitive values in the UI when someone is looking at the device. Firebase Auth, Firestore rules, Storage rules, and App Check are the real access controls.
 - Enable Firebase App Check for the production Vercel domain and set `VITE_FIREBASE_APPCHECK_SITE_KEY` before enforcing App Check in Firebase.
 - After every Firebase rules change, deploy rules and verify with two test accounts that User A cannot read User B's `accounts`, `expenses`, `income`, `receipts`, `lakasBodyLogs`, or `talaJournal`.
@@ -209,9 +209,9 @@ Manual QA:
 
 - Auth: sign up, log in, log out, remember-me, password reset, and email verification banner.
 - Onboarding: currency, opening balances, recurring bills, bill pay-from account, and optional Lakas/Tala starter paths.
-- Takda: calendar home, overview dashboard, quick add, selected-day detail, accounts, history, savings, bills, budget, breakdown, receipts, grocery mode, and Ask Takda confirmation.
-- Bills/receipts trust check: marking a bill paid should create only one expense when enabled; receipt-only saves should not move balances; receipt+expense saves should clearly show account impact.
-- Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal photo log, body log, activity, habits, goals, and settings/logout.
+- Takda: calendar home, overview dashboard, quick add, wallet screenshot import, selected-day detail, accounts, history, savings, bills, budget, breakdown, receipts, grocery mode, and Ask Takda confirmation.
+- Bills/receipts trust check: marking a bill paid should create only one expense when enabled; manual receipt saves should not move balances; screenshot-assisted quick add should only change balances after confirmation.
+- Lakas: beginner recommendation, Gym Session start, muted in-session YouTube autoplay, warm-up, set tracker, rest timer, next exercise, save workout, meal log, body log, activity, habits, goals, and settings/logout.
 - Tala: journal home, check-in, calm plan, journal prompts/privacy masking, mood trends, tasks done/reopen, goals, calendar selected-day detail, insights, and settings/logout.
 - PWA: install on iOS Safari and Android Chrome, launch from home screen, navigate while offline, then reconnect and verify Firebase-backed data refreshes.
 - Firebase/Vercel: Firestore rules, Storage rules, App Check site key/enforcement status, Firebase Auth authorized domains, Vercel environment variables, and service worker cache version.
@@ -228,13 +228,13 @@ users/{uid}/
   goals/            { name, target, current, date, createdAt, ... }
   accounts/         { name, type, balance, color, notes, createdAt, ... }
   budgets/          { cat, limit, createdAt, ... }
-  receipts/         { imageUrl, cleanedImageUrl, extractedData, merchant, total, date, source, createdAt, ... }
+  receipts/         { merchant, total, date, category, reference, notes, source, imagePath?, cleanedImagePath?, createdAt, ... }
   calendarEvents/   { title, date, notes, source, createdAt, ... }
   feedback/         { kind, rating, message, allowFeature, email, createdBy, createdAt }
   lakasRoutines/    { name, focus, exercises, exerciseCount, setCount, duration, notes, createdAt, ... }
   lakasWorkouts/    { title, date, exercises, exerciseCount, duration, notes, createdAt, ... }
-  lakasMeals/       { name, date, mealType, calories, photoUrl, notes, createdAt, ... }
-  lakasBodyLogs/    { date, weight, measurements, bmi, photoUrl, notes, createdAt, ... }
+  lakasMeals/       { name, date, mealType, calories, protein, carbs, fat, photoPath?, notes, createdAt, ... }
+  lakasBodyLogs/    { date, weight, measurements, bmi, photoPath?, notes, createdAt, ... }
   lakasActivities/  { date, type, steps, activeMinutes, cardioMinutes, distance, notes, createdAt, ... }
   lakasHabits/      { date, habits, score, notes, createdAt, ... }
   lakasReminders/   { title, date, time, type, frequency, notes, createdAt, ... }
@@ -246,7 +246,7 @@ users/{uid}/
   talaGoals/        { name, area, targetDate, progress, notes, createdAt, ... }
 ```
 
-## Storage Structure
+## Storage Structure (Legacy Saved Images)
 
 ```text
 users/{uid}/

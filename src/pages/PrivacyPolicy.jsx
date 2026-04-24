@@ -1,8 +1,8 @@
 import LegalPageLayout from './LegalPageLayout'
 
 const SUMMARY_POINTS = [
-  'Covers account, finance, fitness, journal, mood, task, goal, image, and settings data.',
-  'Explains when receipt, wallet, grocery, or meal images are processed by OCR providers.',
+  'Covers account, finance, fitness, journal, mood, task, goal, settings, and legacy image metadata.',
+  'Explains manual receipt records, wallet screenshot review, and older saved images.',
   'Describes export, deletion, contact, and privacy-rights paths.',
 ]
 
@@ -10,8 +10,8 @@ const SECTIONS = [
   {
     title: 'What this policy covers',
     paragraphs: [
-      'This Privacy Policy explains how Buhay handles information when you use the landing page, create an account, and use the app to track finance, fitness, journal, mood, tasks, goals, and imports.',
-      'It is written to match the product as it exists today: an all-in-one life tracker for Filipinos with finance, fitness, mind, receipt, meal, wallet, and grocery flows.',
+      'This Privacy Policy explains how Buhay handles information when you use the landing page, create an account, and use the app to track finance, fitness, journal, mood, tasks, goals, manual receipts, and wallet screenshot review.',
+      'It is written to match the product as it exists today: an all-in-one life tracker for Filipinos with finance, fitness, and reflection spaces inside one account.',
     ],
   },
   {
@@ -27,15 +27,15 @@ const SECTIONS = [
     ],
   },
   {
-    title: 'Imports, images, and OCR',
+    title: 'Manual receipts, screenshots, and older saved images',
     paragraphs: [
-      'If you use receipt, wallet, grocery, or meal import features, the image you choose may be transmitted to a text-recognition provider so Buhay can extract text for your review before you save anything.',
-      'Buhay currently supports import review flows where you can edit the detected result before it becomes a saved transaction.',
+      'Buhay no longer requires receipt, grocery, meal, or body-photo uploads for its active product flows. The current finance import flow is limited to wallet screenshots that you review before saving.',
+      'If you already saved receipt or fitness images in older versions of the app, those files and their metadata may still remain linked to the related records until you delete them.',
     ],
     bullets: [
-      'Imported images are used to extract text and structured fields such as merchant, amount, date, and description candidates.',
-      'Buhay may use OCR Space or a similar OCR provider for that processing when the feature is enabled.',
-      'If you do not use import features, Buhay does not need those images to provide the rest of the product.',
+      'Wallet screenshots you choose to import are reviewed inside the app before they become saved data.',
+      'Manual receipt records do not require an image upload.',
+      'Older saved receipt or fitness images remain under your account until you delete the related record or remove the data through account tools.',
     ],
   },
   {
@@ -54,7 +54,6 @@ const SECTIONS = [
     bullets: [
       'Firebase, for authentication and app data storage.',
       'Vercel or similar hosting infrastructure used to serve the site or app.',
-      'OCR providers when you actively use image-import features.',
       'Law enforcement, regulators, or professional advisers when disclosure is required by law, needed for safety, or necessary to protect the service.',
     ],
   },
@@ -108,7 +107,7 @@ export default function PrivacyPolicy() {
       title="How Buhay handles your account and life-tracking data."
       intro="This page explains what Buhay collects, why it is used, which providers help run the product, and how you can access, export, or delete information tied to your account."
       metaTitle="Privacy Policy — Buhay"
-      metaDescription="Read how Buhay handles account, finance, fitness, journal, mood, task, goal, and import data, and how you can access, export, or delete it."
+      metaDescription="Read how Buhay handles account, finance, fitness, journal, mood, task, goal, manual receipt, wallet screenshot, and legacy image data, and how you can access, export, or delete it."
       metaPath="/privacy"
       summaryPoints={SUMMARY_POINTS}
       sections={SECTIONS}
