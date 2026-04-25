@@ -414,29 +414,17 @@ const DEFAULT_LAKAS_SETTINGS = {
 }
 
 const LAKAS_TAB_COPY = {
-  today: {
-    eyebrow: 'Lakas today',
-    title: 'Train from real signals, not pressure.',
-    sub: 'See workouts, meals, body logs, steps, habits, reminders, and recovery cues without turning fitness into medical advice.',
-    guide: ['Check today', 'Start light', 'Log real work'],
-  },
   train: {
     eyebrow: 'Train',
     title: 'Start the right session for today.',
     sub: 'Gym Session, beginner progression, routines, form cues, rest timing, and trusted exercise videos keep technique ahead of load.',
     guide: ['Choose session', 'Check form', 'Track sets'],
   },
-  log: {
-    eyebrow: 'Workout log',
-    title: 'Log what you really did.',
-    sub: 'Manual workout logs, routines, sets, reps, weight, duration, rest, and notes stay focused on real sessions only.',
-    guide: ['Load routine', 'Adjust actuals', 'Save workout'],
-  },
-  nutrition: {
-    eyebrow: 'Nutrition',
-    title: 'Keep meal logging simple.',
-    sub: 'Save meal details, calorie estimates, protein, carbs, fat, and meal history without pretending nutrition logs are perfectly precise.',
-    guide: ['Log meal', 'Estimate macros', 'Review trend'],
+  track: {
+    eyebrow: 'Track',
+    title: 'Log what really happened today.',
+    sub: 'Workouts, meals, and body logs live on one tracking surface so you can update the right record without bouncing between separate tabs.',
+    guide: ['Pick log type', 'Save the real entry', 'Review quickly'],
   },
   progress: {
     eyebrow: 'Progress',
@@ -450,6 +438,18 @@ const LAKAS_TAB_COPY = {
     sub: 'Core settings stay up front, while training profile and advanced defaults stay tucked away until you actually need them.',
     guide: ['Set basics', 'Adjust goals', 'Protect your data'],
   },
+}
+
+const LAKAS_TRACK_VIEWS = [
+  { id: 'workouts', label: 'Workouts', meta: 'Sessions and routines' },
+  { id: 'meals', label: 'Meals', meta: 'Nutrition log' },
+  { id: 'body', label: 'Body', meta: 'Measurements and weight' },
+]
+
+function getTrackViewForTab(tab = '') {
+  if (tab === 'nutrition' || tab === 'meals') return 'meals'
+  if (tab === 'body') return 'body'
+  return 'workouts'
 }
 
 function createExerciseRow(overrides = {}, defaults = {}) {
@@ -1058,7 +1058,7 @@ function MiniBarChart({ title, rows, unit = '', hidden = false }) {
   )
 }
 
-export default function Lakas({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today', actionRequest = null, onActionHandled = () => {} }) {
+export default function Lakas({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'train', actionRequest = null, onActionHandled = () => {} }) {
   const initialSettings = getLakasSettings(profile)
   const [routineForm, setRoutineForm] = useState(() => createRoutineForm(initialSettings))
   const [workoutForm, setWorkoutForm] = useState(() => createWorkoutForm(initialSettings))
@@ -1076,6 +1076,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const [deletingLakasData, setDeletingLakasData] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
   const [selectedGymSessionKey, setSelectedGymSessionKey] = useState('beginner')
+  const [trackView, setTrackView] = useState(() => getTrackViewForTab(activeTab))
   const [gymSessionMode, setGymSessionMode] = useState({
     open: false,
     sessionKey: 'beginner',
@@ -1171,6 +1172,11 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     const timerId = window.setInterval(() => setGymSessionNow(Date.now()), 1000)
     return () => window.clearInterval(timerId)
   }, [gymSessionMode.open, gymSessionMode.startedAt])
+
+  useEffect(() => {
+    if (!['log', 'nutrition', 'meals', 'body'].includes(activeTab)) return
+    setTrackView(getTrackViewForTab(activeTab))
+  }, [activeTab])
 
   useEffect(() => {
     if (!gymSessionMode.open) return undefined
@@ -1857,27 +1863,31 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const latestBmiLabel = getBmiLabel(insights.latestBmi)
   const upcomingReminders = reminders.filter(row => row.enabled !== false).slice(0, 5)
   const legacyTabAliases = {
-    overview: 'today',
+    today: 'train',
+    overview: 'train',
     workouts: 'train',
-    meals: 'nutrition',
+    log: 'track',
+    nutrition: 'track',
+    meals: 'track',
+    body: 'track',
     activity: 'progress',
     habits: 'progress',
-    body: 'progress',
     goals: 'progress',
     reminders: 'settings',
   }
-  const currentTab = LAKAS_TAB_COPY[activeTab] ? activeTab : legacyTabAliases[activeTab] || 'today'
-  const showOverview = currentTab === 'today'
+  const normalizedRequestedTab = legacyTabAliases[activeTab] || activeTab
+  const currentTab = LAKAS_TAB_COPY[normalizedRequestedTab] ? normalizedRequestedTab : 'train'
+  const showOverview = false
   const showWorkouts = currentTab === 'train'
-  const showWorkoutLog = currentTab === 'log'
+  const showWorkoutLog = currentTab === 'track' && trackView === 'workouts'
   const showActivity = currentTab === 'progress'
-  const showBody = currentTab === 'progress'
-  const showMeals = currentTab === 'nutrition'
+  const showBody = currentTab === 'track' && trackView === 'body'
+  const showMeals = currentTab === 'track' && trackView === 'meals'
   const showHabits = currentTab === 'progress'
   const showGoals = currentTab === 'progress'
   const showReminders = currentTab === 'settings'
   const showSettings = currentTab === 'settings'
-  const tabCopy = LAKAS_TAB_COPY[currentTab] || LAKAS_TAB_COPY.today
+  const tabCopy = LAKAS_TAB_COPY[currentTab] || LAKAS_TAB_COPY.train
   const workoutVolume7d = insights.volumeByDay.reduce((sum, row) => sum + numberOrZero(row.value), 0)
   const mealsToday = meals.filter(row => row.date === today()).length
   const latestBodyLog = bodyLogs[0] || {}
@@ -1905,80 +1915,88 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         ? `BMI ${formatNumber(insights.latestBmi, 1)} · ${latestBmiLabel}`
         : latestBmiLabel
   }
-  const tabHeroCard = {
-    today: {
-      label: 'This week',
-      value: displayMetric(insights.workoutsThisWeek, 'workouts', privacyMode, 0),
-      meta: `${displayMetric(insights.activeDays, 'active days', privacyMode, 0)} · ${insights.routineCount ? `${insights.routineCount} routines ready` : 'Build a routine to start'}`,
+  const trackHeroCard = {
+    workouts: {
+      label: 'Workout tracking',
+      value: displayMetric(workouts.length, 'saved logs', privacyMode, 0),
+      meta: `${displayMetric(insights.workoutsThisWeek, 'this week', privacyMode, 0)} · ${displayMetric(workoutVolume7d, `${savedLakasSettings.units.weight} volume`, privacyMode, 0)}`,
     },
-    train: {
+    meals: {
+      label: 'Meal tracking',
+      value: displayMetric(mealsToday, 'meals today', privacyMode, 0),
+      meta: `${displayMetric(insights.caloriesToday, 'kcal', privacyMode, 0)} · ${displayMetric(insights.proteinToday, 'g protein', privacyMode, 0)}`,
+    },
+    body: {
+      label: 'Body tracking',
+      value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No body log',
+      meta: latestBodyLog.date ? `${formatDisplayDate(latestBodyLog.date)} · ${latestBodyMeta}` : latestBodyMeta,
+    },
+  }[trackView]
+  const tabHeroCard = currentTab === 'track'
+    ? trackHeroCard
+    : {
+        train: {
       label: 'Ready to start',
       value: selectedGymTemplate?.name || 'Choose session',
       meta: `${selectedGymTemplate?.exercises?.length || 0} exercises · ${selectedGymEstimate} min · ${selectedGymSession.label}`,
     },
-    log: {
-      label: 'Training load',
-      value: displayMetric(workoutVolume7d, savedLakasSettings.units.weight, privacyMode, 0),
-      meta: `${displayMetric(insights.workoutsThisWeek, 'workouts', privacyMode, 0)} this week · ${displayMetric(insights.records.workoutStreak, 'day streak', privacyMode, 0)}`,
-    },
-    nutrition: {
-      label: 'Today fuel',
-      value: displayMetric(insights.caloriesToday, 'kcal', privacyMode, 0),
-      meta: `${displayMetric(insights.proteinToday, 'g protein', privacyMode, 0)} · ${displayMetric(mealsToday, 'meals', privacyMode, 0)}`,
-    },
-    progress: {
+        progress: {
       label: 'Progress pulse',
       value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : displayMetric(insights.stepsToday, 'steps', privacyMode, 0),
       meta: `${displayMetric(activeGoalsCount, 'active goals', privacyMode, 0)} · ${displayMetric(habitCheckins7d, 'habit check-ins', privacyMode, 0)} this week`,
     },
-    settings: {
+        settings: {
       label: 'Current units',
       value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`,
       meta: `${savedLakasSettings.units.distance} distance · ${savedLakasSettings.display.showBmi ? 'BMI on' : 'BMI hidden'}`,
     },
-  }[currentTab] || {
-    label: 'This week',
-    value: displayMetric(insights.workoutsThisWeek, 'workouts', privacyMode, 0),
-    meta: `${displayMetric(insights.activeDays, 'active days', privacyMode, 0)} · ${insights.routineCount ? `${insights.routineCount} routines ready` : 'Build a routine to start'}`,
-  }
-  const tabStats = ({
-    today: [
-      { label: 'Workouts', value: displayMetric(insights.workoutsThisWeek, '', privacyMode, 0), meta: 'Last 7 days' },
-      { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
-      { label: 'Protein', value: displayMetric(insights.proteinToday, 'g', privacyMode, 0), meta: 'Logged today' },
-      { label: 'Body', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyMeta },
-    ],
-    train: [
-      { label: 'Session', value: selectedGymSession.label, meta: selectedGymSession.desc },
-      { label: 'Routines', value: displayMetric(insights.routineCount, '', privacyMode, 0), meta: 'Saved templates' },
-      { label: 'Plan time', value: displayMetric(selectedGymEstimate, 'min', privacyMode, 0), meta: selectedGymTemplate?.focus || 'Training' },
-      { label: 'Exercises', value: displayMetric(selectedGymTemplate?.exercises?.length || 0, '', privacyMode, 0), meta: 'Current plan' },
-    ],
-    log: [
+      }[currentTab] || {
+        label: 'Ready to start',
+        value: selectedGymTemplate?.name || 'Choose session',
+        meta: `${selectedGymTemplate?.exercises?.length || 0} exercises · ${selectedGymEstimate} min · ${selectedGymSession.label}`,
+      }
+  const trackStats = {
+    workouts: [
       { label: 'Workouts', value: displayMetric(insights.workoutsThisWeek, '', privacyMode, 0), meta: 'Last 7 days' },
       { label: 'Volume', value: displayMetric(workoutVolume7d, savedLakasSettings.units.weight, privacyMode, 0), meta: 'Last 7 days' },
       { label: 'Streak', value: displayMetric(insights.records.workoutStreak, 'days', privacyMode, 0), meta: 'Current' },
       { label: 'Saved logs', value: displayMetric(workouts.length, '', privacyMode, 0), meta: 'All workouts' },
     ],
-    nutrition: [
+    meals: [
       { label: 'Calories', value: displayMetric(insights.caloriesToday, 'kcal', privacyMode, 0), meta: 'Today' },
       { label: 'Protein', value: displayMetric(insights.proteinToday, 'g', privacyMode, 0), meta: 'Today' },
       { label: 'Meals', value: displayMetric(mealsToday, '', privacyMode, 0), meta: 'Today' },
       { label: 'Logged', value: displayMetric(meals.length, '', privacyMode, 0), meta: 'Saved meals' },
     ],
-    progress: [
+    body: [
+      { label: 'Weight', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyLog.date ? formatDisplayDate(latestBodyLog.date) : 'Latest' },
+      { label: 'BMI', value: !shouldShowBmi ? 'Hidden' : insights.latestBmi ? displayMetric(insights.latestBmi, '', privacyMode, 1) : 'No BMI', meta: latestBmiLabel },
+      { label: 'Body logs', value: displayMetric(bodyLogs.length, '', privacyMode, 0), meta: 'Saved entries' },
+      { label: 'Waist', value: latestBodyLog.waist ? displayMetric(latestBodyLog.waist, savedLakasSettings.units.body, privacyMode, 1) : 'No waist', meta: 'Latest log' },
+    ],
+  }[trackView]
+  const tabStats = (currentTab === 'track'
+    ? trackStats
+    : {
+        train: [
+      { label: 'Session', value: selectedGymSession.label, meta: selectedGymSession.desc },
+      { label: 'Routines', value: displayMetric(insights.routineCount, '', privacyMode, 0), meta: 'Saved templates' },
+      { label: 'Plan time', value: displayMetric(selectedGymEstimate, 'min', privacyMode, 0), meta: selectedGymTemplate?.focus || 'Training' },
+      { label: 'Exercises', value: displayMetric(selectedGymTemplate?.exercises?.length || 0, '', privacyMode, 0), meta: 'Current plan' },
+    ],
+        progress: [
       { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
       { label: 'Weight', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyLog.date ? formatDisplayDate(latestBodyLog.date) : 'Latest' },
       { label: 'Score', value: privacyMode ? `.../${HABIT_OPTIONS.length}` : `${insights.habitScoreToday}/${HABIT_OPTIONS.length}`, meta: 'Today' },
       { label: 'Active', value: displayMetric(activeGoalsCount, '', privacyMode, 0), meta: 'In progress' },
     ],
-    settings: [
+        settings: [
       { label: 'Units', value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`, meta: `${savedLakasSettings.units.distance} distance` },
       { label: 'Steps target', value: displayMetric(savedLakasSettings.targets.steps, '', privacyMode, 0), meta: 'Daily target' },
       { label: 'Workout default', value: displayMetric(savedLakasSettings.workoutDefaults.durationMinutes, 'min', privacyMode, 0), meta: `${savedLakasSettings.workoutDefaults.sets}x${savedLakasSettings.workoutDefaults.reps} · ${savedLakasSettings.workoutDefaults.restSeconds}s rest` },
       { label: 'Meal target', value: displayMetric(savedLakasSettings.meals.calorieGoal, 'kcal', privacyMode, 0), meta: `${savedLakasSettings.meals.proteinGoal}g protein` },
     ],
-  })[currentTab] || []
+      })[currentTab]) || []
 
   useEffect(() => {
     mealPhotoUrlsRef.current = mealPhotoUrls
@@ -2097,9 +2115,10 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     }
 
     if (actionRequest.type === 'meal-log') {
-      if (currentTab !== 'nutrition') return undefined
+      if (currentTab !== 'track') return undefined
       handledActionTokenRef.current = actionRequest.token
       const frameId = window.requestAnimationFrame(() => {
+        setTrackView('meals')
         mealQuickActionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         mealNameInputRef.current?.focus()
         onActionHandled(actionRequest.token)
@@ -2146,10 +2165,37 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         ))}
       </div>
 
+      {currentTab === 'track' && (
+        <section className={lStyles.viewSwitchCard} aria-label="Choose what to track">
+          <div className={lStyles.viewSwitchHeader}>
+            <div>
+              <div className={lStyles.sectionKicker}>Track</div>
+              <h3>Pick the log you want to update.</h3>
+              <p className={lStyles.sectionHint}>Workouts, meals, and body logs stay in one place so tracking takes fewer taps.</p>
+            </div>
+          </div>
+          <div className={lStyles.viewSwitch} role="tablist" aria-label="Choose what to track in Lakas">
+            {LAKAS_TRACK_VIEWS.map(view => (
+              <button
+                key={view.id}
+                type="button"
+                className={`${lStyles.viewSwitchButton} ${trackView === view.id ? lStyles.viewSwitchButtonActive : ''}`}
+                onClick={() => setTrackView(view.id)}
+                role="tab"
+                aria-selected={trackView === view.id}
+              >
+                <strong>{view.label}</strong>
+                <span>{view.meta}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {(showOverview || showWorkoutLog || showActivity || showReminders) && (
       <div className={lStyles.insightGrid}>
         {(showOverview || showWorkoutLog) && (
-        <section ref={mealQuickActionRef} className={lStyles.panel}>
+        <section className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Records</div>
@@ -2184,7 +2230,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
         )}
 
         {(showOverview || showActivity) && (
-        <section className={lStyles.panel}>
+        <section ref={mealQuickActionRef} className={lStyles.panel}>
           <div className={lStyles.sectionHeader}>
             <div>
               <div className={lStyles.sectionKicker}>Charts</div>

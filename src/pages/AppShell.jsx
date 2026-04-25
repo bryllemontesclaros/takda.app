@@ -862,28 +862,21 @@ export default function AppShell({ user }) {
 
   const nav = [
     { id: 'calendar', label: 'Home', iconKey: 'calendar', section: 'Core' },
-    { id: 'dashboard', label: 'Overview', iconKey: 'home', section: null },
     { id: 'money', label: 'Money', iconKey: 'accounts', section: null },
     { id: 'plan', label: 'Plan', iconKey: 'budget', section: null },
     { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: 'Tools' },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const lakasNav = [
-    { id: 'train', label: 'Home', iconKey: 'workouts', section: 'Core' },
-    { id: 'log', label: 'Log', iconKey: 'history', section: null },
-    { id: 'nutrition', label: 'Nutrition', iconKey: 'meals', section: 'Fuel' },
+    { id: 'train', label: 'Train', iconKey: 'workouts', section: 'Core' },
+    { id: 'track', label: 'Track', iconKey: 'history', section: null },
     { id: 'progress', label: 'Progress', iconKey: 'body', section: 'Review' },
-    { id: 'today', label: 'Overview', iconKey: 'today', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
   const talaNav = [
-    { id: 'journal', label: 'Home', iconKey: 'journal', section: 'Core' },
-    { id: 'mood', label: 'Mood', iconKey: 'mood', section: null },
-    { id: 'tasks', label: 'Tasks', iconKey: 'tasks', section: null },
-    { id: 'goals', label: 'Goals', iconKey: 'goals', section: 'More' },
-    { id: 'calendar', label: 'Calendar', iconKey: 'calendar', section: null },
-    { id: 'insights', label: 'Insights', iconKey: 'insights', section: null },
-    { id: 'today', label: 'Check-in', iconKey: 'today', section: null },
+    { id: 'journal', label: 'Journal', iconKey: 'journal', section: 'Core' },
+    { id: 'track', label: 'Track', iconKey: 'mood', section: null },
+    { id: 'focus', label: 'Focus', iconKey: 'goals', section: null },
     { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage' },
   ]
 
@@ -921,41 +914,37 @@ export default function AppShell({ user }) {
     { id: 'calendar', label: 'Home', iconKey: 'calendar', space: 'takda' },
     { id: 'money', label: 'Money', iconKey: 'accounts', space: 'takda' },
     { id: 'plan', label: 'Plan', iconKey: 'budget', space: 'takda' },
-    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', space: 'takda' },
   ]
   const lakasBottomNav = [
-    { id: 'train', label: 'Home', iconKey: 'workouts', space: 'lakas' },
-    { id: 'log', label: 'Log', iconKey: 'history', space: 'lakas' },
-    { id: 'nutrition', label: 'Food', iconKey: 'meals', space: 'lakas' },
+    { id: 'train', label: 'Train', iconKey: 'workouts', space: 'lakas' },
+    { id: 'track', label: 'Track', iconKey: 'history', space: 'lakas' },
     { id: 'progress', label: 'Progress', iconKey: 'body', space: 'lakas' },
   ]
   const talaBottomNav = [
-    { id: 'journal', label: 'Home', iconKey: 'journal', space: 'tala' },
-    { id: 'mood', label: 'Mood', iconKey: 'mood', space: 'tala' },
-    { id: 'tasks', label: 'Tasks', iconKey: 'tasks', space: 'tala' },
-    { id: 'goals', label: 'Goals', iconKey: 'goals', space: 'tala' },
+    { id: 'journal', label: 'Journal', iconKey: 'journal', space: 'tala' },
+    { id: 'track', label: 'Track', iconKey: 'mood', space: 'tala' },
+    { id: 'focus', label: 'Focus', iconKey: 'goals', space: 'tala' },
   ]
   const bottomNav = activeSpace === 'lakas' ? lakasBottomNav : activeSpace === 'tala' ? talaBottomNav : financeBottomNav
-  const financeMoreNav = nav
-    .filter(item => ['dashboard', 'settings'].includes(item.id))
-    .map(item => ({
-      ...item,
-      iconKey: item.id,
-      space: 'takda',
-    }))
+  const financeMoreNav = [
+    { id: 'dashboard', label: 'Overview', iconKey: 'home', section: 'Review', space: 'takda' },
+    { id: 'receipts', label: 'Receipts', iconKey: 'receipts', section: 'Tools', space: 'takda' },
+    { id: 'settings', label: 'Settings', iconKey: 'settings', section: 'Manage', space: 'takda' },
+  ]
   const lakasMoreNav = lakasNav
-    .filter(item => ['today', 'settings'].includes(item.id))
+    .filter(item => ['settings'].includes(item.id))
     .map(item => ({ ...item, space: 'lakas' }))
   const talaMoreNav = talaNav
-    .filter(item => ['today', 'calendar', 'insights', 'settings'].includes(item.id))
+    .filter(item => ['settings'].includes(item.id))
     .map(item => ({ ...item, space: 'tala' }))
+  talaMoreNav.unshift({ id: 'insights', label: 'Insights', iconKey: 'insights', section: 'Review', space: 'tala' })
   const mobileMoreNav = activeSpace === 'lakas' ? lakasMoreNav : activeSpace === 'tala' ? talaMoreNav : financeMoreNav
   const mobileMoreTitle = activeSpace === 'lakas' ? 'More Lakas' : activeSpace === 'tala' ? 'More Tala' : 'More'
   const mobileMoreMeta = activeSpace === 'lakas'
-    ? 'Open overview, reminders, and settings.'
+    ? 'Open Lakas settings and account controls.'
     : activeSpace === 'tala'
-      ? 'Open check-in, calendar, insights, and settings.'
-      : 'Open overview and finance settings here.'
+      ? 'Open Tala insights and settings.'
+      : 'Open receipts, overview, and finance settings here.'
   const isMorePage = activeSpace === 'lakas'
     ? lakasMoreNav.some(item => item.id === lakasPage)
     : activeSpace === 'tala'
@@ -1061,14 +1050,14 @@ export default function AppShell({ user }) {
   }
 
   function openLakasFabAction(type) {
-    const targetPage = type === 'meal-log' ? 'nutrition' : 'train'
+    const targetPage = type === 'meal-log' ? 'track' : 'train'
     openSpace('lakas')
     setLakasPage(targetPage)
     setSpaceActionRequest({ space: 'lakas', type, token: Date.now() })
   }
 
   function openTalaFabAction(type) {
-    const targetPage = type === 'mood' ? 'mood' : 'journal'
+    const targetPage = type === 'mood' ? 'track' : 'journal'
     openSpace('tala')
     setTalaPage(targetPage)
     setSpaceActionRequest({ space: 'tala', type, token: Date.now() })

@@ -39,41 +39,23 @@ const DEFAULT_TALA_SETTINGS = {
 }
 
 const TALA_TAB_COPY = {
-  today: {
-    eyebrow: 'Tala today',
-    title: 'Start with one honest check-in.',
-    sub: 'Mood, energy, gratitude, priority, and reflection in one quiet daily space. Tala tracks patterns; it is not therapy or diagnosis.',
-    guide: ['Check mood', 'Name one priority', 'Stop there if enough'],
-  },
   journal: {
     eyebrow: 'Journal',
     title: 'A private place to put the day down.',
     sub: 'Capture thoughts, memories, decisions, lessons, tags, and small notes without needing to solve everything today.',
     guide: ['Write freely', 'Keep private', 'Review gently'],
   },
-  mood: {
-    eyebrow: 'Mood tracker',
-    title: 'Notice patterns before they get loud.',
-    sub: 'Track mood, energy, stress, sleep quality, triggers, and notes as personal signals, not clinical conclusions.',
-    guide: ['Log mood', 'Mark trigger', 'Watch gently'],
+  track: {
+    eyebrow: 'Track',
+    title: 'Keep today visible without overthinking it.',
+    sub: 'Daily check-ins, mood patterns, and the Tala calendar live together so you can notice the day quickly without hopping across separate tabs.',
+    guide: ['Pick one signal', 'Log honestly', 'Review lightly'],
   },
-  tasks: {
-    eyebrow: 'Tasks',
-    title: 'Keep everyday tasks small enough to finish.',
-    sub: 'Simple personal tasks, errands, due dates, priorities, and completion without turning everyday life into project management.',
-    guide: ['Add one task', 'Set a date', 'Clear one loop'],
-  },
-  goals: {
-    eyebrow: 'Life goals',
-    title: 'Make the bigger thing visible.',
-    sub: 'Track personal goals, milestones, areas of life, progress, and notes without treating progress as self-worth.',
-    guide: ['Choose area', 'Set next step', 'Update gently'],
-  },
-  calendar: {
-    eyebrow: 'Calendar',
-    title: 'See your inner life across the month.',
-    sub: 'Dots show check-ins, journal entries, mood logs, tasks, and goal dates so patterns become visible without overexplaining them.',
-    guide: ['Scan month', 'Spot gaps', 'Return gently'],
+  focus: {
+    eyebrow: 'Focus',
+    title: 'Keep life admin and longer goals in one calm place.',
+    sub: 'Tasks and personal goals stay grouped so Tala can hold both the urgent loop and the bigger direction without making either feel heavy.',
+    guide: ['Choose the next step', 'Keep it small', 'Close one loop'],
   },
   insights: {
     eyebrow: 'Insights',
@@ -87,6 +69,28 @@ const TALA_TAB_COPY = {
     sub: 'The main Tala defaults stay simple, while data controls and logout stay easy to reach without making the page feel too administrative.',
     guide: ['Set reminder', 'Choose privacy', 'Manage calmly'],
   },
+}
+
+const TALA_TRACK_VIEWS = [
+  { id: 'checkin', label: 'Check-in', meta: 'Daily signal' },
+  { id: 'mood', label: 'Mood', meta: 'Patterns and triggers' },
+  { id: 'calendar', label: 'Calendar', meta: 'Month view' },
+]
+
+const TALA_FOCUS_VIEWS = [
+  { id: 'tasks', label: 'Tasks', meta: 'Open loops' },
+  { id: 'goals', label: 'Goals', meta: 'Longer direction' },
+]
+
+function getTalaTrackViewForTab(tab = '') {
+  if (tab === 'mood') return 'mood'
+  if (tab === 'calendar') return 'calendar'
+  return 'checkin'
+}
+
+function getTalaFocusViewForTab(tab = '') {
+  if (tab === 'goals') return 'goals'
+  return 'tasks'
 }
 
 function normalizeRows(rows = []) {
@@ -329,7 +333,7 @@ function MiniTrend({ title, rows, hidden = false }) {
   )
 }
 
-export default function Tala({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'today', actionRequest = null, onActionHandled = () => {} }) {
+export default function Tala({ user, data = {}, profile = {}, privacyMode = false, activeTab = 'journal', actionRequest = null, onActionHandled = () => {} }) {
   const talaSettings = getTalaSettings(profile)
   const [todayForm, setTodayForm] = useState(createTodayForm)
   const [journalForm, setJournalForm] = useState(() => createJournalForm(talaSettings))
@@ -342,6 +346,8 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   const [deletingTalaData, setDeletingTalaData] = useState(false)
   const [calendarMonth, setCalendarMonth] = useState(today().slice(0, 7))
   const [selectedTalaDate, setSelectedTalaDate] = useState(today())
+  const [trackView, setTrackView] = useState(() => getTalaTrackViewForTab(activeTab))
+  const [focusView, setFocusView] = useState(() => getTalaFocusViewForTab(activeTab))
   const settingsKey = JSON.stringify(profile?.talaSettings || {})
   const journalQuickActionRef = useRef(null)
   const journalTitleInputRef = useRef(null)
@@ -444,18 +450,36 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
   }), [checkins, goals, journal, moods, selectedTalaDate, tasks])
   const selectedDayTotal = Object.values(selectedDayData).reduce((sum, rows) => sum + rows.length, 0)
 
-  const currentTab = activeTab || 'today'
-  const tabCopy = TALA_TAB_COPY[currentTab] || TALA_TAB_COPY.today
-  const showToday = currentTab === 'today'
+  const legacyTabAliases = {
+    today: 'track',
+    mood: 'track',
+    calendar: 'track',
+    tasks: 'focus',
+    goals: 'focus',
+  }
+  const normalizedRequestedTab = legacyTabAliases[activeTab] || activeTab
+  const currentTab = TALA_TAB_COPY[normalizedRequestedTab] ? normalizedRequestedTab : 'journal'
+  const tabCopy = TALA_TAB_COPY[currentTab] || TALA_TAB_COPY.journal
+  const showToday = currentTab === 'track' && trackView === 'checkin'
   const showJournal = currentTab === 'journal'
-  const showMood = currentTab === 'mood'
-  const showTasks = currentTab === 'tasks'
-  const showGoals = currentTab === 'goals'
-  const showCalendar = currentTab === 'calendar'
+  const showMood = currentTab === 'track' && trackView === 'mood'
+  const showTasks = currentTab === 'focus' && focusView === 'tasks'
+  const showGoals = currentTab === 'focus' && focusView === 'goals'
+  const showCalendar = currentTab === 'track' && trackView === 'calendar'
   const showInsights = currentTab === 'insights'
   const showSettings = currentTab === 'settings'
   const avgMoodLabel = insights.avgMood ? `${formatNumber(insights.avgMood, 1)}/5` : 'No log'
   const calmPlan = useMemo(() => getTalaCalmPlan(insights, journal, moods), [insights, journal, moods])
+
+  useEffect(() => {
+    if (!['today', 'mood', 'calendar'].includes(activeTab)) return
+    setTrackView(getTalaTrackViewForTab(activeTab))
+  }, [activeTab])
+
+  useEffect(() => {
+    if (!['tasks', 'goals'].includes(activeTab)) return
+    setFocusView(getTalaFocusViewForTab(activeTab))
+  }, [activeTab])
 
   useEffect(() => {
     if (!actionRequest?.token || handledActionTokenRef.current === actionRequest.token) return undefined
@@ -472,9 +496,10 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     }
 
     if (actionRequest.type === 'mood') {
-      if (!showMood) return undefined
+      if (currentTab !== 'track') return undefined
       handledActionTokenRef.current = actionRequest.token
       const frameId = window.requestAnimationFrame(() => {
+        setTrackView('mood')
         moodQuickActionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         moodSelectRef.current?.focus()
         onActionHandled(actionRequest.token)
@@ -485,24 +510,27 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     handledActionTokenRef.current = actionRequest.token
     onActionHandled(actionRequest.token)
     return undefined
-  }, [actionRequest, onActionHandled, showJournal, showMood])
+  }, [actionRequest, currentTab, onActionHandled, showJournal])
 
-  const tabHeroCard = {
-    today: {
+  const trackHeroCard = {
+    checkin: {
       label: 'Today',
       value: privacyMode ? '...' : insights.todaysCheckin?.mood || 'No check-in',
       meta: insights.dueToday.length ? `${insights.dueToday.length} tasks due today` : 'Clear space for one honest note',
-    },
-    journal: {
-      label: 'Journal streak',
-      value: `${privacyMode ? '...' : insights.journalStreak} days`,
-      meta: `${journal.length} entries saved`,
     },
     mood: {
       label: '7-day mood',
       value: privacyMode ? '...' : avgMoodLabel,
       meta: `${insights.moodLogsThisWeek.length} mood logs this week`,
     },
+    calendar: {
+      label: 'This month',
+      value: formatMonthLabel(calendarMonth),
+      meta: 'Check-ins, mood, journal, task dates, and goals',
+    },
+  }[trackView]
+
+  const focusHeroCard = {
     tasks: {
       label: 'Open tasks',
       value: privacyMode ? '...' : String(insights.openTasks.length),
@@ -513,35 +541,36 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       value: privacyMode ? '...' : String(insights.activeGoals.length),
       meta: `${insights.completeGoals.length} completed`,
     },
-    calendar: {
-      label: 'This month',
-      value: calendarMonth,
-      meta: 'Journal, mood, tasks, and goal dates',
+  }[focusView]
+
+  const tabHeroCard = currentTab === 'track'
+    ? trackHeroCard
+    : currentTab === 'focus'
+      ? focusHeroCard
+      : {
+        journal: {
+      label: 'Journal streak',
+      value: `${privacyMode ? '...' : insights.journalStreak} days`,
+      meta: `${journal.length} entries saved`,
     },
-    insights: {
+        insights: {
       label: 'Pattern view',
       value: privacyMode ? '...' : avgMoodLabel,
       meta: `${insights.topTags.length} tags · ${insights.topTriggers.length} triggers`,
     },
-    settings: {
+        settings: {
       label: 'Privacy',
       value: talaSettings.privateByDefault ? 'Private' : 'Open',
       meta: `${talaSettings.reminderTime} reminder · ${talaSettings.weeklyReviewDay} review`,
     },
-  }[currentTab] || {}
+      }[currentTab] || {}
 
-  const tabStats = ({
-    today: [
+  const trackStats = {
+    checkin: [
       { label: 'Mood', value: privacyMode ? '...' : insights.todaysCheckin?.mood || 'No check-in', meta: 'Today' },
       { label: 'Energy', value: privacyMode ? '...' : insights.todaysCheckin?.energy || '-', meta: '1 to 5' },
       { label: 'Due', value: privacyMode ? '...' : String(insights.dueToday.length), meta: 'Tasks today' },
       { label: 'Journal', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current streak' },
-    ],
-    journal: [
-      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Saved notes' },
-      { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current' },
-      { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Recent themes' },
-      { label: 'Private', value: privacyMode ? '...' : String(journal.filter(row => row.private).length), meta: 'Locked entries' },
     ],
     mood: [
       { label: 'Average', value: privacyMode ? '...' : avgMoodLabel, meta: 'Last 7 days' },
@@ -549,6 +578,15 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       { label: 'Energy', value: privacyMode ? '...' : formatNumber(insights.energyTrend.reduce((sum, row) => sum + numberOrZero(row.value), 0) / Math.max(1, insights.energyTrend.filter(row => row.value).length), 1), meta: '7-day avg' },
       { label: 'Triggers', value: privacyMode ? '...' : String(insights.topTriggers.length), meta: 'Recent' },
     ],
+    calendar: [
+      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Journal' },
+      { label: 'Mood logs', value: privacyMode ? '...' : String(moods.length), meta: 'Mood' },
+      { label: 'Tasks', value: privacyMode ? '...' : String(tasks.length), meta: 'Task dates' },
+      { label: 'Goals', value: privacyMode ? '...' : String(goals.length), meta: 'Target dates' },
+    ],
+  }[trackView]
+
+  const focusStats = {
     tasks: [
       { label: 'Open', value: privacyMode ? '...' : String(insights.openTasks.length), meta: 'To do' },
       { label: 'Due', value: privacyMode ? '...' : String(insights.dueToday.length), meta: 'Today' },
@@ -561,25 +599,32 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       { label: 'Areas', value: privacyMode ? '...' : String(new Set(goals.map(goal => goal.area)).size), meta: 'Life areas' },
       { label: 'Total', value: privacyMode ? '...' : String(goals.length), meta: 'Tracked goals' },
     ],
-    calendar: [
-      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Journal' },
-      { label: 'Mood logs', value: privacyMode ? '...' : String(moods.length), meta: 'Mood' },
-      { label: 'Tasks', value: privacyMode ? '...' : String(tasks.length), meta: 'Task dates' },
-      { label: 'Goals', value: privacyMode ? '...' : String(goals.length), meta: 'Target dates' },
+  }[focusView]
+
+  const tabStats = (currentTab === 'track'
+    ? trackStats
+    : currentTab === 'focus'
+      ? focusStats
+      : {
+        journal: [
+      { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Saved notes' },
+      { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current' },
+      { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Recent themes' },
+      { label: 'Private', value: privacyMode ? '...' : String(journal.filter(row => row.private).length), meta: 'Locked entries' },
     ],
-    insights: [
+        insights: [
       { label: 'Mood avg', value: privacyMode ? '...' : avgMoodLabel, meta: 'Last 7 days' },
       { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Journal' },
       { label: 'Tasks done', value: privacyMode ? '...' : String(insights.doneTasks.length), meta: 'All time' },
       { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Themes' },
     ],
-    settings: [
+        settings: [
       { label: 'Reminder', value: talaSettings.reminderTime, meta: 'Daily check-in' },
       { label: 'Review', value: talaSettings.weeklyReviewDay, meta: 'Weekly reset' },
       { label: 'Prompt', value: talaSettings.promptStyle, meta: 'Tone' },
       { label: 'Privacy', value: talaSettings.privateByDefault ? 'Private' : 'Open', meta: 'Journal default' },
     ],
-  })[currentTab] || []
+      })[currentTab]) || []
 
   async function handleSaveToday() {
     if (!todayForm.date || (!todayForm.priority.trim() && !todayForm.gratitude.trim() && !todayForm.reflection.trim())) {
@@ -814,9 +859,63 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
         ))}
       </div>
 
+      {currentTab === 'track' && (
+        <section className={tStyles.viewSwitchCard} aria-label="Choose what to track in Tala">
+          <div className={tStyles.viewSwitchHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Track</div>
+              <h3>Choose the signal you want to review.</h3>
+              <p className={tStyles.sectionHint}>Check-ins, moods, and the calendar now stay together so Tala feels lighter to move through.</p>
+            </div>
+          </div>
+          <div className={tStyles.viewSwitch} role="tablist" aria-label="Choose what to track in Tala">
+            {TALA_TRACK_VIEWS.map(view => (
+              <button
+                key={view.id}
+                type="button"
+                className={`${tStyles.viewSwitchButton} ${trackView === view.id ? tStyles.viewSwitchButtonActive : ''}`}
+                onClick={() => setTrackView(view.id)}
+                role="tab"
+                aria-selected={trackView === view.id}
+              >
+                <strong>{view.label}</strong>
+                <span>{view.meta}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {currentTab === 'focus' && (
+        <section className={tStyles.viewSwitchCard} aria-label="Choose what to focus on in Tala">
+          <div className={tStyles.viewSwitchHeader}>
+            <div>
+              <div className={tStyles.sectionKicker}>Focus</div>
+              <h3>Keep tasks and goals close together.</h3>
+              <p className={tStyles.sectionHint}>This keeps the urgent loop and the longer direction in one calm area instead of separate tabs.</p>
+            </div>
+          </div>
+          <div className={tStyles.viewSwitch} role="tablist" aria-label="Choose what to focus on in Tala">
+            {TALA_FOCUS_VIEWS.map(view => (
+              <button
+                key={view.id}
+                type="button"
+                className={`${tStyles.viewSwitchButton} ${focusView === view.id ? tStyles.viewSwitchButtonActive : ''}`}
+                onClick={() => setFocusView(view.id)}
+                role="tab"
+                aria-selected={focusView === view.id}
+              >
+                <strong>{view.label}</strong>
+                <span>{view.meta}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+
       {showToday && (
       <div className={tStyles.grid}>
-        <section ref={journalQuickActionRef} className={tStyles.panel}>
+        <section className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Daily check-in</div>
@@ -877,7 +976,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
           <button type="button" className={tStyles.primaryBtn} onClick={handleSaveToday}>Save check-in</button>
         </section>
 
-        <section className={tStyles.panel}>
+        <section ref={journalQuickActionRef} className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Today focus</div>
@@ -977,7 +1076,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
           <button type="button" className={tStyles.primaryBtn} onClick={handleAddJournal}>Save journal</button>
         </section>
 
-        <section ref={moodQuickActionRef} className={tStyles.panel}>
+        <section className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Recent</div>
@@ -1002,7 +1101,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
 
       {showMood && (
       <div className={tStyles.grid}>
-        <section className={tStyles.panel}>
+        <section ref={moodQuickActionRef} className={tStyles.panel}>
           <div className={tStyles.sectionHeader}>
             <div>
               <div className={tStyles.sectionKicker}>Mood</div>

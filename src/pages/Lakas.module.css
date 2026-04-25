@@ -153,6 +153,95 @@
   gap: 8px;
 }
 
+.viewSwitchCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 46%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: var(--glass-shadow-soft);
+  padding: 14px;
+}
+
+.viewSwitchCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 22%, transparent), transparent 56%);
+}
+
+.viewSwitchHeader,
+.viewSwitch {
+  position: relative;
+  z-index: 1;
+}
+
+.viewSwitchHeader {
+  margin-bottom: 10px;
+}
+
+.viewSwitchHeader h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.viewSwitch {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.viewSwitchButton {
+  min-height: 72px;
+  padding: 11px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 10%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 72%, var(--surface2) 28%);
+  color: var(--text2);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+}
+
+.viewSwitchButton strong,
+.viewSwitchButton span {
+  display: block;
+}
+
+.viewSwitchButton strong {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.viewSwitchButton span {
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.viewSwitchButton:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--glass-border));
+}
+
+.viewSwitchButtonActive {
+  border-color: color-mix(in srgb, var(--accent) 54%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 44%),
+    color-mix(in srgb, var(--accent) 12%, var(--glass-1));
+}
+
 .quickWinCard {
   position: relative;
   overflow: hidden;
@@ -2064,6 +2153,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .viewSwitch {
+    grid-template-columns: 1fr;
+  }
+
   .gymSessionLayout,
   .gymExerciseList {
     grid-template-columns: 1fr;
@@ -2120,6 +2213,11 @@
     min-width: min(230px, 74vw);
     min-height: 52px;
     scroll-snap-align: start;
+  }
+
+  .viewSwitchCard {
+    padding: 12px;
+    border-radius: 20px;
   }
 
   .exerciseRowTop,
