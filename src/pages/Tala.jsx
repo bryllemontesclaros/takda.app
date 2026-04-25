@@ -543,27 +543,28 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     },
   }[focusView]
 
-  const tabHeroCard = currentTab === 'track'
-    ? trackHeroCard
-    : currentTab === 'focus'
-      ? focusHeroCard
-      : {
-        journal: {
+  const staticHeroCards = {
+    journal: {
       label: 'Journal streak',
       value: `${privacyMode ? '...' : insights.journalStreak} days`,
       meta: `${journal.length} entries saved`,
     },
-        insights: {
+    insights: {
       label: 'Pattern view',
       value: privacyMode ? '...' : avgMoodLabel,
       meta: `${insights.topTags.length} tags · ${insights.topTriggers.length} triggers`,
     },
-        settings: {
+    settings: {
       label: 'Privacy',
       value: talaSettings.privateByDefault ? 'Private' : 'Open',
       meta: `${talaSettings.reminderTime} reminder · ${talaSettings.weeklyReviewDay} review`,
     },
-      }[currentTab] || {}
+  }
+  const tabHeroCard = currentTab === 'track'
+    ? trackHeroCard
+    : currentTab === 'focus'
+      ? focusHeroCard
+      : staticHeroCards[currentTab] || {}
 
   const trackStats = {
     checkin: [
@@ -601,30 +602,31 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     ],
   }[focusView]
 
-  const tabStats = (currentTab === 'track'
-    ? trackStats
-    : currentTab === 'focus'
-      ? focusStats
-      : {
-        journal: [
+  const staticTabStats = {
+    journal: [
       { label: 'Entries', value: privacyMode ? '...' : String(journal.length), meta: 'Saved notes' },
       { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Current' },
       { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Recent themes' },
       { label: 'Private', value: privacyMode ? '...' : String(journal.filter(row => row.private).length), meta: 'Locked entries' },
     ],
-        insights: [
+    insights: [
       { label: 'Mood avg', value: privacyMode ? '...' : avgMoodLabel, meta: 'Last 7 days' },
       { label: 'Streak', value: privacyMode ? '...' : `${insights.journalStreak}d`, meta: 'Journal' },
       { label: 'Tasks done', value: privacyMode ? '...' : String(insights.doneTasks.length), meta: 'All time' },
       { label: 'Tags', value: privacyMode ? '...' : String(insights.topTags.length), meta: 'Themes' },
     ],
-        settings: [
+    settings: [
       { label: 'Reminder', value: talaSettings.reminderTime, meta: 'Daily check-in' },
       { label: 'Review', value: talaSettings.weeklyReviewDay, meta: 'Weekly reset' },
       { label: 'Prompt', value: talaSettings.promptStyle, meta: 'Tone' },
       { label: 'Privacy', value: talaSettings.privateByDefault ? 'Private' : 'Open', meta: 'Journal default' },
     ],
-      })[currentTab]) || []
+  }
+  const tabStats = currentTab === 'track'
+    ? trackStats
+    : currentTab === 'focus'
+      ? focusStats
+      : staticTabStats[currentTab] || []
 
   async function handleSaveToday() {
     if (!todayForm.date || (!todayForm.priority.trim() && !todayForm.gratitude.trim() && !todayForm.reflection.trim())) {

@@ -1932,29 +1932,27 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       meta: latestBodyLog.date ? `${formatDisplayDate(latestBodyLog.date)} · ${latestBodyMeta}` : latestBodyMeta,
     },
   }[trackView]
-  const tabHeroCard = currentTab === 'track'
-    ? trackHeroCard
-    : {
-        train: {
-      label: 'Ready to start',
-      value: selectedGymTemplate?.name || 'Choose session',
-      meta: `${selectedGymTemplate?.exercises?.length || 0} exercises · ${selectedGymEstimate} min · ${selectedGymSession.label}`,
-    },
-        progress: {
+  const trainHeroCard = {
+    label: 'Ready to start',
+    value: selectedGymTemplate?.name || 'Choose session',
+    meta: `${selectedGymTemplate?.exercises?.length || 0} exercises · ${selectedGymEstimate} min · ${selectedGymSession.label}`,
+  }
+  const staticHeroCards = {
+    train: trainHeroCard,
+    progress: {
       label: 'Progress pulse',
       value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : displayMetric(insights.stepsToday, 'steps', privacyMode, 0),
       meta: `${displayMetric(activeGoalsCount, 'active goals', privacyMode, 0)} · ${displayMetric(habitCheckins7d, 'habit check-ins', privacyMode, 0)} this week`,
     },
-        settings: {
+    settings: {
       label: 'Current units',
       value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`,
       meta: `${savedLakasSettings.units.distance} distance · ${savedLakasSettings.display.showBmi ? 'BMI on' : 'BMI hidden'}`,
     },
-      }[currentTab] || {
-        label: 'Ready to start',
-        value: selectedGymTemplate?.name || 'Choose session',
-        meta: `${selectedGymTemplate?.exercises?.length || 0} exercises · ${selectedGymEstimate} min · ${selectedGymSession.label}`,
-      }
+  }
+  const tabHeroCard = currentTab === 'track'
+    ? trackHeroCard
+    : staticHeroCards[currentTab] || trainHeroCard
   const trackStats = {
     workouts: [
       { label: 'Workouts', value: displayMetric(insights.workoutsThisWeek, '', privacyMode, 0), meta: 'Last 7 days' },
@@ -1975,28 +1973,29 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       { label: 'Waist', value: latestBodyLog.waist ? displayMetric(latestBodyLog.waist, savedLakasSettings.units.body, privacyMode, 1) : 'No waist', meta: 'Latest log' },
     ],
   }[trackView]
-  const tabStats = (currentTab === 'track'
-    ? trackStats
-    : {
-        train: [
+  const staticTabStats = {
+    train: [
       { label: 'Session', value: selectedGymSession.label, meta: selectedGymSession.desc },
       { label: 'Routines', value: displayMetric(insights.routineCount, '', privacyMode, 0), meta: 'Saved templates' },
       { label: 'Plan time', value: displayMetric(selectedGymEstimate, 'min', privacyMode, 0), meta: selectedGymTemplate?.focus || 'Training' },
       { label: 'Exercises', value: displayMetric(selectedGymTemplate?.exercises?.length || 0, '', privacyMode, 0), meta: 'Current plan' },
     ],
-        progress: [
+    progress: [
       { label: 'Steps', value: displayMetric(insights.stepsToday, '', privacyMode, 0), meta: 'Today' },
       { label: 'Weight', value: insights.latestWeight ? displayMetric(insights.latestWeight, savedLakasSettings.units.weight, privacyMode) : 'No log', meta: latestBodyLog.date ? formatDisplayDate(latestBodyLog.date) : 'Latest' },
       { label: 'Score', value: privacyMode ? `.../${HABIT_OPTIONS.length}` : `${insights.habitScoreToday}/${HABIT_OPTIONS.length}`, meta: 'Today' },
       { label: 'Active', value: displayMetric(activeGoalsCount, '', privacyMode, 0), meta: 'In progress' },
     ],
-        settings: [
+    settings: [
       { label: 'Units', value: `${savedLakasSettings.units.weight}/${savedLakasSettings.units.body}`, meta: `${savedLakasSettings.units.distance} distance` },
       { label: 'Steps target', value: displayMetric(savedLakasSettings.targets.steps, '', privacyMode, 0), meta: 'Daily target' },
       { label: 'Workout default', value: displayMetric(savedLakasSettings.workoutDefaults.durationMinutes, 'min', privacyMode, 0), meta: `${savedLakasSettings.workoutDefaults.sets}x${savedLakasSettings.workoutDefaults.reps} · ${savedLakasSettings.workoutDefaults.restSeconds}s rest` },
       { label: 'Meal target', value: displayMetric(savedLakasSettings.meals.calorieGoal, 'kcal', privacyMode, 0), meta: `${savedLakasSettings.meals.proteinGoal}g protein` },
     ],
-      })[currentTab]) || []
+  }
+  const tabStats = currentTab === 'track'
+    ? trackStats
+    : staticTabStats[currentTab] || []
 
   useEffect(() => {
     mealPhotoUrlsRef.current = mealPhotoUrls
