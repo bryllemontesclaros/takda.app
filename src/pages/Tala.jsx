@@ -629,7 +629,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       : staticTabStats[currentTab] || []
   const showTrackSwitcher = currentTab === 'track'
   const showFocusSwitcher = currentTab === 'focus'
-  const showTopChrome = currentTab !== 'track' && currentTab !== 'focus'
+  const showTopChrome = true
 
   async function handleSaveToday() {
     if (!todayForm.date || (!todayForm.priority.trim() && !todayForm.gratitude.trim() && !todayForm.reflection.trim())) {
@@ -887,7 +887,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
       )}
 
       {showTopChrome && (
-        <>
+        <section className={tStyles.workspaceBoard}>
           <div className={tStyles.hero}>
             <div>
               <div className={tStyles.eyebrow}>{tabCopy.eyebrow}</div>
@@ -919,7 +919,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
               </div>
             ))}
           </div>
-        </>
+        </section>
       )}
 
       {showToday && (

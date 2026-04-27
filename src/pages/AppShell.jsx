@@ -909,6 +909,32 @@ export default function AppShell({ user }) {
       ? `lakas:${lakasPage}`
       : `tala:${talaPage}`
   const currentSidebarNav = activeSpace === 'lakas' ? lakasNav : activeSpace === 'tala' ? talaNav : nav
+  const currentNavItem = currentSidebarNav.find(item => item.id === visiblePageKey) || currentSidebarNav[0]
+  const activeWorkspaceLabel = activeSpace === 'takda' && selectedFinanceTool
+    ? selectedFinanceTool.label
+    : currentNavItem?.label || activeSpaceConfig.label
+  const activeWorkspaceMeta = activeSpace === 'takda'
+    ? page === 'money'
+      ? 'Balances, history, and insight cards in one money workspace.'
+      : page === 'plan'
+        ? 'Savings, bills, and budget controls in one planning workspace.'
+        : 'A clearer operating surface for everyday money decisions.'
+    : activeSpace === 'lakas'
+      ? lakasPage === 'track'
+        ? 'Log the real session, meal, or body record without extra navigation.'
+        : lakasPage === 'progress'
+          ? 'Review fitness trends, goals, and progress blocks from one surface.'
+          : 'Training-first fitness workspace with guided actions up front.'
+      : talaPage === 'track'
+        ? 'Capture moods, check-ins, and calendar signals from one calm surface.'
+        : talaPage === 'focus'
+          ? 'Tasks and goals stay together so life admin feels lighter.'
+          : 'A calm reflection workspace with private journaling at the center.'
+  const sidebarSignals = [
+    { label: 'Space', value: activeSpaceConfig.label },
+    { label: 'View', value: activeWorkspaceLabel },
+    { label: 'Level', value: gamification ? `Lv ${gamification.level}` : '—' },
+  ]
 
   const financeBottomNav = [
     { id: 'calendar', label: 'Home', iconKey: 'calendar', space: 'takda' },
@@ -1235,8 +1261,16 @@ export default function AppShell({ user }) {
         <div className={styles.sidebarTop}>
           <div>
             <div className={styles.logo}>Buhay</div>
-            <div className={styles.logoMeta}>Three spaces, one account</div>
+            <div className={styles.logoMeta}>Focused workspaces with one trust layer</div>
           </div>
+        </div>
+        <div className={styles.sidebarDeck} aria-label="Current workspace summary">
+          {sidebarSignals.map(item => (
+            <div key={item.label} className={styles.sidebarDeckCard}>
+              <span className={styles.sidebarDeckLabel}>{item.label}</span>
+              <strong className={styles.sidebarDeckValue}>{item.value}</strong>
+            </div>
+          ))}
         </div>
         <div className={styles.spaceSwitcher} role="group" aria-label="Switch app space">
           {APP_SPACES.map(space => (
@@ -1300,8 +1334,9 @@ export default function AppShell({ user }) {
         <header className={styles.topBar}>
           <div className={styles.topBarLeft}>
             <div>
-              <div className={styles.topBarLogo}>{activeSpaceConfig.label}</div>
-              <div className={styles.topBarMeta}>{activeSpaceConfig.meta} space</div>
+              <div className={styles.topBarKicker}>Current workspace</div>
+              <div className={styles.topBarLogo}>{activeWorkspaceLabel}</div>
+              <div className={styles.topBarMeta}>{activeWorkspaceMeta}</div>
             </div>
             <div className={styles.mobileSpaceSwitch} role="group" aria-label="Switch app space">
               {APP_SPACES.map(space => (

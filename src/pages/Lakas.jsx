@@ -1997,7 +1997,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
     ? trackStats
     : staticTabStats[currentTab] || []
   const showTrackSwitcher = currentTab === 'track'
-  const showTopChrome = currentTab !== 'track'
+  const showTopChrome = true
 
   useEffect(() => {
     mealPhotoUrlsRef.current = mealPhotoUrls
@@ -2162,7 +2162,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
       )}
 
       {showTopChrome && (
-        <>
+        <section className={lStyles.workspaceBoard}>
           <div className={lStyles.hero}>
             <div>
               <div className={lStyles.eyebrow}>{tabCopy.eyebrow}</div>
@@ -2194,7 +2194,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               </div>
             ))}
           </div>
-        </>
+        </section>
       )}
 
       {(showOverview || showWorkoutLog || showActivity || showReminders) && (

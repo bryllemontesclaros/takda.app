@@ -22,10 +22,29 @@
   min-height: 0;
   margin-bottom: 0;
   padding: 1rem;
+  border-radius: var(--bento-radius-lg);
+  background:
+    radial-gradient(circle at 10% 8%, color-mix(in srgb, var(--accent-glow) 34%, transparent), transparent 32%),
+    radial-gradient(circle at 88% 16%, color-mix(in srgb, var(--blue-dim) 24%, transparent), transparent 36%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 76%, var(--surface) 24%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
 }
 
 /* CALENDAR HEADER */
-.calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px; }
+.calHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 68%, var(--border));
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 18%, transparent), transparent 44%),
+    color-mix(in srgb, var(--glass-1) 76%, var(--surface2) 24%);
+  box-shadow: var(--glass-shadow-soft);
+}
 .nav {
   display: grid;
   grid-template-columns: minmax(34px, auto) minmax(0, 1fr) minmax(34px, auto);
@@ -179,7 +198,7 @@
 .forecastBal { display: none; }
 
 .balanceRail {
-  margin-top: 10px;
+  margin-top: 12px;
   padding: 10px 12px;
   min-height: 62px;
   border-radius: 16px;
@@ -768,6 +787,8 @@
   .calHeader {
     margin-bottom: 8px;
     gap: 8px;
+    padding: 10px;
+    border-radius: 18px;
   }
   .nav {
     min-height: 44px;
@@ -794,8 +815,8 @@
     padding: 0;
     font-size: 15px;
   }
-  .addBtns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .addBtnIncome, .addBtnExpense { text-align: center; font-size: 13px; }
+  .addBtns { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .addBtnIncome, .addBtnExpense, .addBtnImport { width: 100%; text-align: center; justify-content: center; padding-inline: 10px; font-size: 13px; }
   .monthBoard {
     gap: 4px;
     height: auto;
@@ -885,7 +906,7 @@
   .advancedGrid { grid-template-columns: 1fr; }
 
   .daySheetOverlay {
-    padding: 10px;
+    padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom));
     align-items: center;
   }
   .daySheet {

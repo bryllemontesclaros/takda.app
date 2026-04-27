@@ -304,155 +304,186 @@ export default function Dashboard({ user, data, profile = {}, symbol, privacyMod
         </div>
       </div>
 
-      <button
-        type="button"
-        className={`${dStyles.heroCard} ${dStyles.privacyCardButton}`}
-        onClick={onTogglePrivacy}
-        aria-pressed={privacyMode}
-        title={privacyHint}
-      >
-        <div className={dStyles.heroLabel}>Current balance</div>
-        <div className={dStyles.heroVal}>{money(netWorth)}</div>
-        <div className={dStyles.heroSub}>{accountCountLabel}</div>
-        <div className={dStyles.privacyHint}>{privacyHint}</div>
-      </button>
+      <div className={dStyles.topBoard}>
+        <button
+          type="button"
+          className={`${dStyles.heroCard} ${dStyles.privacyCardButton}`}
+          onClick={onTogglePrivacy}
+          aria-pressed={privacyMode}
+          title={privacyHint}
+        >
+          <div className={dStyles.heroLabel}>Net position</div>
+          <div className={dStyles.heroVal}>{money(netWorth)}</div>
+          <div className={dStyles.heroSub}>{accountCountLabel}</div>
+          <div className={dStyles.privacyHint}>{privacyHint}</div>
+        </button>
 
-      <div className={dStyles.focusCard} style={{ '--focus-tone': focusState.tone }}>
-        <div className={dStyles.focusHeader}>
-          <div>
-            <div className={dStyles.focusEyebrow}>{focusState.eyebrow}</div>
-            <div className={dStyles.focusTitle}>{focusState.title}</div>
-          </div>
-          <div className={dStyles.focusBadge}>Active</div>
-        </div>
-        <div className={dStyles.focusBody}>{focusState.body}</div>
-        <div className={dStyles.focusPillRow}>
-          {(focusPills.length ? focusPills : ['Momentum follows consistency']).slice(0, 3).map(pill => (
-            <span key={pill} className={dStyles.focusPill}>{pill}</span>
-          ))}
-        </div>
-      </div>
-
-      <div className={dStyles.statsRow}>
-        <div className={dStyles.statBox}>
-          <div className={dStyles.statBoxLabel}>Income</div>
-          <div className={dStyles.statBoxVal} style={{ color: 'var(--accent)' }}>
-            {displayValue(privacyMode, `+${fmt(mIncome, s)}`, `+${maskMoney(s)}`)}
-          </div>
-        </div>
-        <div className={dStyles.statBox}>
-          <div className={dStyles.statBoxLabel}>Expenses</div>
-          <div className={dStyles.statBoxVal} style={{ color: 'var(--red)' }}>
-            {displayValue(privacyMode, `−${fmt(mExpense, s)}`, `−${maskMoney(s)}`)}
-          </div>
-          {expenseChange !== null && (
-            <div className={dStyles.statBoxChange} style={{ color: expenseChange > 0 ? 'var(--red)' : 'var(--accent)' }}>
-              {expenseChange > 0 ? '↑' : '↓'} {Math.abs(expenseChange)}% vs last month
+        <div className={dStyles.focusCard} style={{ '--focus-tone': focusState.tone }}>
+          <div className={dStyles.focusHeader}>
+            <div>
+              <div className={dStyles.focusEyebrow}>{focusState.eyebrow}</div>
+              <div className={dStyles.focusTitle}>{focusState.title}</div>
             </div>
-          )}
-        </div>
-        <div className={dStyles.statBox}>
-          <div className={dStyles.statBoxLabel}>Net</div>
-          <div className={dStyles.statBoxVal} style={{ color: mNet >= 0 ? 'var(--blue)' : 'var(--red)' }}>
-            {displayValue(privacyMode, `${mNet >= 0 ? '+' : ''}${fmt(mNet, s)}`, `${mNet >= 0 ? '+' : ''}${maskMoney(s)}`)}
+            <div className={dStyles.focusBadge}>Priority</div>
+          </div>
+          <div className={dStyles.focusBody}>{focusState.body}</div>
+          <div className={dStyles.focusPillRow}>
+            {(focusPills.length ? focusPills : ['Momentum follows consistency']).slice(0, 3).map(pill => (
+              <span key={pill} className={dStyles.focusPill}>{pill}</span>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className={dStyles.twoCol}>
-        <div className={dStyles.miniCard}>
-            <div className={dStyles.miniLabel}>Month-end estimate</div>
-          <div className={dStyles.miniVal} style={{ color: eomBalance >= 0 ? 'var(--accent)' : 'var(--red)' }}>
-            {money(eomBalance)}
+      <div className={dStyles.analyticsBoard}>
+        <div className={dStyles.statsRow}>
+          <div className={dStyles.statBox}>
+            <div className={dStyles.statBoxLabel}>Income</div>
+            <div className={dStyles.statBoxVal} style={{ color: 'var(--accent)' }}>
+              {displayValue(privacyMode, `+${fmt(mIncome, s)}`, `+${maskMoney(s)}`)}
+            </div>
           </div>
-          <div className={dStyles.miniSub} style={{ color: eomBalance >= 0 ? 'var(--accent)' : 'var(--red)' }}>
-            {eomBalance >= 0 ? 'Projected surplus' : 'Projected deficit'}
+          <div className={dStyles.statBox}>
+            <div className={dStyles.statBoxLabel}>Expenses</div>
+            <div className={dStyles.statBoxVal} style={{ color: 'var(--red)' }}>
+              {displayValue(privacyMode, `−${fmt(mExpense, s)}`, `−${maskMoney(s)}`)}
+            </div>
+            {expenseChange !== null && (
+              <div className={dStyles.statBoxChange} style={{ color: expenseChange > 0 ? 'var(--red)' : 'var(--accent)' }}>
+                {expenseChange > 0 ? '↑' : '↓'} {Math.abs(expenseChange)}% vs last month
+              </div>
+            )}
+          </div>
+          <div className={dStyles.statBox}>
+            <div className={dStyles.statBoxLabel}>Net</div>
+            <div className={dStyles.statBoxVal} style={{ color: mNet >= 0 ? 'var(--blue)' : 'var(--red)' }}>
+              {displayValue(privacyMode, `${mNet >= 0 ? '+' : ''}${fmt(mNet, s)}`, `${mNet >= 0 ? '+' : ''}${maskMoney(s)}`)}
+            </div>
           </div>
         </div>
 
-        <div className={dStyles.miniCard}>
-          <div className={dStyles.miniLabel}>Budget health</div>
+        <div className={dStyles.missionGrid}>
+          <div className={dStyles.missionCard} style={{ '--mission-tone': eomBalance >= 0 ? 'var(--accent)' : 'var(--red)' }}>
+            <div className={dStyles.missionTop}>
+              <div className={dStyles.missionTitle}>Month-end estimate</div>
+              <div className={dStyles.missionStat}>{eomBalance >= 0 ? 'Stable' : 'Risk'}</div>
+            </div>
+            <div className={dStyles.miniVal} style={{ color: eomBalance >= 0 ? 'var(--accent)' : 'var(--red)' }}>
+              {money(eomBalance)}
+            </div>
+            <div className={dStyles.missionBody}>
+              {eomBalance >= 0 ? 'Projected surplus if current pace holds.' : 'Projected deficit if no new action changes the month.'}
+            </div>
+          </div>
+
+          <div className={dStyles.missionCard} style={{ '--mission-tone': budgetHealth.over > 0 ? 'var(--red)' : budgetHealth.warning > 0 ? 'var(--amber)' : 'var(--accent)' }}>
+            <div className={dStyles.missionTop}>
+              <div className={dStyles.missionTitle}>Budget pressure</div>
+              <div className={dStyles.missionStat}>{budgetHealth.total || 0} tracked</div>
+            </div>
             {budgetHealth.total === 0 ? (
-            <div className={dStyles.miniSub} style={{ marginTop: 8 }}>Set your first budget to start tracking category pressure.</div>
-          ) : (
-            <>
-              <div className={dStyles.budgetDots}>
-                {budgetHealth.ok > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--accent)' }}>{budgetHealth.ok} ok</span>}
-                {budgetHealth.warning > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--amber)' }}>{budgetHealth.warning} near</span>}
-                {budgetHealth.over > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--red)' }}>{budgetHealth.over} over</span>}
-              </div>
-              <div className={dStyles.miniSub}>
-                {budgetHealth.over > 0
-                  ? `${budgetHealth.over} budget${budgetHealth.over > 1 ? 's' : ''} exceeded`
-                  : budgetHealth.warning > 0
-                    ? 'Some budgets nearing limit'
-                    : 'All budgets on track'}
-              </div>
-            </>
-          )}
+              <div className={dStyles.missionBody}>Set your first budget to start tracking category pressure and room left for the month.</div>
+            ) : (
+              <>
+                <div className={dStyles.budgetDots}>
+                  {budgetHealth.ok > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--accent)' }}>{budgetHealth.ok} ok</span>}
+                  {budgetHealth.warning > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--amber)' }}>{budgetHealth.warning} near</span>}
+                  {budgetHealth.over > 0 && <span className={dStyles.budgetDot} style={{ background: 'var(--red)' }}>{budgetHealth.over} over</span>}
+                </div>
+                <div className={dStyles.missionBody}>
+                  {budgetHealth.over > 0
+                    ? `${budgetHealth.over} budget${budgetHealth.over > 1 ? 's' : ''} exceeded`
+                    : budgetHealth.warning > 0
+                      ? 'Some budgets are nearing their limit.'
+                      : 'All budgets are holding steady.'}
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className={dStyles.missionCard} style={{ '--mission-tone': checkedInToday ? 'var(--blue)' : 'var(--accent)' }}>
+            <div className={dStyles.missionTop}>
+              <div className={dStyles.missionTitle}>Buhay rhythm</div>
+              <div className={dStyles.missionStat}>{gamification?.currentStreakDays || 0}d streak</div>
+            </div>
+            <div className={dStyles.missionTrack}>
+              <div
+                className={dStyles.missionFill}
+                style={{ width: `${Math.min(100, ((gamification?.weeklyCheckins || 0) / Math.max(1, gamification?.weeklyTarget || 1)) * 100)}%` }}
+              />
+            </div>
+            <div className={dStyles.missionBody}>
+              {checkedInToday
+                ? 'Today already has a real check-in. Keep the week consistent.'
+                : `${pluralize(weeklyRemaining, 'more check-in')} gets you to the weekly target.`}
+            </div>
+          </div>
         </div>
       </div>
 
-      {data.goals.length > 0 && (
-        <div className={dStyles.sectionCard}>
-          <div className={dStyles.sectionHeader}>
-            <span className={dStyles.sectionTitle}>Savings</span>
-            <span className={dStyles.sectionMeta}>
-              {displayValue(privacyMode, `${savingsPct}% funded`, 'Progress hidden')}
-            </span>
-          </div>
-          <div className={dStyles.goalSummary}>
-            <div className={dStyles.goalSummaryMeta}>
-              <span>{displayValue(privacyMode, `${fmt(savingsTotal, s)} saved`, `${maskMoney(s)} saved`)}</span>
-              <span>{displayValue(privacyMode, `${fmt(savingsTarget, s)} target`, `${maskMoney(s)} target`)}</span>
+      <div className={dStyles.sectionGrid}>
+        {data.goals.length > 0 && (
+          <div className={`${dStyles.sectionCard} ${dStyles.sectionSpan}`}>
+            <div className={dStyles.sectionHeader}>
+              <span className={dStyles.sectionTitle}>Savings</span>
+              <span className={dStyles.sectionMeta}>
+                {displayValue(privacyMode, `${savingsPct}% funded`, 'Progress hidden')}
+              </span>
             </div>
-            <div className={dStyles.goalSummaryTrack}>
-              <div className={dStyles.goalSummaryFill} style={{ width: `${savingsPct}%` }} />
+            <div className={dStyles.goalSummary}>
+              <div className={dStyles.goalSummaryMeta}>
+                <span>{displayValue(privacyMode, `${fmt(savingsTotal, s)} saved`, `${maskMoney(s)} saved`)}</span>
+                <span>{displayValue(privacyMode, `${fmt(savingsTarget, s)} target`, `${maskMoney(s)} target`)}</span>
+              </div>
+              <div className={dStyles.goalSummaryTrack}>
+                <div className={dStyles.goalSummaryFill} style={{ width: `${savingsPct}%` }} />
+              </div>
             </div>
-          </div>
-          {data.goals.slice(0, 3).map(goal => {
-            const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
-            return (
-              <div key={goal._id} className={dStyles.goalRow}>
-                <div className={dStyles.goalRowMain}>
-                  <div className={dStyles.goalRowName}>{goal.name}</div>
-                  <div className={dStyles.goalRowTrack}>
-                    <div className={dStyles.goalRowFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
+            {data.goals.slice(0, 3).map(goal => {
+              const pct = Math.min(100, Math.round(((goal.current || 0) / (goal.target || 1)) * 100))
+              return (
+                <div key={goal._id} className={dStyles.goalRow}>
+                  <div className={dStyles.goalRowMain}>
+                    <div className={dStyles.goalRowName}>{goal.name}</div>
+                    <div className={dStyles.goalRowTrack}>
+                      <div className={dStyles.goalRowFill} style={{ width: `${pct}%`, background: pct >= 100 ? 'var(--accent)' : 'var(--blue)' }} />
+                    </div>
+                  </div>
+                  <div className={dStyles.goalRowPct}>
+                    {displayValue(privacyMode, `${pct}%`, '•••')}
                   </div>
                 </div>
-                <div className={dStyles.goalRowPct}>
-                  {displayValue(privacyMode, `${pct}%`, '•••')}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-
-      <div className={dStyles.sectionCard}>
-        <div className={dStyles.sectionHeader}>
-          <span className={dStyles.sectionTitle}>Recent transactions</span>
-        </div>
-        {!recent.length ? (
-          <div className={dStyles.sectionEmpty}>No entries yet. Add your first one to bring this month into view.</div>
-        ) : recent.map((tx, index) => (
-          <div
-            key={tx._id + index}
-            className={dStyles.txRow}
-            style={{ borderBottom: index < recent.length - 1 ? '1px solid color-mix(in srgb, var(--border) 66%, transparent)' : 'none' }}
-          >
-            <div className={dStyles.txIcon} style={{ background: TYPE_BG[tx.txType], color: TYPE_COLOR[tx.txType] }}>
-              <DashboardIcon type={getTransactionIconKey(tx)} />
-            </div>
-            <div className={dStyles.txContent}>
-              <div className={dStyles.txDesc}>{tx.desc}</div>
-              <div className={dStyles.txMeta}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')} · {tx.date}</div>
-            </div>
-            <div className={dStyles.txAmount} style={{ color: TYPE_COLOR[tx.txType] }}>
-              {displayValue(privacyMode, `${TYPE_SIGN[tx.txType]}${fmt(tx.amount, s)}`, `${TYPE_SIGN[tx.txType]}${maskMoney(s)}`)}
-            </div>
+              )
+            })}
           </div>
-        ))}
+        )}
+
+        <div className={`${dStyles.sectionCard} ${data.goals.length > 0 ? dStyles.sectionSpanWide : dStyles.sectionSpanFull}`}>
+          <div className={dStyles.sectionHeader}>
+            <span className={dStyles.sectionTitle}>Recent transactions</span>
+            <span className={dStyles.sectionMeta}>{recent.length ? `${recent.length} recent` : 'Live feed'}</span>
+          </div>
+          {!recent.length ? (
+            <div className={dStyles.sectionEmpty}>No entries yet. Add your first one to bring this month into view.</div>
+          ) : recent.map((tx, index) => (
+            <div
+              key={tx._id + index}
+              className={dStyles.txRow}
+              style={{ borderBottom: index < recent.length - 1 ? '1px solid color-mix(in srgb, var(--border) 66%, transparent)' : 'none' }}
+            >
+              <div className={dStyles.txIcon} style={{ background: TYPE_BG[tx.txType], color: TYPE_COLOR[tx.txType] }}>
+                <DashboardIcon type={getTransactionIconKey(tx)} />
+              </div>
+              <div className={dStyles.txContent}>
+                <div className={dStyles.txDesc}>{tx.desc}</div>
+                <div className={dStyles.txMeta}>{[tx.cat, tx.subcat].filter(Boolean).join(' · ')} · {tx.date}</div>
+              </div>
+              <div className={dStyles.txAmount} style={{ color: TYPE_COLOR[tx.txType] }}>
+                {displayValue(privacyMode, `${TYPE_SIGN[tx.txType]}${fmt(tx.amount, s)}`, `${TYPE_SIGN[tx.txType]}${maskMoney(s)}`)}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

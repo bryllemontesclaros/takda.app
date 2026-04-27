@@ -1,5 +1,10 @@
 .page {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 1120px;
+  margin-inline: auto;
   padding: 2rem 2rem 2.25rem;
   animation: fadeIn 0.24s ease;
 }
@@ -17,7 +22,28 @@
 }
 
 .header {
-  margin-bottom: 1.4rem;
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  gap: 6px;
+  padding: 1.15rem 1.2rem;
+  margin-bottom: 0;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border));
+  border-radius: var(--bento-radius-lg);
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent-glow) 32%, transparent), transparent 44%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
+}
+
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 26%, transparent), transparent 22%, transparent 88%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
 }
 
 .title {
@@ -38,21 +64,23 @@
 
 .statsGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .trustGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .trustCard {
   position: relative;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 140px;
   display: grid;
   gap: 7px;
   padding: 1rem;
@@ -108,6 +136,8 @@
 .goalCard {
   position: relative;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 220px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
   border-radius: var(--radius);
   background:
@@ -138,7 +168,7 @@
 
 .card,
 .formCard {
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .statLabel {
@@ -179,7 +209,7 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
 }
 
 .cardTitle {
@@ -794,8 +824,20 @@ tbody tr:hover td {
     padding: 0.85rem 0.85rem calc(82px + env(safe-area-inset-bottom));
   }
 
+  .header {
+    gap: 4px;
+    padding: 1rem;
+    border-radius: 24px;
+  }
+
   .title {
     font-size: 24px;
+  }
+
+  .sub {
+    margin-top: 4px;
+    font-size: 12px;
+    line-height: 1.55;
   }
 
   .statsGrid,
@@ -843,6 +885,11 @@ tbody tr:hover td {
 }
 
 @media (max-width: 480px) {
+  .header {
+    padding: 0.9rem 0.95rem;
+    border-radius: 20px;
+  }
+
   .statVal {
     font-size: 16px;
   }

@@ -3,6 +3,13 @@
   margin-inline: auto;
 }
 
+.topBoard {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 10px;
+  margin-bottom: 0.9rem;
+}
+
 /* GREETING */
 .greeting { margin-bottom: 1rem; }
 .greetingText { display: flex; flex-direction: column; gap: 2px; }
@@ -17,7 +24,7 @@
   border: 1px solid color-mix(in srgb, var(--glass-border) 74%, var(--accent) 26%);
   border-radius: 18px;
   padding: 1.35rem 1.25rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
   position: relative;
   overflow: hidden;
   box-shadow: var(--glass-shadow-soft);
@@ -72,7 +79,7 @@
   border: 1px solid color-mix(in srgb, var(--focus-tone) 18%, var(--glass-border));
   border-radius: 18px;
   padding: 1rem 1.05rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
@@ -111,8 +118,31 @@
   letter-spacing: 0.01em;
 }
 
-/* MISSIONS */
-.missionGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 1rem; }
+/* ANALYTICS / MISSIONS */
+.analyticsBoard {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 0.9rem;
+  padding: 0.95rem;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--blue-dim) 34%, transparent), transparent 46%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+  box-shadow: var(--glass-shadow-soft);
+  backdrop-filter: blur(var(--glass-blur-lg)) saturate(145%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(145%);
+}
+
+.analyticsBoard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 24%, transparent), transparent 24%, transparent 88%, color-mix(in srgb, var(--glass-highlight) 10%, transparent));
+}
+
+.missionGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; position: relative; z-index: 1; }
 .missionCard {
   --mission-tone: var(--accent);
   position: relative;
@@ -135,7 +165,7 @@
 .missionBody { font-size: 11px; color: var(--text3); line-height: 1.5; }
 
 /* STATS ROW */
-.statsRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 0.85rem; }
+.statsRow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 0.8rem; position: relative; z-index: 1; }
 .statBox {
   position: relative;
   overflow: hidden;
@@ -153,8 +183,24 @@
 .statBoxVal { font-family: var(--font-mono); font-size: 15px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
 .statBoxChange { font-size: 10px; margin-top: 6px; color: var(--text3); }
 
-/* TWO COL */
-.twoCol { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 0.85rem; }
+/* LOWER GRID */
+.sectionGrid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sectionSpan {
+  grid-column: span 5;
+}
+
+.sectionSpanWide {
+  grid-column: span 7;
+}
+
+.sectionSpanFull {
+  grid-column: 1 / -1;
+}
 
 /* MINI CARDS */
 .miniCard {
@@ -189,7 +235,7 @@
   border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--border));
   border-radius: 18px;
   padding: 1rem 1.05rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0;
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
@@ -301,10 +347,6 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-.txIcon svg {
-  width: 14px;
-  height: 14px;
-}
 .txContent {
   flex: 1;
   min-width: 0;
@@ -333,13 +375,36 @@
 }
 
 /* MOBILE */
+@media (max-width: 860px) {
+  .topBoard,
+  .sectionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionSpan,
+  .sectionSpanWide,
+  .sectionSpanFull {
+    grid-column: auto;
+  }
+
+  .missionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 480px) {
   .dashboardPage {
     padding-inline: 10px;
   }
   .focusTitle { font-size: 19px; }
   .focusHeader { flex-direction: column; }
-  .missionGrid { grid-template-columns: 1fr; }
+  .topBoard {
+    gap: 8px;
+  }
+  .analyticsBoard {
+    padding: 0.8rem;
+    border-radius: 18px;
+  }
   .heroCard,
   .focusCard,
   .sectionCard {
@@ -351,7 +416,6 @@
   .statBoxVal { font-size: 12px; }
   .miniVal { font-size: 15px; }
   .greetingHi { font-size: 20px; }
-  .twoCol { grid-template-columns: 1fr; }
   .goalSummaryMeta {
     flex-direction: column;
     align-items: flex-start;

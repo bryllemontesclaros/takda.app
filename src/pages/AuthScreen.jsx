@@ -29,9 +29,9 @@ const REMEMBERED_EMAIL_KEY = 'sentimo_remembered_email'
 const REMEMBERED_EMAIL_MODE_KEY = 'sentimo_remembered_email_enabled'
 const AUTH_FLASH_KEY = 'takda_auth_flash'
 const AUTH_PROOF = [
-  'Choose one space',
-  'Keep setup light',
-  'Review before saving',
+  'Private per-user data',
+  'Adaptive setup',
+  'Review-first actions',
 ]
 
 function safeGet(key, fallback = '') {
@@ -155,7 +155,7 @@ export default function AuthScreen() {
     ? 'Enter your email and we will send a reset link so you can get back into your Buhay account.'
     : tab === 'register'
       ? 'Create your account, choose a starting space, and begin with only the essentials. Currency is the only required setup field.'
-      : 'Open Takda for money, Lakas for fitness, or Tala for reflection without turning life into one noisy feed.'
+      : 'Open Takda for money, Lakas for fitness, or Tala for reflection from one secure Buhay account.'
 
   return (
     <div className={styles.screen}>
@@ -170,26 +170,26 @@ export default function AuthScreen() {
           <div>
             <div className={styles.logo}>Buhay</div>
             <div className={styles.storyKicker}>Bawat araw, mas malinaw.</div>
-            <h1 className={styles.storyTitle}>One sign-in. Three focused spaces.</h1>
+            <h1 className={styles.storyTitle}>One secure account. Three focused spaces.</h1>
             <p className={styles.storyText}>
-              Start with the space you need today: Takda for money, Lakas for fitness, or Tala for reflection and everyday life.
+              Start with the workspace you need today: Takda for money, Lakas for fitness, or Tala for reflection and everyday life.
             </p>
           </div>
 
           <div className={styles.previewCard} aria-hidden="true">
             <div className={styles.previewTop}>
-              <span>Buhay spaces</span>
+              <span>Account view</span>
               <strong>3</strong>
             </div>
             <div className={styles.previewSpaceList}>
               <div className={`${styles.previewSpace} ${styles.previewSpaceTakda}`}>
                 <span>Takda</span>
-                <strong>Money clarity</strong>
+                <strong>Money control</strong>
                 <em>Balances, bills, receipts</em>
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceLakas}`}>
                 <span>Lakas</span>
-                <strong>Steady training</strong>
+                <strong>Structured training</strong>
                 <em>Workouts, meals, progress</em>
               </div>
               <div className={`${styles.previewSpace} ${styles.previewSpaceTala}`}>
@@ -199,9 +199,9 @@ export default function AuthScreen() {
               </div>
             </div>
             <div className={styles.previewMetrics}>
-              <div><span>Setup</span><strong>Light</strong></div>
-              <div><span>Privacy</span><strong>Ready</strong></div>
-              <div><span>Logs</span><strong>Real</strong></div>
+              <div><span>Setup</span><strong>Adaptive</strong></div>
+              <div><span>Trust</span><strong>Visible</strong></div>
+              <div><span>Records</span><strong>Real</strong></div>
             </div>
           </div>
 

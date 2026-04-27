@@ -669,7 +669,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
         <aside className={styles.sideRail}>
           <div className={styles.brandBlock}>
             <div className={styles.logo}>Buhay</div>
-            <div className={styles.sideKicker}>First-time setup</div>
+            <div className={styles.sideKicker}>Guided setup</div>
             <div className={styles.sideTitle}>{startingSpaceCopy.sideTitle}</div>
             <div className={styles.sideSub}>
               {startingSpaceCopy.sideSub}
@@ -679,7 +679,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           <div className={styles.progressCard}>
             <div className={styles.progressHeader}>
               <div>
-                <div className={styles.progressLabel}>Setup progress</div>
+                <div className={styles.progressLabel}>Activation progress</div>
                 <div className={styles.progressValue}>{progressValue}</div>
               </div>
               <div className={styles.progressPct}>{progressPercent}%</div>
@@ -704,7 +704,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           </div>
 
           <div className={styles.liveCard}>
-            <div className={styles.liveKicker}>Live setup preview</div>
+            <div className={styles.liveKicker}>Starting snapshot</div>
             <div className={styles.liveValue}>{fmt(startingBalance, symbol)}</div>
             <div className={styles.liveSub}>
               {startingSpaceCopy.liveSub}
@@ -738,7 +738,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
           </div>
 
           <div className={styles.tipCard}>
-            <div className={styles.tipTitle}>This is a starting point</div>
+            <div className={styles.tipTitle}>Keep this light</div>
             <div className={styles.tipText}>
               {startingSpaceCopy.tip}
             </div>
@@ -767,7 +767,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               </div>
               <div className={styles.recommendedPathCard}>
                 <div>
-                  <span className={styles.recommendedPathLabel}>Recommended beginner path</span>
+              <span className={styles.recommendedPathLabel}>Recommended setup path</span>
                   <strong className={styles.recommendedPathTitle}>{startingSpaceCopy.recommendedTitle}</strong>
                 </div>
                 <div className={styles.recommendedPathSteps}>

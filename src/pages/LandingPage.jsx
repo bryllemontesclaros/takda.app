@@ -8,16 +8,16 @@ import styles from './LandingPage.module.css'
 
 const USE_CASES = [
   {
-    title: 'Choose one space',
-    desc: 'Start with Takda, Lakas, or Tala. Buhay does not need your whole life on day one.',
+    title: 'Open the right workspace',
+    desc: 'Start with Takda, Lakas, or Tala. Buhay does not ask for your whole life on day one.',
   },
   {
-    title: 'Log what is real',
-    desc: 'No fake workouts, moods, receipts, or transactions. The app becomes useful because the records stay honest.',
+    title: 'Review before changes land',
+    desc: 'Money entries, imports, workouts, and check-ins stay explicit so your records remain honest and useful.',
   },
   {
-    title: 'Review without the mess',
-    desc: 'Money, body, and mind share one account, but each keeps its own language and boundaries.',
+    title: 'Keep one clear daily picture',
+    desc: 'Money, body, and mind share one account, while each keeps its own language, controls, and boundaries.',
   },
 ]
 
@@ -33,31 +33,31 @@ const HERO_CELLS = [
 ]
 
 const HERO_PROOF = [
-  { label: 'Takda', tone: 'takda', value: 'Money, bills, receipts' },
-  { label: 'Lakas', tone: 'lakas', value: 'Workouts, meals, progress' },
-  { label: 'Tala', tone: 'tala', value: 'Journal, mood, tasks' },
+  { label: 'Takda', tone: 'takda', value: 'Balances, bills, receipts' },
+  { label: 'Lakas', tone: 'lakas', value: 'Sessions, meals, progress' },
+  { label: 'Tala', tone: 'tala', value: 'Journal, mood, focus' },
 ]
 
 const PRODUCT_TOUR = [
   {
     eyebrow: 'Takda',
-    title: 'Money that stays accountable',
-    desc: 'Use accounts, transactions, bills, receipts, savings, budgets, and calendar balances with clear review steps before data affects history.',
+    title: 'A money workspace built for daily control',
+    desc: 'Use accounts, transactions, bills, receipts, savings, budgets, and calendar balances with review-first actions and stronger financial hierarchy.',
     stat: '₱47.3K',
     meta: 'Projected balance',
     tone: 'takda',
   },
   {
     eyebrow: 'Lakas',
-    title: 'Fitness that starts light',
-    desc: 'Follow beginner-safe sessions, watch proper-form videos, track sets and rest, then save the real workout, meal, activity, or body log.',
+    title: 'Fitness that stays structured, not noisy',
+    desc: 'Follow beginner-safe sessions, track sets and rest, and log the real workout, meal, activity, or body record without turning progress into clutter.',
     stat: '12',
     meta: 'Guided tools',
     tone: 'lakas',
   },
   {
     eyebrow: 'Tala',
-    title: 'Reflection without pressure',
+    title: 'Reflection with calm structure',
     desc: 'Do one check-in, write privately, log mood patterns, clear tasks, and review life goals without turning reflection into a score.',
     stat: '7d',
     meta: 'Journal streak',
@@ -65,8 +65,8 @@ const PRODUCT_TOUR = [
   },
   {
     eyebrow: 'Buhay',
-    title: 'One account, shared controls',
-    desc: 'Buhay keeps login, privacy mode, notifications, backups, restore, data deletion, legal pages, and PWA navigation consistent across every space.',
+    title: 'One account, shared trust controls',
+    desc: 'Buhay keeps login, privacy mode, notifications, backups, restore, deletion, legal controls, and navigation consistent across every space.',
     stat: '1',
     meta: 'Secure account',
     tone: 'buhay',
@@ -74,8 +74,8 @@ const PRODUCT_TOUR = [
 ]
 
 const PRIVACY_POINTS = [
-  { title: 'Review before save', desc: 'Screenshot imports, commands, workouts, tasks, goals, and manual receipt records are user-reviewed instead of silently changing data.' },
-  { title: 'Per-user Firestore data', desc: 'Finance, fitness, and mind data are stored under each signed-in user and protected by user-scoped Firestore rules.' },
+  { title: 'Review before save', desc: 'Screenshot imports, commands, workouts, tasks, goals, and receipt records stay user-reviewed instead of silently changing data.' },
+  { title: 'Scoped data and exports', desc: 'Finance, fitness, and mind data stay under each signed-in user, with backup and deletion tools visible inside the app.' },
   { title: 'Clear product boundaries', desc: 'Takda tracks money, Lakas tracks fitness, and Tala tracks reflection. Buhay is a tracker, not financial, medical, or mental-health advice.' },
 ]
 
@@ -111,7 +111,7 @@ export default function LandingPage() {
         <div className={styles.navInner}>
           <div className={styles.navBrand}>
             <div className={styles.navLogo}>Buhay</div>
-            <div className={styles.navTag}>Takda finance, Lakas fitness, Tala mind</div>
+            <div className={styles.navTag}>Three focused workspaces, one secure daily view</div>
           </div>
           <div className={styles.navActions}>
             <button className={styles.navLink} onClick={goLogin}>Log in</button>
@@ -125,17 +125,17 @@ export default function LandingPage() {
         <div className={styles.heroCopy}>
           <div className={styles.heroBadge}>Bawat araw, mas malinaw.</div>
           <h1 className={styles.heroTitle}>
-            Check in with money, body, and mind
-            <span className={styles.heroAccent}> without mixing them together.</span>
+            Run money, body, and mind
+            <span className={styles.heroAccent}> from one clearer daily view.</span>
           </h1>
           <p className={styles.heroSub}>
-            Buhay brings together three focused spaces: Takda for money, Lakas for fitness, and Tala for reflection and everyday life. Start with one space, then add real records only when they become useful.
+            Buhay gives you one secure account with three focused workspaces: Takda for money, Lakas for fitness, and Tala for reflection and everyday life. Start with one space, then add real records only when they become useful.
           </p>
           <div className={styles.heroBtns}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>
             <button className={styles.btnSecondary} onClick={goLogin}>Log in</button>
           </div>
-          <div className={styles.heroNote}>Only currency is required at setup. Everything else can grow later.</div>
+          <div className={styles.heroNote}>Only currency is required at setup. Everything else can grow later, one honest record at a time.</div>
           <div className={styles.heroProof}>
             {HERO_PROOF.map(item => (
               <div key={item.label} className={`${styles.heroProofCard} ${styles[`heroProof${item.tone[0].toUpperCase()}${item.tone.slice(1)}`]}`}>
@@ -152,16 +152,16 @@ export default function LandingPage() {
               <span />
               <span />
             </div>
-            <div className={styles.heroPanelApp}>Buhay daily preview</div>
-            <div className={styles.heroPanelSync}>Live sync</div>
+            <div className={styles.heroPanelApp}>Buhay control board</div>
+            <div className={styles.heroPanelSync}>Review-first</div>
           </div>
           <div className={styles.heroPanelTop}>
             <div>
-              <div className={styles.heroPanelEyebrow}>One day, three clear spaces</div>
-              <div className={styles.heroPanelTitle}>Your life, not one messy feed</div>
-              <div className={styles.heroPanelMeta}>Money stays in Takda. Fitness stays in Lakas. Reflection and everyday life stay in Tala.</div>
+              <div className={styles.heroPanelEyebrow}>One day, three clear workspaces</div>
+              <div className={styles.heroPanelTitle}>A calmer operating view for daily life</div>
+              <div className={styles.heroPanelMeta}>Takda handles money, Lakas handles training, and Tala keeps reflection private and steady.</div>
             </div>
-            <div className={styles.heroPill}>Privacy-ready</div>
+            <div className={styles.heroPill}>Trust-ready</div>
           </div>
           <div className={styles.heroGrid}>
             {HERO_CELLS.map(cell => (
@@ -176,8 +176,8 @@ export default function LandingPage() {
           </div>
           <div className={styles.heroBalanceBar}>
             <div>
-              <div className={styles.heroBalanceBarLabel}>Today&apos;s review</div>
-              <div className={styles.heroBalanceBarMeta}>Open the space that needs attention, do one honest action, then close the loop.</div>
+              <div className={styles.heroBalanceBarLabel}>Today&apos;s operating view</div>
+              <div className={styles.heroBalanceBarMeta}>Open the workspace that needs attention, do one honest action, then close the loop.</div>
             </div>
             <div className={styles.heroBalanceBarValue}>3 spaces</div>
           </div>
@@ -196,9 +196,9 @@ export default function LandingPage() {
             </div>
           </div>
           <div className={styles.heroInsight}>
-            <div className={styles.heroInsightKicker}>Why one life app matters</div>
+            <div className={styles.heroInsightKicker}>Why the layout stays clear</div>
             <div className={styles.heroInsightText}>
-              Buhay keeps things clear: separate spaces, shared privacy, real records, and honest progress.
+              Buhay keeps things clear with focused cards, review-first actions, separate spaces, and one shared trust layer.
             </div>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function LandingPage() {
               <h2 className={styles.sectionTitle}>Start with the part of life that needs attention first.</h2>
             </div>
             <p className={styles.sectionLead}>
-            Buhay can hold a lot, but it should never ask for everything at once. Start small and let the routine earn the next layer.
+            Buhay can hold a lot, but it should never ask for everything at once. Start small, keep the signal clean, and let the routine earn the next layer.
             </p>
           </div>
         <div className={styles.useCaseGrid}>
@@ -276,8 +276,8 @@ export default function LandingPage() {
       <section className={styles.cta}>
         <div className={styles.ctaCard}>
           <div className={styles.ctaCopy}>
-            <h2 className={styles.ctaTitle}>Start with one honest check-in.</h2>
-            <p className={styles.ctaSub}>Create your account, choose a starting space, then bring in finance, workouts, meals, journal, mood, tasks, and goals at your own pace.</p>
+            <h2 className={styles.ctaTitle}>Start with one honest daily signal.</h2>
+            <p className={styles.ctaSub}>Create your account, choose a starting workspace, then bring in finance, workouts, meals, journal, mood, tasks, and goals at your own pace.</p>
           </div>
           <div className={styles.ctaAction}>
             <button className={styles.btnPrimary} onClick={openPrimary}>{ctaPrimaryLabel}</button>

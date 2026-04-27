@@ -13,10 +13,13 @@
   overflow-y: auto;
   padding: 1.5rem;
   background:
+    linear-gradient(90deg, color-mix(in srgb, var(--border2) 18%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, var(--border2) 14%, transparent) 1px, transparent 1px),
     radial-gradient(circle at top left, color-mix(in srgb, var(--takda-accent) 13%, transparent), transparent 28%),
     radial-gradient(circle at top right, color-mix(in srgb, var(--lakas-accent) 12%, transparent), transparent 34%),
     radial-gradient(circle at 58% 112%, color-mix(in srgb, var(--tala-accent) 14%, transparent), transparent 38%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 94%, #ffffff 6%), var(--bg));
+  background-size: 108px 108px, 108px 108px, auto, auto, auto, auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -49,7 +52,7 @@
   max-width: 1180px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 340px) minmax(0, 1fr);
   gap: 1.25rem;
   align-items: start;
 }
@@ -74,8 +77,8 @@
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent 42%),
     linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 72%, var(--surface) 28%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
-  border: 1px solid color-mix(in srgb, var(--glass-border) 72%, var(--border));
-  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--bento-border) 80%, var(--border));
+  border-radius: var(--bento-radius-lg);
   box-shadow: var(--glass-shadow-soft);
   backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
   -webkit-backdrop-filter: blur(var(--glass-blur-lg)) saturate(150%);
@@ -86,6 +89,24 @@
 .liveCard,
 .tipCard {
   padding: 1.15rem;
+}
+
+.progressCard {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 8%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+}
+
+.liveCard {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--trust-info) 10%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
+}
+
+.tipCard {
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--trust-ok) 10%, transparent), transparent 40%),
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 74%, var(--surface) 26%), color-mix(in srgb, var(--surface) 92%, transparent 8%));
 }
 
 .logo {
@@ -325,7 +346,7 @@
   gap: 1rem;
   align-items: center;
   padding: 1rem;
-  border-radius: 24px;
+  border-radius: var(--bento-radius);
   border: 1px solid color-mix(in srgb, var(--buhay-accent) 28%, var(--border));
   background:
     radial-gradient(circle at 12% 14%, color-mix(in srgb, var(--takda-accent) 8%, transparent), transparent 36%),
@@ -371,18 +392,23 @@
 
 .welcomeStats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 12px;
 }
 
 .welcomeStat {
+  grid-column: span 4;
   padding: 1rem 1.05rem;
-  border-radius: 22px;
+  border-radius: var(--bento-radius);
   border: 1px solid color-mix(in srgb, var(--glass-border) 58%, var(--border));
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 36%),
     linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 56%, var(--surface2) 44%), color-mix(in srgb, var(--surface2) 92%, transparent 8%));
 }
+
+.welcomeStat:first-child { grid-column: span 6; }
+.welcomeStat:nth-child(2),
+.welcomeStat:nth-child(3) { grid-column: span 3; }
 
 .welcomeStat span {
   display: block;
@@ -422,19 +448,19 @@
 }
 
 .spaceGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .setupScopeGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .choiceGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .quickStartGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .spaceCard,
@@ -443,7 +469,7 @@
 .setupScopeCard {
   position: relative;
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: var(--bento-radius);
   border: 1px solid color-mix(in srgb, var(--glass-border) 62%, var(--border));
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--glass-highlight) 12%, transparent), transparent 42%),
@@ -452,15 +478,25 @@
 }
 
 .spaceCard {
+  grid-column: span 4;
   padding: 1.05rem;
 }
 
+.spaceCard:first-child { grid-column: span 5; }
+.spaceCard:nth-child(2) { grid-column: span 3; }
+.spaceCard:nth-child(3) { grid-column: span 4; }
+
 .setupScopeCard {
+  grid-column: span 4;
   padding: 1rem;
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 44%),
     color-mix(in srgb, var(--glass-1) 80%, var(--surface2) 20%);
 }
+
+.setupScopeCard:first-child { grid-column: span 3; }
+.setupScopeCard:nth-child(2) { grid-column: span 5; }
+.setupScopeCard:nth-child(3) { grid-column: span 4; }
 
 .setupScopeCard span {
   display: block;
@@ -563,6 +599,7 @@
 }
 
 .choiceCard {
+  grid-column: span 6;
   min-height: 180px;
   padding: 1.05rem;
   text-align: left;
@@ -633,6 +670,7 @@
 }
 
 .quickStartCard {
+  grid-column: span 6;
   display: flex;
   flex-direction: column;
   gap: 13px;
@@ -1193,6 +1231,22 @@
 
   .card {
     order: 0;
+  }
+
+  .welcomeStats,
+  .setupScopeGrid,
+  .spaceGrid,
+  .choiceGrid,
+  .quickStartGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .welcomeStat,
+  .spaceCard,
+  .setupScopeCard,
+  .choiceCard,
+  .quickStartCard {
+    grid-column: auto !important;
   }
 
   .mobileSetupBar {

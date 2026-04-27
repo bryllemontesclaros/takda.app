@@ -46,17 +46,21 @@
   --radius: 18px;
   --radius-sm: 14px;
   --radius-lg: 28px;
+  --bento-radius: 22px;
+  --bento-radius-lg: 32px;
+  --bento-gap: 14px;
+  --bento-gap-lg: 20px;
+  --bento-surface: rgba(18, 27, 48, 0.9);
+  --bento-surface-soft: rgba(28, 41, 67, 0.72);
+  --bento-border: rgba(223, 232, 255, 0.18);
+  --trust-ok: #67e2ba;
+  --trust-warn: #ffcc7a;
+  --trust-risk: #ff829a;
+  --trust-info: #85cfff;
 
   --font-display: 'DM Serif Display', serif;
   --font-mono: 'DM Mono', monospace;
   --font-body: 'Outfit', sans-serif;
-
-  /* Motion (Phase 5) — prefers-reduced-motion collapses these via global media rule */
-  --motion-duration-fast: 0.16s;
-  --motion-duration: 0.22s;
-  --motion-duration-slow: 0.32s;
-  --motion-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --motion-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme="light"] {
@@ -97,6 +101,13 @@
   --blue-dim: rgba(81, 155, 255, 0.12);
   --purple: #8b75f5;
   --purple-dim: rgba(139, 117, 245, 0.12);
+  --bento-surface: rgba(255, 255, 255, 0.88);
+  --bento-surface-soft: rgba(245, 249, 255, 0.86);
+  --bento-border: rgba(118, 141, 188, 0.22);
+  --trust-ok: #16b88a;
+  --trust-warn: #dd9d39;
+  --trust-risk: #e35f7d;
+  --trust-info: #519bff;
 }
 
 html, body, #root {
@@ -114,10 +125,13 @@ body {
   position: relative;
   min-height: 100%;
   background:
+    linear-gradient(90deg, color-mix(in srgb, var(--border2) 18%, transparent) 1px, transparent 1px),
+    linear-gradient(180deg, color-mix(in srgb, var(--border2) 15%, transparent) 1px, transparent 1px),
     radial-gradient(circle at 14% 12%, color-mix(in srgb, var(--blue) 18%, transparent), transparent 28%),
     radial-gradient(circle at 84% 14%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 30%),
     radial-gradient(circle at 52% 120%, color-mix(in srgb, var(--purple) 14%, transparent), transparent 38%),
     linear-gradient(180deg, color-mix(in srgb, var(--bg) 92%, #05070d 8%), var(--bg));
+  background-size: 96px 96px, 96px 96px, auto, auto, auto, auto;
   background-attachment: fixed;
   isolation: isolate;
 }
