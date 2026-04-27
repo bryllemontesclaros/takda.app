@@ -874,26 +874,49 @@
 .monthControls {
   position: relative;
   z-index: 1;
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 4px;
-  border-radius: 18px;
-  border: 1px solid color-mix(in srgb, var(--glass-border) 50%, transparent);
-  background: color-mix(in srgb, var(--glass-1) 68%, transparent);
+  min-width: min(100%, 290px);
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--glass-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 42%),
+    color-mix(in srgb, var(--glass-1) 72%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 24%, transparent);
+}
+
+.monthLabelWrap {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+
+.monthLabelEyebrow {
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
 }
 
 .monthControls strong {
-  min-width: 82px;
   color: var(--text);
-  font-size: 12px;
+  font-size: 13px;
+  letter-spacing: -0.02em;
   text-align: center;
 }
 
 .monthControls button {
-  min-height: 34px;
-  border-radius: 13px;
-  padding: 6px 10px;
+  min-width: 38px;
+  min-height: 38px;
+  border-radius: 14px;
+  padding: 0;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .calendarGrid {
@@ -1001,14 +1024,20 @@
   position: relative;
   z-index: 1;
   margin-top: 12px;
+  gap: 8px;
 }
 
 .legendRow span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text3);
-  font-size: 12px;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 56%, var(--border));
+  background: color-mix(in srgb, var(--glass-1) 70%, var(--surface2) 30%);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .selectedDayPanel {
@@ -1023,6 +1052,9 @@
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 44%),
     color-mix(in srgb, var(--glass-1) 74%, var(--surface2) 26%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 26%, transparent),
+    0 18px 36px color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .selectedDayHeader {
@@ -1223,6 +1255,10 @@
   .monthControls {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .monthLabelEyebrow {
+    font-size: 9px;
   }
 
   .calendarGrid {

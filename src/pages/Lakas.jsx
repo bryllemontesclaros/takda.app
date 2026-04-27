@@ -1996,6 +1996,8 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
   const tabStats = currentTab === 'track'
     ? trackStats
     : staticTabStats[currentTab] || []
+  const showTrackSwitcher = currentTab === 'track'
+  const showTopChrome = currentTab !== 'track'
 
   useEffect(() => {
     mealPhotoUrlsRef.current = mealPhotoUrls
@@ -2132,39 +2134,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
 
   return (
     <div className={`${styles.page} ${lStyles.page}`}>
-      <div className={lStyles.hero}>
-        <div>
-          <div className={lStyles.eyebrow}>{tabCopy.eyebrow}</div>
-          <div className={lStyles.title}>{tabCopy.title}</div>
-          <div className={lStyles.sub}>{tabCopy.sub}</div>
-        </div>
-        <div className={lStyles.heroCard}>
-          <div className={lStyles.heroCardLabel}>{tabHeroCard.label}</div>
-          <div className={lStyles.heroCardValue}>{tabHeroCard.value}</div>
-          <div className={lStyles.heroCardMeta}>{tabHeroCard.meta}</div>
-        </div>
-      </div>
-
-      <div className={lStyles.statsGrid}>
-        {tabStats.map(stat => (
-          <div key={stat.label} className={lStyles.statCard}>
-            <span>{stat.label}</span>
-            <strong>{stat.value}</strong>
-            <small>{stat.meta}</small>
-          </div>
-        ))}
-      </div>
-
-      <div className={lStyles.quickWins}>
-        {tabCopy.guide.map((item, index) => (
-          <div key={item} className={lStyles.quickWinCard}>
-            <span className={lStyles.quickWinIndex}>{index + 1}</span>
-            <span className={lStyles.quickWinText}>{item}</span>
-          </div>
-        ))}
-      </div>
-
-      {currentTab === 'track' && (
+      {showTrackSwitcher && (
         <section className={lStyles.viewSwitchCard} aria-label="Choose what to track">
           <div className={lStyles.viewSwitchHeader}>
             <div>
@@ -2189,6 +2159,42 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             ))}
           </div>
         </section>
+      )}
+
+      {showTopChrome && (
+        <>
+          <div className={lStyles.hero}>
+            <div>
+              <div className={lStyles.eyebrow}>{tabCopy.eyebrow}</div>
+              <div className={lStyles.title}>{tabCopy.title}</div>
+              <div className={lStyles.sub}>{tabCopy.sub}</div>
+            </div>
+            <div className={lStyles.heroCard}>
+              <div className={lStyles.heroCardLabel}>{tabHeroCard.label}</div>
+              <div className={lStyles.heroCardValue}>{tabHeroCard.value}</div>
+              <div className={lStyles.heroCardMeta}>{tabHeroCard.meta}</div>
+            </div>
+          </div>
+
+          <div className={lStyles.statsGrid}>
+            {tabStats.map(stat => (
+              <div key={stat.label} className={lStyles.statCard}>
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
+                <small>{stat.meta}</small>
+              </div>
+            ))}
+          </div>
+
+          <div className={lStyles.quickWins}>
+            {tabCopy.guide.map((item, index) => (
+              <div key={item} className={lStyles.quickWinCard}>
+                <span className={lStyles.quickWinIndex}>{index + 1}</span>
+                <span className={lStyles.quickWinText}>{item}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {(showOverview || showWorkoutLog || showActivity || showReminders) && (
@@ -2750,7 +2756,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             </label>
             <label className={lStyles.full}>
               <span>Notes</span>
-              <input value={bodyForm.notes} placeholder="Morning weigh-in, photo angle, energy" onChange={event => setBodyForm(current => ({ ...current, notes: event.target.value }))} />
+              <input value={bodyForm.notes} placeholder="Morning weigh-in, energy, or recovery note" onChange={event => setBodyForm(current => ({ ...current, notes: event.target.value }))} />
             </label>
           </div>
           <button type="button" className={lStyles.primaryBtn} onClick={handleAddBodyLog} disabled={savingBody}>
@@ -2906,10 +2912,10 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
               </select>
             </label>
             <label className={lStyles.full}>
-              <span>Older progress photos in privacy mode</span>
+              <span>Legacy progress photos in privacy mode</span>
               <select value={settingsForm.display.hideProgressPhotosInPrivacy ? 'hide' : 'show'} onChange={event => updateSettingGroup('display', 'hideProgressPhotosInPrivacy', event.target.value === 'hide')}>
-                <option value="hide">Hide progress photos</option>
-                <option value="show">Show progress photos</option>
+                <option value="hide">Hide legacy photos</option>
+                <option value="show">Show legacy photos</option>
               </select>
             </label>
           </div>
@@ -3096,7 +3102,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             </button>
           </div>
           <div className={lStyles.empty}>
-            Settings are kept when logs are deleted. Any older saved photos are also removed from storage.
+            Settings are kept when logs are deleted. Any legacy photos still tied to older entries are removed from storage too.
           </div>
         </section>
 
@@ -3172,7 +3178,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Meals</div>
               <h3>Recent meals</h3>
-              <p className={lStyles.sectionHint}>Saved meals and macro estimates live here for easy review. Any older saved photos still appear if they already existed.</p>
+              <p className={lStyles.sectionHint}>Saved meals and macro estimates live here for easy review. If an older entry still has a legacy photo, it can still appear here.</p>
             </div>
           </div>
           {!meals.length ? <div className={lStyles.empty}>No meals logged yet.</div> : visibleMeals.map(meal => {
@@ -3198,7 +3204,7 @@ export default function Lakas({ user, data = {}, profile = {}, privacyMode = fal
             <div>
               <div className={lStyles.sectionKicker}>Progress</div>
               <h3>Body logs</h3>
-              <p className={lStyles.sectionHint}>Measurements stay easy to review, and any older saved photos still stay hidden in privacy mode.</p>
+              <p className={lStyles.sectionHint}>Measurements stay easy to review. Any legacy photos tied to older entries still stay hidden in privacy mode.</p>
             </div>
           </div>
           {!bodyLogs.length ? <div className={lStyles.empty}>No body logs yet.</div> : visibleBodyLogs.map(log => {

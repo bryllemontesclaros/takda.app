@@ -6,29 +6,18 @@ import { auth } from '../lib/firebase'
 import { LEGAL_CONTACT_EMAIL, LEGAL_CONTACT_HREF, LEGAL_OPERATOR_NAME } from '../lib/legal'
 import styles from './LandingPage.module.css'
 
-const FEATURES = [
-  { icon: '💸', title: 'Takda keeps money honest', tone: 'takda', desc: 'Accounts, bills, receipts, budgets, savings, and calendar balances stay review-first so money does not get double-counted.' },
-  { icon: '🏋️', title: 'Lakas starts safe', tone: 'lakas', desc: 'Beginner routines, form cues, rest timers, sets, reps, meals, body logs, and habits help fitness build from real sessions.' },
-  { icon: '🌙', title: 'Tala keeps reflection private', tone: 'tala', desc: 'Check-ins, journals, moods, tasks, and life goals stay gentle, private, and separate from performance pressure.' },
-  { icon: '📅', title: 'One daily review', tone: 'buhay', desc: 'Open today, choose the space that needs attention, and keep finance, fitness, and reflection from becoming one messy feed.' },
-  { icon: '🧾', title: 'Review stays explicit', tone: 'takda', desc: 'Wallet screenshot imports, manual receipts, and command previews still require review before anything touches saved history.' },
-  { icon: '🎯', title: 'Goals have context', tone: 'tala', desc: 'Track money targets, workout rhythm, habits, body progress, and personal milestones without hiding where each goal belongs.' },
-  { icon: '🔒', title: 'Control stays visible', tone: 'takda', desc: 'Privacy mode, exports, restore, delete controls, notifications, and settings stay close to the data they protect.' },
-  { icon: '☁️', title: 'Installable and synced', tone: 'buhay', desc: 'Use Buhay on phone or desktop with Firebase sync, responsive screens, service worker caching, and app-like navigation.' },
-]
-
 const USE_CASES = [
   {
-    title: 'Start with one space',
-    desc: 'Pick Takda, Lakas, or Tala. Buhay does not need your whole life on day one.',
+    title: 'Choose one space',
+    desc: 'Start with Takda, Lakas, or Tala. Buhay does not need your whole life on day one.',
   },
   {
-    title: 'Add real data only',
-    desc: 'No fake workouts, moods, receipts, or transactions. The app becomes useful because the logs are real.',
+    title: 'Log what is real',
+    desc: 'No fake workouts, moods, receipts, or transactions. The app becomes useful because the records stay honest.',
   },
   {
-    title: 'Review without mixing everything',
-    desc: 'Money, body, and mind share one account, but each keeps its own language, tabs, and boundaries.',
+    title: 'Review without the mess',
+    desc: 'Money, body, and mind share one account, but each keeps its own language and boundaries.',
   },
 ]
 
@@ -82,15 +71,6 @@ const PRODUCT_TOUR = [
     meta: 'Secure account',
     tone: 'buhay',
   },
-]
-
-const INCLUDED_TOOLS = [
-  'Takda: dashboard, calendar, accounts, history, bills, budget, savings, manual receipts, grocery trips, reports, screenshot import, and Ask Takda',
-  'Lakas: beginner sessions, routines, workout logs, exercise details, meals, activity, body progress, habits, reminders, and goals',
-  'Tala: daily check-ins, private journal, mood, energy, stress, sleep, tasks, life goals, calendar patterns, tags, and insights',
-  'Review flows: wallet screenshot imports, manual receipts, and Ask Takda previews before write actions',
-  'Controls: privacy mode, settings, feedback, notifications, legal pages, backup, restore, export, and deletion',
-  'Platform: email/password auth, onboarding, per-user Firebase data, responsive navigation, PWA install support, and service worker caching',
 ]
 
 const PRIVACY_POINTS = [
@@ -270,92 +250,6 @@ export default function LandingPage() {
               <div className={styles.productTourDesc}>{item.desc}</div>
             </div>
           ))}
-        </div>
-      </section>
-
-      <section className={styles.features}>
-        <div className={styles.sectionTop}>
-          <div className={styles.sectionIntro}>
-            <div className={styles.sectionLabel}>What the app does</div>
-            <h2 className={styles.sectionTitle}>A life system that stays separated on purpose.</h2>
-          </div>
-          <p className={styles.sectionLead}>
-            Money, workouts, meals, body progress, habits, journal entries, moods, tasks, goals, reminders, reports, and backups stay organized by space.
-          </p>
-        </div>
-        <div className={styles.featureGrid}>
-          {FEATURES.map((f, i) => (
-            <div
-              key={i}
-              className={`${styles.featureCard} ${styles[`featureCard${f.tone[0].toUpperCase()}${f.tone.slice(1)}`]}`}
-            >
-              <div className={styles.featureIcon}>{f.icon}</div>
-              <div className={styles.featureTitle}>{f.title}</div>
-              <div className={styles.featureDesc}>{f.desc}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className={styles.howItWorks}>
-        <div className={styles.sectionTop}>
-          <div className={styles.sectionIntro}>
-            <div className={styles.sectionLabel}>How it works</div>
-            <h2 className={styles.sectionTitle}>Pick a space, log what really happened, review gently.</h2>
-          </div>
-          <p className={styles.sectionLead}>
-            Buhay works best when each check-in is small and true. One useful baseline beats a perfect setup that never gets used.
-          </p>
-        </div>
-        <div className={styles.steps}>
-          <div className={styles.step}>
-            <div className={styles.stepNum}>1</div>
-            <div className={styles.stepText}>
-              <div className={styles.stepTitle}>{isSignedIn ? 'Open the app and choose where to start' : 'Create your account and choose where to start'}</div>
-              <div className={styles.stepDesc}>Pick Takda, Lakas, Tala, or explore first. Only currency is required; accounts, bills, and quick starts can wait.</div>
-            </div>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.step}>
-            <div className={styles.stepNum}>2</div>
-            <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Log real events only</div>
-              <div className={styles.stepDesc}>Log expenses, receipt records, workouts, meals, activity, habits, mood, journal entries, tasks, and goals when they actually happen.</div>
-            </div>
-          </div>
-          <div className={styles.stepArrow}>→</div>
-          <div className={styles.step}>
-            <div className={styles.stepNum}>3</div>
-            <div className={styles.stepText}>
-              <div className={styles.stepTitle}>Review patterns and stay in control</div>
-              <div className={styles.stepDesc}>Use calendars, charts, insights, reminders, privacy mode, exports, restores, and settings to keep the app trustworthy.</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.access}>
-        <div className={styles.sectionTop}>
-          <div className={styles.sectionIntro}>
-            <div className={styles.sectionLabel}>What’s inside</div>
-            <h2 className={styles.sectionTitle}>The signed-in app has the full toolkit, but you do not have to use it all at once.</h2>
-          </div>
-          <p className={styles.sectionLead}>
-            These are current app surfaces, grouped by the job they do.
-          </p>
-        </div>
-        <div className={styles.accessCard}>
-          <div className={styles.accessIntro}>
-            <div className={styles.accessTitle}>One account, three life spaces</div>
-            <div className={styles.accessDesc}>
-              Buhay brings finance, fitness, meals, body progress, journal, mood, tasks, goals, receipts, planning, reports, and privacy controls into one mobile-first workspace.
-            </div>
-          </div>
-          <div className={styles.accessFeatureGrid}>
-            {INCLUDED_TOOLS.map(item => (
-              <div key={item} className={styles.accessFeatureItem}>{item}</div>
-            ))}
-          </div>
         </div>
       </section>
 

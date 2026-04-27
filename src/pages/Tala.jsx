@@ -627,6 +627,9 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
     : currentTab === 'focus'
       ? focusStats
       : staticTabStats[currentTab] || []
+  const showTrackSwitcher = currentTab === 'track'
+  const showFocusSwitcher = currentTab === 'focus'
+  const showTopChrome = currentTab !== 'track' && currentTab !== 'focus'
 
   async function handleSaveToday() {
     if (!todayForm.date || (!todayForm.priority.trim() && !todayForm.gratitude.trim() && !todayForm.reflection.trim())) {
@@ -829,39 +832,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
 
   return (
     <div className={`${styles.page} ${tStyles.page}`}>
-      <div className={tStyles.hero}>
-        <div>
-          <div className={tStyles.eyebrow}>{tabCopy.eyebrow}</div>
-          <div className={tStyles.title}>{tabCopy.title}</div>
-          <div className={tStyles.sub}>{tabCopy.sub}</div>
-        </div>
-        <div className={tStyles.heroCard}>
-          <div className={tStyles.heroCardLabel}>{tabHeroCard.label}</div>
-          <div className={tStyles.heroCardValue}>{tabHeroCard.value}</div>
-          <div className={tStyles.heroCardMeta}>{tabHeroCard.meta}</div>
-        </div>
-      </div>
-
-      <div className={tStyles.statsGrid}>
-        {tabStats.map(stat => (
-          <div key={stat.label} className={tStyles.statCard}>
-            <span>{stat.label}</span>
-            <strong>{stat.value}</strong>
-            <small>{stat.meta}</small>
-          </div>
-        ))}
-      </div>
-
-      <div className={tStyles.quickWins}>
-        {tabCopy.guide.map((item, index) => (
-          <div key={item} className={tStyles.quickWinCard}>
-            <span className={tStyles.quickWinIndex}>{index + 1}</span>
-            <span>{item}</span>
-          </div>
-        ))}
-      </div>
-
-      {currentTab === 'track' && (
+      {showTrackSwitcher && (
         <section className={tStyles.viewSwitchCard} aria-label="Choose what to track in Tala">
           <div className={tStyles.viewSwitchHeader}>
             <div>
@@ -888,7 +859,7 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
         </section>
       )}
 
-      {currentTab === 'focus' && (
+      {showFocusSwitcher && (
         <section className={tStyles.viewSwitchCard} aria-label="Choose what to focus on in Tala">
           <div className={tStyles.viewSwitchHeader}>
             <div>
@@ -913,6 +884,42 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             ))}
           </div>
         </section>
+      )}
+
+      {showTopChrome && (
+        <>
+          <div className={tStyles.hero}>
+            <div>
+              <div className={tStyles.eyebrow}>{tabCopy.eyebrow}</div>
+              <div className={tStyles.title}>{tabCopy.title}</div>
+              <div className={tStyles.sub}>{tabCopy.sub}</div>
+            </div>
+            <div className={tStyles.heroCard}>
+              <div className={tStyles.heroCardLabel}>{tabHeroCard.label}</div>
+              <div className={tStyles.heroCardValue}>{tabHeroCard.value}</div>
+              <div className={tStyles.heroCardMeta}>{tabHeroCard.meta}</div>
+            </div>
+          </div>
+
+          <div className={tStyles.statsGrid}>
+            {tabStats.map(stat => (
+              <div key={stat.label} className={tStyles.statCard}>
+                <span>{stat.label}</span>
+                <strong>{stat.value}</strong>
+                <small>{stat.meta}</small>
+              </div>
+            ))}
+          </div>
+
+          <div className={tStyles.quickWins}>
+            {tabCopy.guide.map((item, index) => (
+              <div key={item} className={tStyles.quickWinCard}>
+                <span className={tStyles.quickWinIndex}>{index + 1}</span>
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {showToday && (
@@ -1313,9 +1320,12 @@ export default function Tala({ user, data = {}, profile = {}, privacyMode = fals
             <p className={tStyles.sectionHint}>Dots show check-ins, journal entries, mood logs, task due dates, and goal target dates.</p>
           </div>
           <div className={tStyles.monthControls}>
-            <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, -1))}>Prev</button>
-            <strong>{formatMonthLabel(calendarMonth)}</strong>
-            <button type="button" onClick={() => setCalendarMonth(current => addMonths(current, 1))}>Next</button>
+            <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(current => addMonths(current, -1))}>‹</button>
+            <div className={tStyles.monthLabelWrap}>
+              <span className={tStyles.monthLabelEyebrow}>Month view</span>
+              <strong>{formatMonthLabel(calendarMonth)}</strong>
+            </div>
+            <button type="button" aria-label="Next month" onClick={() => setCalendarMonth(current => addMonths(current, 1))}>›</button>
           </div>
         </div>
         <div className={tStyles.calendarGrid}>

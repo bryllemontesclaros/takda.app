@@ -641,8 +641,8 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
     const confirmed = await confirmApp({
       title: restoreMode === 'replace' ? 'Replace current data?' : 'Merge backup?',
       message: restoreMode === 'replace'
-        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, calendar reminders, Lakas data, Tala data, and profile data with this backup. Any older saved receipt, meal, and body image files are metadata references only and are not recreated from JSON backups.'
-        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, Tala, and calendar reminders if present. Matching document ids will be updated. Any older saved receipt, meal, and body image files are metadata references only and are not recreated from JSON backups.',
+        ? 'This will replace current income, expenses, bills, goals, accounts, budgets, receipts, transfers, calendar reminders, Lakas data, Tala data, and profile data with this backup. Any legacy receipt, meal, and body image files are reference-only and are not recreated from JSON backups.'
+        : 'This will merge the backup into your current Buhay data, including Takda, Lakas, Tala, and calendar reminders if present. Matching document ids will be updated. Any legacy receipt, meal, and body image files are reference-only and are not recreated from JSON backups.',
       confirmLabel: restoreMode === 'replace' ? 'Replace data' : 'Merge backup',
       cancelLabel: 'Cancel',
       tone: restoreMode === 'replace' ? 'danger' : 'default',
@@ -703,7 +703,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
     const confirmed = await confirmApp({
       title: 'Delete Buhay account?',
-      message: 'This removes your Takda, Lakas, and Tala data, saved receipt records, any older saved fitness photos, profile, feedback, and login. This cannot be undone.',
+      message: 'This removes your Takda, Lakas, and Tala data, saved receipt records, any legacy fitness photos, profile, feedback, and login. This cannot be undone.',
       confirmLabel: 'Delete account',
       cancelLabel: 'Keep account',
       tone: 'danger',
@@ -833,28 +833,27 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
       <div className={settStyles.heroSection}>
         <div className={settStyles.heroCopy}>
           <div className={settStyles.pageEyebrow}>Settings</div>
-          <div className={settStyles.pageTitle}>Account, privacy, backup, and recovery in one place.</div>
+          <div className={settStyles.pageTitle}>The essentials, without the clutter.</div>
           <div className={settStyles.pageSub}>
-            The essentials stay upfront here: identity, notifications, privacy, backup, and recovery. Lower-priority product extras stay tucked away so this page stays easy to use.
+            Account, privacy, backup, and recovery stay easy to reach here. Lower-priority extras stay tucked away so this page feels lighter to scan.
           </div>
         </div>
 
         <div className={settStyles.heroAside}>
-          <div className={settStyles.heroAsideLabel}>Ready now</div>
+          <div className={settStyles.heroAsideLabel}>Account status</div>
           <div className={settStyles.heroAsideValue}>{emailVerified ? 'Recovery-ready' : 'Needs one step'}</div>
           <div className={settStyles.heroAsideTags}>
             <span className={`${settStyles.statusPill} ${emailVerified ? settStyles.statusPillOk : settStyles.statusPillWarn}`}>
               {emailVerified ? 'Verified email' : 'Verify email'}
             </span>
             <span className={settStyles.statusPill}>{profileForm.currency || 'PHP'}</span>
+            <span className={settStyles.statusPill}>{trackedRecords} records saved</span>
             <span className={settStyles.statusPill}>{enabledNotificationCount}/{NOTIFICATION_OPTIONS.length} alerts on</span>
           </div>
           <div className={settStyles.heroAsideMeta}>
             {currentDisplayName || 'Buhay account'}
             {' · '}
             {currentEmail || 'Signed in'}
-            {' · '}
-            {trackedRecords} records saved across Takda, Lakas, and Tala
           </div>
         </div>
       </div>
@@ -1114,7 +1113,7 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
         <CardHeader
           eyebrow="Recovery"
           title="Data access, export & restore"
-          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, calendar reminders, Lakas records, Tala records, receipt records, any legacy image metadata links, and profile settings."
+          description="Use these tools to access your records, download a portable copy, and restore it later. JSON backups include accounts, budgets, transfers, calendar reminders, Lakas records, Tala records, receipt records, legacy media references, and profile settings."
         />
         <div className={settStyles.actionCluster}>
           <button className={settStyles.btnExport} onClick={exportCSV}>{exportDone ? '✓ Downloaded' : '↓ Transactions CSV'}</button>
@@ -1326,37 +1325,53 @@ export default function Settings({ user, data, profile, symbol, privacyMode = fa
 
         <div className={settStyles.subsection}>
           <div className={settStyles.subsectionTitle}>About Buhay</div>
-          <div className={settStyles.aboutBlock}>
-            <div className={settStyles.aboutLogo}>Buhay</div>
-            <div className={settStyles.aboutTagline}>Bawat araw, mas malinaw.</div>
-            <div className={settStyles.aboutMeta}>Version {VERSION}</div>
-            <div className={settStyles.aboutDesc}>
-              A life tracker built with Filipino clarity and warmth for everyday use anywhere. Track money, fitness, and reflection in one account that stays in sync across devices.
+          <details className={settStyles.inlineDisclosure}>
+            <summary className={settStyles.inlineDisclosureSummary}>
+              <span>View app details</span>
+              <small>Brand, version, and your current account.</small>
+            </summary>
+            <div className={settStyles.inlineDisclosureBody}>
+              <div className={settStyles.aboutBlock}>
+                <div className={settStyles.aboutLogo}>Buhay</div>
+                <div className={settStyles.aboutTagline}>Bawat araw, mas malinaw.</div>
+                <div className={settStyles.aboutMeta}>Version {VERSION}</div>
+                <div className={settStyles.aboutDesc}>
+                  A life tracker built with Filipino clarity and warmth for everyday use anywhere. Track money, fitness, and reflection in one account that stays in sync across devices.
+                </div>
+                <div className={settStyles.aboutUser}>Logged in as <strong>{currentDisplayName || user.email}</strong></div>
+              </div>
             </div>
-            <div className={settStyles.aboutUser}>Logged in as <strong>{currentDisplayName || user.email}</strong></div>
-          </div>
+          </details>
         </div>
 
         <div className={settStyles.subsection}>
           <div className={settStyles.subsectionTitle}>Support Buhay</div>
-          <p className={settStyles.subsectionCopy}>If Buhay helps you, you can support the app with a coffee using the wallets below.</p>
-          <StatusBanner message={donationMsg} />
-          <div className={settStyles.donateGrid}>
-            {DONATION_WALLETS.map(wallet => (
-              <div key={wallet.key} className={settStyles.donateCard}>
-                <div className={settStyles.donateTop}>
-                  <div>
-                    <div className={settStyles.donateTitle}>{wallet.title}</div>
-                    <div className={settStyles.donateMeta}>{wallet.shortTitle} wallet</div>
+          <details className={settStyles.inlineDisclosure}>
+            <summary className={settStyles.inlineDisclosureSummary}>
+              <span>Open support options</span>
+              <small>Wallets stay tucked away unless you need them.</small>
+            </summary>
+            <div className={settStyles.inlineDisclosureBody}>
+              <p className={settStyles.subsectionCopy}>If Buhay helps you, you can support the app with a coffee using the wallets below.</p>
+              <StatusBanner message={donationMsg} />
+              <div className={settStyles.donateGrid}>
+                {DONATION_WALLETS.map(wallet => (
+                  <div key={wallet.key} className={settStyles.donateCard}>
+                    <div className={settStyles.donateTop}>
+                      <div>
+                        <div className={settStyles.donateTitle}>{wallet.title}</div>
+                        <div className={settStyles.donateMeta}>{wallet.shortTitle} wallet</div>
+                      </div>
+                      <button className={settStyles.btnExport} onClick={() => handleCopyWallet(wallet.title, wallet.address)}>
+                        Copy
+                      </button>
+                    </div>
+                    <div className={settStyles.donateAddress}>{wallet.address}</div>
                   </div>
-                  <button className={settStyles.btnExport} onClick={() => handleCopyWallet(wallet.title, wallet.address)}>
-                    Copy
-                  </button>
-                </div>
-                <div className={settStyles.donateAddress}>{wallet.address}</div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          </details>
         </div>
       </DisclosureCard>
 

@@ -29,10 +29,9 @@ const REMEMBERED_EMAIL_KEY = 'sentimo_remembered_email'
 const REMEMBERED_EMAIL_MODE_KEY = 'sentimo_remembered_email_enabled'
 const AUTH_FLASH_KEY = 'takda_auth_flash'
 const AUTH_PROOF = [
-  'Start with one space',
+  'Choose one space',
+  'Keep setup light',
   'Review before saving',
-  'Private synced data',
-  'Export anytime',
 ]
 
 function safeGet(key, fallback = '') {
@@ -155,7 +154,7 @@ export default function AuthScreen() {
   const authSubtitle = showForgot
     ? 'Enter your email and we will send a reset link so you can get back into your Buhay account.'
     : tab === 'register'
-      ? 'Create your account, choose a starting space, and keep setup light. Only currency is required to begin.'
+      ? 'Create your account, choose a starting space, and begin with only the essentials. Currency is the only required setup field.'
       : 'Open Takda for money, Lakas for fitness, or Tala for reflection without turning life into one noisy feed.'
 
   return (

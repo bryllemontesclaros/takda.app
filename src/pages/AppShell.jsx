@@ -435,11 +435,6 @@ function FinanceToolGroup({
   return (
     <div className={styles.financeGroupPage}>
       <section className={styles.financeGroupHero}>
-        <div>
-          <div className={styles.financeGroupEyebrow}>{eyebrow}</div>
-          <h2>{title}</h2>
-          <p>{description}</p>
-        </div>
         <div className={styles.financeGroupSwitch} role="tablist" aria-label={`${title} tools`}>
           {tools.map(tool => (
             <button
@@ -458,6 +453,11 @@ function FinanceToolGroup({
             </button>
           ))}
         </div>
+        <div className={styles.financeGroupIntro}>
+          <div className={styles.financeGroupEyebrow}>{eyebrow}</div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
       </section>
       <div ref={contentRef} className={styles.financeGroupContent}>
         <ActiveComponent {...pageProps} />
@@ -473,8 +473,8 @@ function TakdaMoneyPage({ financeToolSelections = {}, onFinanceToolSelect, ...pa
       activeTool={financeToolSelections.money}
       onActiveToolChange={tool => onFinanceToolSelect?.('money', tool)}
       eyebrow="Money"
-      title="Balances, ledger, and insights without double-counting."
-      description="Accounts, transaction history, and spending breakdowns are grouped here so every money review starts from the same trusted records."
+      title="Open the money view you need right now."
+      description="Balances, history, and insights stay on one surface so you can jump straight to the task instead of navigating deeper."
       {...pageProps}
     />
   )
@@ -487,8 +487,8 @@ function TakdaPlanPage({ financeToolSelections = {}, onFinanceToolSelect, ...pag
       activeTool={financeToolSelections.plan}
       onActiveToolChange={tool => onFinanceToolSelect?.('plan', tool)}
       eyebrow="Plan"
-      title="Goals, bills, and budget pressure in one month view."
-      description="Savings, recurring bills, and budgets share one planning surface because they all shape the same month-end estimate."
+      title="Open the planning view that needs attention."
+      description="Savings, bills, and budget stay together here so month planning feels like one surface instead of three separate detours."
       {...pageProps}
     />
   )

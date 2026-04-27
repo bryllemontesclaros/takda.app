@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getBillPeriodKey } from '../lib/bills'
 import { getCurrentBalance } from '../lib/finance'
 import { fsCompleteOnboarding } from '../lib/firestore'
@@ -8,15 +8,15 @@ import { CURRENCIES, RECUR_OPTIONS, fmt, normalizeDate } from '../lib/utils'
 import styles from './Onboarding.module.css'
 
 const STEPS = ['welcome', 'spaces', 'currency', 'accounts', 'bills', 'quickstart', 'review']
-const STEP_DETAILS = [
-  { label: 'Intro', desc: 'Meet the three spaces' },
-  { label: 'Spaces', desc: 'Choose where to start' },
-  { label: 'Currency', desc: 'Money format across the app' },
-  { label: 'Accounts', desc: 'Opening balances across your accounts' },
-  { label: 'Bills', desc: 'Recurring monthly commitments' },
-  { label: 'Quick starts', desc: 'Optional Lakas and Tala defaults' },
-  { label: 'Review', desc: 'Save your baseline and begin' },
-]
+const STEP_DETAILS = {
+  welcome: { label: 'Intro', desc: 'Meet the three spaces' },
+  spaces: { label: 'Spaces', desc: 'Choose where to start' },
+  currency: { label: 'Currency', desc: 'Money format across the app' },
+  accounts: { label: 'Accounts', desc: 'Opening balances across your accounts' },
+  bills: { label: 'Bills', desc: 'Recurring monthly commitments' },
+  quickstart: { label: 'Quick starts', desc: 'Optional Lakas and Tala defaults' },
+  review: { label: 'Review', desc: 'Save your baseline and begin' },
+}
 const SPACE_OPTIONS = [
   {
     id: 'takda',
@@ -148,6 +148,12 @@ const STARTING_SPACE_COPY = {
 
 function getStartingSpaceCopy(spaceId) {
   return STARTING_SPACE_COPY[spaceId] || STARTING_SPACE_COPY.takda
+}
+
+function getSetupSteps(spaceId = 'takda') {
+  if (spaceId === 'explore') return ['welcome', 'spaces', 'currency', 'review']
+  if (spaceId === 'lakas' || spaceId === 'tala') return ['welcome', 'spaces', 'currency', 'quickstart', 'review']
+  return STEPS
 }
 
 function createId(prefix = 'row') {
@@ -469,13 +475,22 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   const startingBalance = getCurrentBalance(preparedAccounts)
   const fixedBillsEstimate = preparedBills.reduce((sum, bill) => sum + getMonthlyEquivalent(bill.amount, bill.freq), 0)
-  const progressPercent = Math.round((step / (STEPS.length - 1)) * 100)
-  const totalSetupSteps = STEPS.length - 1
-  const progressValue = step === 0 ? 'Introduction' : `Step ${step} of ${totalSetupSteps}`
+  const visibleSteps = useMemo(() => getSetupSteps(form.startingSpace), [form.startingSpace])
+  const clampedStep = Math.min(step, visibleSteps.length - 1)
+  const currentStepKey = visibleSteps[clampedStep] || visibleSteps[visibleSteps.length - 1]
+  const visibleStepDetails = visibleSteps.map(stepKey => ({ key: stepKey, ...STEP_DETAILS[stepKey] }))
+  const progressPercent = Math.round((clampedStep / (visibleSteps.length - 1)) * 100)
+  const totalSetupSteps = visibleSteps.length - 1
+  const progressValue = clampedStep === 0 ? 'Introduction' : `Step ${clampedStep} of ${totalSetupSteps}`
   const startingSpace = SPACE_OPTIONS.find(option => option.id === form.startingSpace) || SPACE_OPTIONS[0]
   const startingSpaceCopy = getStartingSpaceCopy(form.startingSpace)
   const quickStartCount = (form.quickStarts.lakas.enabled ? 1 : 0) + (form.quickStarts.tala.enabled ? 1 : 0)
   const lakasBaseline = getLakasBaseline(form.quickStarts.lakas)
+
+  useEffect(() => {
+    if (step === clampedStep) return
+    setStep(clampedStep)
+  }, [clampedStep, step])
 
   function validateAccountsStep() {
     for (const row of form.accounts.filter(hasAccountContent)) {
@@ -529,10 +544,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
   }
 
   function goNext() {
-    if (step === 3 && !validateAccountsStep()) return
-    if (step === 4 && !validateBillsStep()) return
-    if (step === 5 && !validateQuickStartStep()) return
-    setStep(current => Math.min(current + 1, STEPS.length - 1))
+    if (currentStepKey === 'accounts' && !validateAccountsStep()) return
+    if (currentStepKey === 'bills' && !validateBillsStep()) return
+    if (currentStepKey === 'quickstart' && !validateQuickStartStep()) return
+    setStep(current => Math.min(current + 1, visibleSteps.length - 1))
   }
 
   function goBack() {
@@ -541,12 +556,12 @@ export default function Onboarding({ user, onDone, notice = '' }) {
 
   function skipAccountsStep() {
     setForm(current => ({ ...current, accounts: [createAccountRow()] }))
-    setStep(4)
+    setStep(current => Math.min(current + 1, visibleSteps.length - 1))
   }
 
   function skipBillsStep() {
     setForm(current => ({ ...current, bills: [createBillRow()] }))
-    setStep(5)
+    setStep(current => Math.min(current + 1, visibleSteps.length - 1))
   }
 
   async function handleFinish() {
@@ -673,10 +688,10 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <span style={{ width: `${progressPercent}%` }} />
             </div>
             <div className={styles.progressList}>
-              {STEP_DETAILS.map((item, index) => (
+              {visibleStepDetails.map((item, index) => (
                 <div
-                  key={item.label}
-                  className={`${styles.progressItem} ${index === step ? styles.progressItemActive : ''} ${index < step ? styles.progressItemDone : ''}`}
+                  key={item.key}
+                  className={`${styles.progressItem} ${index === clampedStep ? styles.progressItemActive : ''} ${index < clampedStep ? styles.progressItemDone : ''}`}
                 >
                   <div className={styles.progressIndex}>{index + 1}</div>
                   <div className={styles.progressCopy}>
@@ -743,7 +758,7 @@ export default function Onboarding({ user, onDone, notice = '' }) {
               <span style={{ width: `${progressPercent}%` }} />
             </div>
           </div>
-          {step === 0 && (
+          {currentStepKey === 'welcome' && (
             <div className={`${styles.stepWrap} ${styles.stepWrapWelcome}`}>
               <div className={styles.kicker}>Before you start</div>
               <div className={styles.stepTitle}>{startingSpaceCopy.welcomeTitle(name)}</div>
@@ -828,9 +843,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 1 && (
+          {currentStepKey === 'spaces' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 1 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Where do you want to start?</div>
               <div className={styles.stepSub}>{startingSpaceCopy.stepOneSub}</div>
 
@@ -868,9 +883,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 2 && (
+          {currentStepKey === 'currency' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 2 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Currency</div>
               <div className={styles.stepSub}>Choose the money format Buhay should use in the Takda finance space. You can still log any income or expense manually later.</div>
 
@@ -906,9 +921,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 3 && (
+          {currentStepKey === 'accounts' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 3 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>{startingSpaceCopy.accountsTitle}</div>
               <div className={styles.stepSub}>{startingSpaceCopy.accountsSub}</div>
               <div className={styles.stepHint}>
@@ -967,9 +982,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 4 && (
+          {currentStepKey === 'bills' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 4 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>{startingSpaceCopy.billsTitle}</div>
               <div className={styles.stepSub}>{startingSpaceCopy.billsSub}</div>
               <div className={styles.stepHint}>
@@ -1082,9 +1097,9 @@ export default function Onboarding({ user, onDone, notice = '' }) {
             </div>
           )}
 
-          {step === 5 && (
+          {currentStepKey === 'quickstart' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 5 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>{startingSpaceCopy.quickStartTitle}</div>
               <div className={styles.stepSub}>{startingSpaceCopy.quickStartSub}</div>
 
@@ -1188,16 +1203,16 @@ export default function Onboarding({ user, onDone, notice = '' }) {
                 <button className={styles.btnSkip} onClick={goBack}>← Back</button>
                 <button className={styles.btnSkip} onClick={() => {
                   setForm(current => ({ ...current, quickStarts: createQuickStarts() }))
-                  setStep(6)
+                  setStep(current => Math.min(current + 1, visibleSteps.length - 1))
                 }}>Skip quick starts</button>
                 <button className={styles.btnNext} onClick={goNext}>Review →</button>
               </div>
             </div>
           )}
 
-          {step === 6 && (
+          {currentStepKey === 'review' && (
             <div className={styles.stepWrap}>
-              <div className={styles.kicker}>Step 6 of {totalSetupSteps}</div>
+              <div className={styles.kicker}>Step {clampedStep} of {totalSetupSteps}</div>
               <div className={styles.stepTitle}>Review your starting setup</div>
               <div className={styles.stepSub}>This is what Buhay will save. Currency is required; accounts, bills, Lakas, and Tala preferences are optional and editable later.</div>
 
