@@ -26,14 +26,21 @@
 
 /* CALENDAR HEADER */
 .calHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px; }
-.nav { display: flex; align-items: center; gap: 0.75rem; }
+.nav {
+  display: grid;
+  grid-template-columns: minmax(34px, auto) minmax(0, 1fr) minmax(34px, auto);
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
 .monthJumpWrap {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  width: auto;
+  width: 100%;
+  min-width: 0;
   min-height: 36px;
   padding: 0 2px;
   border: none;
@@ -58,7 +65,7 @@
 .monthJumpWrap:focus-within::after {
   color: var(--accent);
 }
-.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: auto; text-align: center; line-height: 1.05; pointer-events: none; letter-spacing: -0.02em; }
+.monthLabel { font-family: var(--font-display); font-size: 18px; color: var(--text); width: 100%; text-align: center; line-height: 1.05; pointer-events: none; letter-spacing: -0.02em; }
 .monthJumpMeta { display: none; }
 .monthJumpInput {
   position: absolute;
@@ -77,6 +84,8 @@
   cursor: pointer;
 }
 .navBtn { background: linear-gradient(180deg, color-mix(in srgb, var(--glass-2) 52%, var(--surface2) 48%), color-mix(in srgb, var(--surface2) 92%, transparent 8%)); border: 1px solid color-mix(in srgb, var(--glass-border) 60%, var(--border)); color: var(--text2); border-radius: 999px; padding: 0; cursor: pointer; font-size: 15px; min-width: 34px; min-height: 34px; flex-shrink: 0; transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease, transform 0.15s ease; box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 30%, transparent); }
+.navBtn:first-child { justify-self: start; }
+.navBtn:last-child { justify-self: end; }
 .navBtn:hover { border-color: color-mix(in srgb, var(--accent) 24%, var(--glass-border)); color: var(--text); background: linear-gradient(180deg, color-mix(in srgb, var(--glass-3) 42%, var(--surface2) 58%), color-mix(in srgb, var(--surface) 92%, transparent 8%)); transform: translateY(-1px); }
 
 /* ADD BUTTONS */
@@ -761,9 +770,8 @@
     gap: 8px;
   }
   .nav {
-    justify-content: space-between;
-    align-items: center;
     min-height: 44px;
+    gap: 0.25rem;
   }
   .monthLabel {
     font-size: 16px;
